@@ -1,0 +1,35 @@
+// Starter squares for a night out. Players can edit, add or remove these on the Squares page.
+export const DEFAULT_SQUARES = [
+  "Someone orders a Guinness",
+  "Last orders called",
+  "Dog in the pub",
+  "Football on the TV",
+  "Someone spills a drink",
+  "Pub quiz is on",
+  "Crisps shared on the table",
+  "Someone says \"just one more\"",
+  "Round costs over £30",
+  "Jukebox plays a 90s song",
+  "Someone checks the score",
+  "Birthday party in",
+  "Barman knows your name",
+  "Someone loses at pool",
+  "Fruit machine pays out",
+  "Wrong toilet door",
+  "Card machine isn't working",
+  "Someone orders food at the bar",
+  "A stag or hen do walks in",
+  "Someone does a sing-along",
+  "Perfect pint of the black",
+  "Someone arrives late",
+  "Rain starts outside",
+  "Someone buys a round of shots",
+  "Regular in their usual seat",
+  "Asks for the wifi password",
+  "Darts match on",
+  "Someone falls asleep",
+  "Barman rings the bell",
+  "Someone on soft drinks"
+];
+
+export const FREE_SQUARE_LABEL = "Free square";
