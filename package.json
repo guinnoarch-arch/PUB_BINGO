@@ -1,19 +1,29 @@
 {
   "name": "pub-bingo",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
-  "description": "Pub Bingo - a local-first bingo card web app for nights out, with a phone-friendly layout.",
+  "description": "Pub Bingo - find the cheapest pint in Soho, Covent Garden & Holborn, with crowdsourced prices.",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:db": "vitest run --config vitest.db.config.js",
+    "seed:sql": "node scripts/generate-seed-sql.mjs"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.117.0",
     "@vitejs/plugin-react": "^4.3.4",
+    "leaflet": "^1.9.4",
     "qrcode": "^1.5.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-router-dom": "^7.18.4",
     "vite": "^6.0.5"
+  },
+  "devDependencies": {
+    "pg": "^8.23.0",
+    "vitest": "^5.0.1"
   }
 }

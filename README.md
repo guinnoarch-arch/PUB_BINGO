@@ -1,47 +1,98 @@
 # Pub Bingo
 
-A bingo card for nights out. Tap a square when it happens; get a full row, column or diagonal and it's **BINGO!**
+Find the cheapest pint in Soho, Covent Garden & Holborn. Prices come from the community and are shared live with everyone.
 
-Built with the same stack and look as Guinness & Holley Budgeting: React 19 + Vite, installable as a phone app (PWA), and deployable for free on Vercel or Netlify.
+Built with the same stack and look as Guinness & Holley Budgeting: **React + Vite** on **Vercel**, with **Supabase** for the shared Postgres database, accounts, photo storage and live updates. Both are free tiers.
 
-## What's in this first version
+## Features
 
-- **Play** – a 3×3, 4×4 or 5×5 card built at random from your squares, with an optional free centre square. Detects lines and a full house, and highlights winning lines.
-- **Squares** – a starter list of 30 pub squares. Add, edit, remove, or switch squares off.
-- **History** – your last 50 cards are saved when you start a new one.
-- **Settings** – your name, card size, free square, theme (light / dark / match device), install-on-phone help, backup download/restore, and reset.
-- **Header** – dark mode toggle, phone-view toggle, and a QR code to open the app on your phone (like the budgeting app).
+| | |
+|---|---|
+| **Search** | Type a pint ("Guinness", "IPA", "Camden Hells") to see every pub that stocks it, cheapest first. Category chips filter by Lager, IPA, Stout and so on. |
+| **Map** | Leaflet + OpenStreetMap. Pins show the cheapest matching price. Tap the map (or use your location) to search from that point and sort by real walking distance. |
+| **Pub pages** | Address, history, tags, opening year, photos and the full drinks list. Each drink shows its price, category, a **Seed estimate** / **Community** badge and how long ago it was updated. |
+| **Crowdsourced prices** | Signed-in users report a price for a listed drink or add a new one. Every report is kept (with time and reporter) so trends can be shown; the History button on each drink shows them. |
+| **Leaderboard** | Cheapest pint right now across all pubs, with category filter. Halves are ranked by their price per pint. |
+| **Live feed** | The latest community reports, updated live via Supabase Realtime. |
+| **Favourites** | Saved to your account and synced across devices. |
+| **Bingo card** | A 3×3 challenge card. 5 tiles complete automatically (first report, 5 reports, a cheap report, favourites in two areas, a photo); 4 are ticked by you. Progress is saved to your account. |
+| **Photos** | Every pub has a generated illustration. Signed-in users can upload photos (resized, with location data stripped). **Admins can pause uploads per pub** and hide photos. |
+| **Admin** | Pause/resume uploads per pub, hide bad price reports (the drink's price rolls back to the last good report), hide photos. |
 
-## Where data is saved
+## Where data lives
 
-Everything is stored in the **browser on this device only** (`localStorage` key `pub-bingo-data-v1`). There is no account, server or cloud yet. Use Settings → Download backup to move data between devices.
+- **All real data (prices, reports, favourites, bingo progress, photos) is in Supabase**, shared by every visitor.
+- The browser only stores your sign-in session and display preferences (dark mode, phone view).
 
-## Running it
+## Setup (one-off, about 10 minutes)
+
+1. **Create a Supabase project** (free) at supabase.com.
+2. In **SQL Editor**, run `supabase/migrations/0001_init.sql`, then `supabase/seed.sql`.
+3. In **Authentication → Providers**, make sure Email is enabled. Leave "Confirm email" on (recommended).
+4. In **Authentication → URL Configuration**, set the Site URL to your Vercel URL.
+5. In **Vercel**, import this repo and add environment variables from **Project Settings → API** in Supabase:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY` (the **anon / publishable** key, **never** the service-role key)
+   - optional `VITE_PUBLIC_APP_URL` (your live link, for the "Open on phone" QR code)
+6. Deploy. Sign up in the app, then make yourself admin in the Supabase SQL editor:
+   ```sql
+   update public.profiles set is_admin = true where username_normalized = 'your_username';
+   ```
+
+Without the Supabase variables, the app shows a "not connected yet" screen instead of silently using local storage.
+
+## Running locally
 
 ```bash
 npm install
-npm run dev      # local dev server
-npm run build    # production build in dist/
-npm run preview  # serve the production build
+cp .env.example .env.local      # fill in your Supabase URL + anon key
+npm run dev
 ```
 
-## Deploying
+To try the UI **without** a database: `VITE_DEMO_MODE=true npm run dev`. Demo mode uses in-memory seed data that resets on reload, and shows a banner saying so. The demo admin login is `admin` / `password123`. Never enable demo mode in production.
 
-- **Vercel**: import the repo. It detects Vite automatically, and `vercel.json` handles page routing.
-- **Netlify**: `netlify.toml` is already set up (build `npm run build`, publish `dist`).
-- Optional: set `VITE_PUBLIC_APP_URL` to your live link so the "Open on phone" QR code always points there.
+## Tests
+
+```bash
+npm test          # search, sorting, price parsing/validation, leaderboard, distance, bingo, time
+npm run test:db   # runs the real migration + seed on Postgres and checks security rules and the price-report function
+```
+
+`test:db` needs a Postgres server (`DATABASE_URL`, default `postgres://postgres:postgres@localhost:5432/postgres`). GitHub Actions (`.github/workflows/ci.yml`) runs both on every push, and checks that `supabase/seed.sql` matches the seed data.
+
+## How robustness is handled
+
+- **Prices can only be written through `submit_price_report()`** in the database. It checks you're signed in, keeps the price between £1 and £25 (rounded to pence), validates names, categories and measures, blocks re-reporting the same drink within 10 minutes, and limits each user to 20 reports an hour. Browsers have no direct write access to drinks or reports.
+- **Row Level Security** on every table: favourites and bingo progress are private to each user, and only admins can pause uploads or hide content (checked in the database, not just the UI).
+- **Photo uploads** are checked in the database too: only into your own folder, only for pubs that aren't paused, a maximum of 10 a day, 5 MB, JPEG/PNG/WebP only.
+- The form validates everything before sending, and asks for confirmation when a price is more than 50% away from the current one (probably a typo).
+- Loading, empty, error and offline states are shown on every page, and an error boundary stops one broken page taking down the app.
+
+## Seed data
+
+`src/data/seedPubs.js` is the single source: 14 real pubs and 70 drinks. Run `npm run seed:sql` after editing it to regenerate `supabase/seed.sql`.
+- Names and addresses are real. **Coordinates are approximate, and opening years and histories are best-effort and should be checked.** Where the year wasn't known it's left blank.
+- Prices are plausible estimates marked **Seed estimate** until someone reports a real price.
+- The French House traditionally serves halves only, so its drinks are listed per half and ranked by their pint equivalent.
+
+## Known trade-offs / next steps
+
+- **Username sign-in** looks up the email for a username (same approach as the budgeting app), so anyone who knows a username can find its email. Switch to email-only sign-in or an Edge Function if that matters.
+- Search happens in the browser over all pubs, which is fine for dozens of pubs. Move it into Postgres if this grows to hundreds.
+- Price trends: the full history is stored and summarised (low/high/average/change). A chart is an easy next step.
+- More pubs and areas, pub-owner accounts, and report up/down-voting.
 
 ## Project layout
 
 ```
 src/
-  main.jsx                     app state, saving, theme, PWA install/update
-  components/layout/           AppShell (header) and TopNav
-  components/bingo/BingoCard   the grid
-  components/common/           InlineQrCode (from the budgeting app)
-  pages/                       Play, Squares, History, Settings
-  services/storageService.js   localStorage load/save/backup
-  utils/bingo.js               card creation, line/full-house detection
-  data/defaultSquares.js       starter squares
-public/                        manifest, service worker, icons
+  data/seedPubs.js            seed data (single source)
+  lib/core/                   pure logic: search, prices, geo, bingo, time (unit tested)
+  lib/api/                    supabaseApi (real), demoApi (in-memory), error mapping, photo prep
+  lib/AppContext.jsx          session, pubs, favourites, live updates
+  components/                 shell, map, pub illustration, forms, feed
+  pages/                      Find, Pub, Leaderboard, Feed, Favourites, Bingo, Account, Admin
+supabase/migrations/          schema, RLS, functions, storage policies
+supabase/seed.sql             generated seed
+tests/unit, tests/db          Vitest suites
 ```

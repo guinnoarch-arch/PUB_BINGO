@@ -1,7 +1,7 @@
 {
   "name": "Pub Bingo",
   "short_name": "Pub Bingo",
-  "description": "Tap the squares as the night unfolds. Get a line, shout Bingo!",
+  "description": "Find the cheapest pint in Soho, Covent Garden & Holborn, with prices reported by the community.",
   "start_url": "/?source=pwa",
   "scope": "/",
   "id": "/",
@@ -9,7 +9,7 @@
   "background_color": "#f7f4ef",
   "theme_color": "#1f3d2b",
   "orientation": "portrait",
-  "categories": ["games", "entertainment", "lifestyle"],
+  "categories": ["food", "lifestyle", "navigation"],
   "icons": [
     { "src": "/icons/pb-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "/icons/pb-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
@@ -17,6 +17,6 @@
   ],
   "shortcuts": [
     { "name": "Play", "url": "/", "icons": [{ "src": "/icons/pb-icon-192.png", "sizes": "192x192" }] },
-    { "name": "Edit squares", "url": "/?page=squares", "icons": [{ "src": "/icons/pb-icon-192.png", "sizes": "192x192" }] }
+    { "name": "Cheapest pints", "url": "/leaderboard", "icons": [{ "src": "/icons/pb-icon-192.png", "sizes": "192x192" }] }
   ]
 }
