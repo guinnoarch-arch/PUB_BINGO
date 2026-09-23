@@ -60,6 +60,9 @@ beforeAll(async () => {
   await db.connect();
   await db.query(read("tests/db/supabase-stub.sql"));
   await db.query(read("supabase/migrations/0001_init.sql"));
+  await db.query(read("supabase/migrations/0002_pub_admin.sql"));
+  // Migrations must be safe to run twice.
+  await db.query(read("supabase/migrations/0002_pub_admin.sql"));
   await db.query(read("supabase/seed.sql"));
 
   users.alice = await createUser("Alice_1");
@@ -259,5 +262,126 @@ describe("photos and admin controls", () => {
     expect(drink.rows[0]).toEqual({ current_price: "6.60", source: "seed" });
     const visible = await asAnon(() => db.query("select count(*)::int as n from public.price_reports where id = $1", [bad.id]));
     expect(visible.rows[0].n).toBe(0);
+  });
+});
+
+describe("0002: hidden pubs, websites and admin tools", () => {
+  const savePub = (userId, pub) => as(userId, () => db.query("select * from public.admin_save_pub($1)", [pub]).then(r => r.rows[0]));
+  const visibleTo = (userId, sql, params = []) => (userId ? as(userId, () => db.query(sql, params)) : asAnon(() => db.query(sql, params)));
+
+  it("seeds websites, operators and private research notes", async () => {
+    const { rows } = await db.query("select website, drinks_menu_url, operator from public.pubs where id = 'the-harp'");
+    expect(rows[0]).toEqual({ website: "https://www.harpcoventgarden.com/", drinks_menu_url: "https://www.harpcoventgarden.com/drink", operator: "Fuller's" });
+    const notes = await db.query("select count(*)::int as n from public.pub_admin");
+    expect(notes.rows[0].n).toBe(14);
+  });
+
+  it("keeps research notes admin-only", async () => {
+    await expect(asAnon(() => db.query("select * from public.pub_admin"))).rejects.toThrow(/permission denied/);
+    const alice = await as(users.alice, () => db.query("select * from public.pub_admin"));
+    expect(alice.rows).toHaveLength(0);
+    const admin = await as(users.admin, () => db.query("select * from public.pub_admin"));
+    expect(admin.rows).toHaveLength(14);
+  });
+
+  it("lets admins save a hidden pub with limited info", async () => {
+    const pub = await savePub(users.admin, { id: "the-lyric", name: "The Lyric", area: "Soho", is_published: false, tags: ["historic", " "] });
+    expect(pub).toMatchObject({ id: "the-lyric", is_published: false, address: null, lat: null, tags: ["historic"] });
+  });
+
+  it("refuses to publish a pub without an address and map position", async () => {
+    await expect(savePub(users.admin, { id: "the-lyric", name: "The Lyric", area: "Soho", is_published: true }))
+      .rejects.toThrow(/needs an address and a map position/);
+  });
+
+  it("gives friendly errors for bad pub details", async () => {
+    await expect(savePub(users.admin, { id: "Bad Id", name: "X", area: "Soho" })).rejects.toThrow(/lowercase/);
+    await expect(savePub(users.admin, { id: "the-lyric", name: "The Lyric", area: "Soho", website: "lyric.com" })).rejects.toThrow(/http/);
+    await expect(savePub(users.admin, { id: "the-lyric", name: "The Lyric", area: "Soho", lat: "north" })).rejects.toThrow(/must be numbers/);
+  });
+
+  it("only lets admins save pubs", async () => {
+    await expect(savePub(users.alice, { id: "sneaky", name: "Sneaky", area: "Soho", is_published: false })).rejects.toThrow(/Admins only/);
+  });
+
+  it("hides unpublished pubs and their drinks from everyone but admins", async () => {
+    await as(users.admin, () => db.query(
+      "select public.admin_set_drink_price('the-lyric', null, 'Guinness', 'Stout', 'pint', 6.2, 'admin', null, 'checked at the bar')"
+    ));
+    for (const who of [null, users.alice]) {
+      const pubs = await visibleTo(who, "select id from public.pubs where id = 'the-lyric'");
+      const drinks = await visibleTo(who, "select id from public.drinks where pub_id = 'the-lyric'");
+      const reports = await visibleTo(who, "select id from public.price_reports where pub_id = 'the-lyric'");
+      expect([pubs.rows.length, drinks.rows.length, reports.rows.length]).toEqual([0, 0, 0]);
+    }
+    const adminDrinks = await visibleTo(users.admin, "select source from public.drinks where pub_id = 'the-lyric'");
+    expect(adminDrinks.rows).toEqual([{ source: "admin" }]);
+  });
+
+  it("stops the community reporting prices at hidden pubs", async () => {
+    await expect(report(users.alice, { pub: "the-lyric", name: "Guinness", category: "Stout", price: 6 })).rejects.toThrow(/Unknown pub/);
+  });
+
+  it("shows a pub once it's published with full details", async () => {
+    await savePub(users.admin, {
+      id: "the-lyric", name: "The Lyric", area: "Soho", address: "37 Great Windmill Street, London W1D 7LU",
+      lat: 51.5112, lng: -0.1338, is_published: true
+    });
+    const pubs = await asAnon(() => db.query("select id from public.pubs where id = 'the-lyric'"));
+    expect(pubs.rows).toHaveLength(1);
+  });
+
+  it("records website prices with their source link, in the same history", async () => {
+    const id = await drinkId("the-salisbury", "Guinness");
+    await expect(as(users.admin, () => db.query(
+      "select public.admin_set_drink_price('the-salisbury', $1, null, null, null, 6.9, 'website', null, null)", [id]
+    ))).rejects.toThrow(/Add the link/);
+    await as(users.admin, () => db.query(
+      "select public.admin_set_drink_price('the-salisbury', $1, null, null, null, 6.9, 'website', 'https://www.greeneking.co.uk/pubs/greater-london/salisbury/menu', null)", [id]
+    ));
+    const drink = await db.query("select current_price, source, source_url from public.drinks where id = $1", [id]);
+    expect(drink.rows[0]).toEqual({ current_price: "6.90", source: "website", source_url: "https://www.greeneking.co.uk/pubs/greater-london/salisbury/menu" });
+    const history = await db.query("select source from public.price_reports where drink_id = $1 order by reported_at", [id]);
+    expect(history.rows.map(r => r.source)).toEqual(["seed", "website"]);
+  });
+
+  it("clears the website link when the community reports a newer price", async () => {
+    const id = await drinkId("the-salisbury", "Guinness");
+    await report(users.bob, { pub: "the-salisbury", drinkId: id, price: 7.0 });
+    const drink = await db.query("select source, source_url from public.drinks where id = $1", [id]);
+    expect(drink.rows[0]).toEqual({ source: "community", source_url: null });
+  });
+
+  it("only lets admins set, edit or delete drinks and notes", async () => {
+    const id = await drinkId("the-toucan", "Harp Lager");
+    await expect(as(users.alice, () => db.query("select public.admin_set_drink_price('the-toucan', $1, null, null, null, 5, 'admin', null, null)", [id]))).rejects.toThrow(/Admins only/);
+    await expect(as(users.alice, () => db.query("select public.admin_update_drink($1, 'Renamed', 'Lager', 'pint')", [id]))).rejects.toThrow(/Admins only/);
+    await expect(as(users.alice, () => db.query("select public.admin_delete_drink($1)", [id]))).rejects.toThrow(/Admins only/);
+    await expect(as(users.alice, () => db.query("select public.admin_save_pub_admin('the-toucan', 'yes', 'x', true)"))).rejects.toThrow(/Admins only/);
+  });
+
+  it("lets admins edit and delete drinks, and update notes", async () => {
+    const id = await drinkId("the-toucan", "Harp Lager");
+    await as(users.admin, () => db.query("select public.admin_update_drink($1, '  Harp   Lager ', 'Lager', 'pint')", [id]));
+    await expect(as(users.admin, () => db.query("select public.admin_update_drink($1, 'Guinness', 'Stout', 'pint')", [id]))).rejects.toThrow(/already lists/);
+    await as(users.admin, () => db.query("select public.admin_delete_drink($1)", [id]));
+    expect((await db.query("select count(*)::int as n from public.drinks where id = $1", [id])).rows[0].n).toBe(0);
+
+    const { rows } = await as(users.admin, () => db.query("select * from public.admin_save_pub_admin('the-toucan', 'yes', 'Menu checked', true)"));
+    expect(rows[0]).toMatchObject({ prices_online: "yes", notes: "Menu checked" });
+    expect(rows[0].prices_checked_at).toBeInstanceOf(Date);
+    await expect(as(users.admin, () => db.query("select public.admin_save_pub_admin('the-toucan', 'maybe', '', false)"))).rejects.toThrow(/yes, partial, no or unknown/);
+  });
+
+  it("re-running the seed doesn't overwrite admin edits", async () => {
+    await as(users.admin, () => db.query("select public.admin_save_pub($1)", [{
+      id: "the-harp", name: "The Harp", area: "Covent Garden", address: "47 Chandos Place, London WC2N 4HS",
+      lat: 51.50965, lng: -0.12594, is_published: true, website: "https://example.com/harp"
+    }]));
+    await db.query(read("supabase/seed.sql"));
+    const { rows } = await db.query("select website from public.pubs where id = 'the-harp'");
+    expect(rows[0].website).toBe("https://example.com/harp");
+    const notes = await db.query("select notes from public.pub_admin where pub_id = 'the-toucan'");
+    expect(notes.rows[0].notes).toBe("Menu checked");
   });
 });

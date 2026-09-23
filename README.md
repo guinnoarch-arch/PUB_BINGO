@@ -17,7 +17,8 @@ Built with the same stack and look as Guinness & Holley Budgeting: **React + Vit
 | **Favourites** | Saved to your account and synced across devices. |
 | **Bingo card** | A 3×3 challenge card. 5 tiles complete automatically (first report, 5 reports, a cheap report, favourites in two areas, a photo); 4 are ticked by you. Progress is saved to your account. |
 | **Photos** | Every pub has a generated illustration. Signed-in users can upload photos (resized, with location data stripped). **Admins can pause uploads per pub** and hide photos. |
-| **Admin** | Pause/resume uploads per pub, hide bad price reports (the drink's price rolls back to the last good report), hide photos. |
+| **Admin** | A spreadsheet of every pub (drinks, % real prices, last update, website, whether prices are online, operator, missing info), sortable and filterable, with **Download CSV**. Click a pub to edit its details, set prices from its website or an in-person check (with the source saved), keep private research notes, and pause photo uploads. Hide bad price reports (the price rolls back) and photos. |
+| **Hidden pubs** | Admins can add a pub with only a name and area. It stays hidden from the public (enforced in the database) until it has an address and map position and is set Live. |
 
 ## Where data lives
 
@@ -27,7 +28,8 @@ Built with the same stack and look as Guinness & Holley Budgeting: **React + Vit
 ## Setup (one-off, about 10 minutes)
 
 1. **Create a Supabase project** (free) at supabase.com.
-2. In **SQL Editor**, run `supabase/migrations/0001_init.sql`, then `supabase/seed.sql`.
+2. In **SQL Editor**, run `supabase/migrations/0001_init.sql`, then `supabase/migrations/0002_pub_admin.sql`, then `supabase/seed.sql`.
+   - **Already set up before 0002?** Run `0002_pub_admin.sql`, then run `seed.sql` again. It fills in websites and research notes without touching your prices or edits.
 3. In **Authentication → Providers**, make sure Email is enabled. Leave "Confirm email" on (recommended).
 4. In **Authentication → URL Configuration**, set the Site URL to your Vercel URL.
 5. In **Vercel**, import this repo and add environment variables from **Project Settings → API** in Supabase:
@@ -70,10 +72,14 @@ npm run test:db   # runs the real migration + seed on Postgres and checks securi
 
 ## Seed data
 
-`src/data/seedPubs.js` is the single source: 14 real pubs and 70 drinks. Run `npm run seed:sql` after editing it to regenerate `supabase/seed.sql`.
+`src/data/seedPubs.js` is the single source: 14 real pubs and 70 drinks. `src/data/pubResearch.js` holds websites, operators and admin research notes. Run `npm run seed:sql` after editing it to regenerate `supabase/seed.sql`.
 - Names and addresses are real. **Coordinates are approximate, and opening years and histories are best-effort and should be checked.** Where the year wasn't known it's left blank.
 - Prices are plausible estimates marked **Seed estimate** until someone reports a real price.
 - The French House traditionally serves halves only, so its drinks are listed per half and ranked by their pint equivalent.
+
+## Getting real prices
+
+See **[docs/price-accuracy.md](docs/price-accuracy.md)** for the research on each pub (websites, operators, whether menus are online, price leads) and the plan for replacing estimates with real, sourced prices.
 
 ## Known trade-offs / next steps
 
@@ -92,7 +98,8 @@ src/
   lib/AppContext.jsx          session, pubs, favourites, live updates
   components/                 shell, map, pub illustration, forms, feed
   pages/                      Find, Pub, Leaderboard, Feed, Favourites, Bingo, Account, Admin
-supabase/migrations/          schema, RLS, functions, storage policies
+supabase/migrations/          0001 schema, RLS, functions, storage; 0002 hidden pubs, websites, admin tools
+docs/price-accuracy.md        price research and plan
 supabase/seed.sql             generated seed
 tests/unit, tests/db          Vitest suites
 ```

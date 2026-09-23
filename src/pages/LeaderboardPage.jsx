@@ -49,7 +49,7 @@ export default function LeaderboardPage() {
                   <Link to={`/pubs/${row.pub.id}`} className="result-link"><strong>{row.drink.name}</strong> <span className="muted">at {row.pub.name}</span></Link>
                   <span className="result-meta">
                     <span className="category-pill">{row.drink.category}</span>
-                    <SourceBadge source={row.drink.source} />
+                    <SourceBadge source={row.drink.source} url={row.drink.source_url} />
                     <UpdatedAgo value={row.drink.last_updated_at} />
                   </span>
                 </div>

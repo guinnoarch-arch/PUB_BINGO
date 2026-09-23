@@ -151,7 +151,7 @@ export default function FindPage() {
                     </Link>
                     <span className="result-meta">
                       <span className="category-pill">{row.drink.category}</span>
-                      <SourceBadge source={row.drink.source} />
+                      <SourceBadge source={row.drink.source} url={row.drink.source_url} />
                       <UpdatedAgo value={row.drink.last_updated_at} />
                     </span>
                     {row.distance != null && <span className="distance">{formatDistance(row.distance)}</span>}

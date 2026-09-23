@@ -14,7 +14,7 @@ import PhotoSection from "../components/pub/PhotoSection.jsx";
 
 export default function PubPage() {
   const { pubId } = useParams();
-  const { api, changeVersion } = useApp();
+  const { api, changeVersion, isAdmin } = useApp();
   const [pub, setPub] = useState(null);
   const [status, setStatus] = useState("loading");
   const [error, setError] = useState("");
@@ -64,7 +64,13 @@ export default function PubPage() {
 
   return (
     <>
-      <nav className="breadcrumb" aria-label="Breadcrumb"><Link to="/">← All pubs</Link></nav>
+      <nav className="breadcrumb" aria-label="Breadcrumb">
+        <Link to="/">← All pubs</Link>
+        {isAdmin && <Link to={`/admin/pubs/${pub.id}`} className="admin-link">Edit in admin</Link>}
+      </nav>
+      {pub.is_published === false && (
+        <p className="app-banner warning" role="note">This pub is hidden from the public. Only admins can see this page.</p>
+      )}
 
       <section className="card pub-hero">
         <div className="pub-hero-art">
@@ -75,7 +81,8 @@ export default function PubPage() {
         <div className="pub-hero-text">
           <p className="eyebrow">{pub.area}{pub.opened_year ? ` · Est. ${pub.opened_year}` : ""}{age ? ` (${age} years)` : ""}</p>
           <h2 className="pub-name">{pub.name}</h2>
-          <p><a href={mapLink} target="_blank" rel="noreferrer">{pub.address}</a></p>
+          {pub.address && <p>{Number.isFinite(pub.lat) ? <a href={mapLink} target="_blank" rel="noreferrer">{pub.address}</a> : pub.address}</p>}
+          {pub.website && <p><a href={pub.website} target="_blank" rel="noreferrer">Pub website ↗</a></p>}
           <ul className="tag-list" aria-label="Tags">
             {(pub.tags || []).map(tag => <li key={tag} className="tag">{tag}</li>)}
           </ul>
@@ -91,7 +98,7 @@ export default function PubPage() {
         <div className="section-header">
           <h2 id="drinks-heading" className="section-title">Drinks ({drinks.length})</h2>
           <span className="muted small-text">
-            <span className="badge badge-seed">Seed estimate</span> = starting guess · <span className="badge badge-community">Community</span> = reported by a visitor
+            <span className="badge badge-seed">Estimate</span> not yet confirmed · <span className="badge badge-community">Community</span> reported by a visitor · <span className="badge badge-website">Pub website</span> from the pub's site · <span className="badge badge-admin">Verified</span> checked by admin
           </span>
         </div>
         {drinks.length === 0 ? (
@@ -105,7 +112,7 @@ export default function PubPage() {
                     <strong>{drink.name}</strong>
                     <span className="result-meta">
                       <span className="category-pill">{drink.category}</span>
-                      <SourceBadge source={drink.source} />
+                      <SourceBadge source={drink.source} url={drink.source_url} />
                       <UpdatedAgo value={drink.last_updated_at} />
                     </span>
                   </div>

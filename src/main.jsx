@@ -13,6 +13,7 @@ import FavouritesPage from "./pages/FavouritesPage.jsx";
 import BingoPage from "./pages/BingoPage.jsx";
 import AccountPage from "./pages/AccountPage.jsx";
 import AdminPage from "./pages/AdminPage.jsx";
+import AdminPubPage from "./pages/AdminPubPage.jsx";
 import NotFoundPage from "./pages/NotFoundPage.jsx";
 import "./styles/global.css";
 
@@ -82,6 +83,7 @@ function App() {
           <Route path="/bingo" element={<BingoPage />} />
           <Route path="/account" element={<AccountPage />} />
           <Route path="/admin" element={<AdminPage />} />
+          <Route path="/admin/pubs/:pubId" element={<AdminPubPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </ErrorBoundary>

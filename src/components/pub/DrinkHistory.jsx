@@ -51,7 +51,7 @@ export default function DrinkHistory({ drink }) {
         {rows.map(report => (
           <li key={report.id} className={report.is_hidden ? "hidden-report" : ""}>
             <strong>{formatPrice(report.price)}</strong>
-            <SourceBadge source={report.source} />
+            <SourceBadge source={report.source} url={report.source_url} />
             <span className="muted">
               {report.reporter_profile?.username ? `@${report.reporter_profile.username}` : report.source === "seed" ? "starting estimate" : "someone"} · {timeAgo(report.reported_at)}
             </span>

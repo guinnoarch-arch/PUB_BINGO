@@ -1,6 +1,6 @@
 {
   "name": "pub-bingo",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "description": "Pub Bingo - find the cheapest pint in Soho, Covent Garden & Holborn, with crowdsourced prices.",

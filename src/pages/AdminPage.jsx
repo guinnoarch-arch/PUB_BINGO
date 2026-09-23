@@ -1,35 +1,156 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useApp } from "../lib/AppContext.jsx";
 import { friendlyError } from "../lib/api/errors.js";
+import { PRICES_ONLINE_LABELS, adminTotals, filterRows, sortRows, summarisePub, toCsv } from "../lib/core/adminPubs.js";
+import { timeAgo } from "../lib/core/time.js";
 import LiveFeed from "../components/LiveFeed.jsx";
-import { EmptyState, Loading } from "../components/ui/States.jsx";
+import { EmptyState, ErrorState, Loading } from "../components/ui/States.jsx";
+
+const COLUMNS = [
+  ["name", "Pub"],
+  ["published", "Status"],
+  ["drinkCount", "Drinks"],
+  ["verifiedPct", "Real prices"],
+  ["lastPriceUpdate", "Last price update"],
+  ["website", "Website"],
+  ["pricesOnline", "Prices online?"],
+  ["operator", "Operator"],
+  ["missing", "Missing info"]
+];
+
+const FILTERS = [
+  ["all", "All pubs"],
+  ["published", "Live"],
+  ["hidden", "Hidden"],
+  ["needs-prices", "Has estimates"],
+  ["no-website", "No website"]
+];
+
+function downloadCsv(rows) {
+  const blob = new Blob(["﻿" + toCsv(rows)], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `pub-bingo-pubs-${new Date().toISOString().slice(0, 10)}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function PubsTable() {
+  const { api, changeVersion } = useApp();
+  const navigate = useNavigate();
+  const [pubs, setPubs] = useState(null);
+  const [error, setError] = useState("");
+  const [text, setText] = useState("");
+  const [status, setStatus] = useState("all");
+  const [sort, setSort] = useState({ key: "name", direction: "asc" });
+  const [retry, setRetry] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+    api.admin.listPubs()
+      .then(rows => { if (active) { setPubs(rows); setError(""); } })
+      .catch(err => active && setError(friendlyError(err, "Couldn't load pubs.")));
+    return () => { active = false; };
+  }, [api, changeVersion, retry]);
+
+  const allRows = useMemo(() => (pubs || []).map(summarisePub), [pubs]);
+  const rows = useMemo(() => sortRows(filterRows(allRows, { text, status }), sort.key, sort.direction), [allRows, text, status, sort]);
+  const totals = adminTotals(allRows);
+
+  const toggleSort = key => setSort(prev => ({ key, direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc" }));
+
+  if (error) return <ErrorState message={error} onRetry={() => setRetry(r => r + 1)} />;
+  if (!pubs) return <Loading label="Loading pubs…" />;
+
+  return (
+    <>
+      <div className="stat-strip" aria-label="Summary">
+        <div><strong>{totals.pubs}</strong><span>pubs</span></div>
+        <div><strong>{totals.published}</strong><span>live</span></div>
+        <div><strong>{totals.hidden}</strong><span>hidden</span></div>
+        <div><strong>{totals.drinks}</strong><span>drinks</span></div>
+        <div><strong>{totals.verifiedPct}%</strong><span>real prices</span></div>
+        <div><strong>{totals.withWebsite}</strong><span>with website</span></div>
+      </div>
+
+      <div className="admin-toolbar">
+        <label className="sr-only" htmlFor="admin-search">Search pubs</label>
+        <input id="admin-search" type="search" placeholder="Search name, area, operator…" value={text} onChange={e => setText(e.target.value)} />
+        <label className="sr-only" htmlFor="admin-filter">Show</label>
+        <select id="admin-filter" value={status} onChange={e => setStatus(e.target.value)}>
+          {FILTERS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+        </select>
+        <button type="button" className="secondary-button" onClick={() => downloadCsv(rows)}>Download CSV</button>
+        <Link className="primary-button" to="/admin/pubs/new">+ Add pub</Link>
+      </div>
+
+      {rows.length === 0 ? (
+        <EmptyState title="No pubs match">Try a different search or filter.</EmptyState>
+      ) : (
+        <div className="sheet-wrap" role="region" aria-label="Pubs table" tabIndex={0}>
+          <table className="sheet">
+            <thead>
+              <tr>
+                {COLUMNS.map(([key, label]) => (
+                  <th key={key} scope="col" aria-sort={sort.key === key ? (sort.direction === "asc" ? "ascending" : "descending") : "none"}>
+                    <button type="button" onClick={() => toggleSort(key)}>
+                      {label}{sort.key === key ? (sort.direction === "asc" ? " ▲" : " ▼") : ""}
+                    </button>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map(row => (
+                <tr key={row.id} onClick={() => navigate(`/admin/pubs/${row.id}`)} className={row.published ? "" : "row-hidden"}>
+                  <th scope="row">
+                    <Link to={`/admin/pubs/${row.id}`} onClick={e => e.stopPropagation()}>{row.name}</Link>
+                    <span className="muted">{row.area}</span>
+                  </th>
+                  <td><span className={`status-pill ${row.published ? "live" : "hidden"}`}>{row.published ? "Live" : "Hidden"}</span></td>
+                  <td className="num">{row.drinkCount}</td>
+                  <td>
+                    <span className={`meter ${row.verifiedPct >= 75 ? "good" : row.verifiedPct >= 25 ? "mid" : "low"}`} title={`${row.bySource.seed} estimates · ${row.bySource.community} community · ${row.bySource.website} from website · ${row.bySource.admin} checked by admin`}>
+                      {row.verifiedPct}%
+                    </span>
+                    <span className="muted small-text"> {row.verifiedCount}/{row.drinkCount}</span>
+                  </td>
+                  <td>{row.lastPriceUpdate ? timeAgo(row.lastPriceUpdate) : "–"}</td>
+                  <td>
+                    {row.website
+                      ? <a href={row.website} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()}>Yes ↗</a>
+                      : <span className="muted">None</span>}
+                  </td>
+                  <td>
+                    <span className={`prices-online ${row.pricesOnline}`}>{PRICES_ONLINE_LABELS[row.pricesOnline]}</span>
+                    {row.menuUrl && <a className="small-text" href={row.menuUrl} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()}> menu ↗</a>}
+                  </td>
+                  <td>{row.operator || <span className="muted">–</span>}</td>
+                  <td className="small-text">{row.missing.length ? row.missing.join(", ") : <span className="ok-text">Complete</span>}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      <p className="muted small-text">
+        “Real prices” = drinks whose current price came from the community, a pub website or an admin check, rather than a starting estimate. Click a row to see and edit the pub.
+      </p>
+    </>
+  );
+}
 
 export default function AdminPage() {
-  const { api, authReady, isAdmin, pubs, reloadPubs, toast } = useApp();
-  // Optimistic state so the switch responds immediately; rolled back if the request fails.
-  const [pending, setPending] = useState({});
+  const { authReady, isAdmin } = useApp();
+  const [params, setParams] = useSearchParams();
+  const tab = params.get("tab") === "reports" ? "reports" : "pubs";
+  const setTab = useCallback(next => setParams(next === "pubs" ? {} : { tab: next }, { replace: true }), [setParams]);
 
   if (!authReady) return <Loading />;
   if (!isAdmin) {
     return <section className="card"><EmptyState title="Admins only">This page is for Pub Bingo admins. <Link to="/">Back to search</Link></EmptyState></section>;
-  }
-
-  async function setPaused(pub, paused) {
-    setPending(prev => ({ ...prev, [pub.id]: paused }));
-    try {
-      await api.admin.setUploadsPaused(pub.id, paused);
-      toast(`${pub.name}: uploads ${paused ? "paused" : "open"}.`, "success");
-      await reloadPubs({ quiet: true });
-    } catch (error) {
-      toast(friendlyError(error), "error");
-    } finally {
-      setPending(prev => {
-        const next = { ...prev };
-        delete next[pub.id];
-        return next;
-      });
-    }
   }
 
   return (
@@ -37,34 +158,23 @@ export default function AdminPage() {
       <div className="page-title-row">
         <div>
           <p className="eyebrow">Admin</p>
-          <h2>Moderation</h2>
+          <h2>{tab === "pubs" ? "Pubs" : "Price reports"}</h2>
+        </div>
+        <div className="segmented" role="tablist" aria-label="Admin sections">
+          <button type="button" role="tab" aria-selected={tab === "pubs"} className={tab === "pubs" ? "active" : ""} onClick={() => setTab("pubs")}>Pubs</button>
+          <button type="button" role="tab" aria-selected={tab === "reports"} className={tab === "reports" ? "active" : ""} onClick={() => setTab("reports")}>Reports</button>
         </div>
       </div>
 
-      <section className="card" aria-labelledby="uploads-heading">
-        <h2 id="uploads-heading" className="section-title">Photo uploads by pub</h2>
-        <p className="muted small-text">Pause uploads for a pub to stop new photos (for example, while dealing with spam). Existing photos stay up; hide them one by one from the pub's page.</p>
-        <ul className="admin-list">
-          {pubs.map(pub => {
-            const paused = pending[pub.id] ?? Boolean(pub.uploads_paused);
-            return (
-              <li key={pub.id}>
-                <Link to={`/pubs/${pub.id}`}>{pub.name}</Link>
-                <label className="admin-toggle">
-                  <input type="checkbox" checked={paused} disabled={pub.id in pending} onChange={e => setPaused(pub, e.target.checked)} />
-                  {paused ? "Uploads paused" : "Uploads open"}
-                </label>
-              </li>
-            );
-          })}
-        </ul>
-      </section>
-
-      <section className="card" aria-labelledby="reports-heading">
-        <h2 id="reports-heading" className="section-title">Recent price reports</h2>
-        <p className="muted small-text">Hiding a report removes it from public view and resets the drink to its previous visible price.</p>
-        <LiveFeed limit={50} />
-      </section>
+      {tab === "pubs" ? (
+        <section className="card"><PubsTable /></section>
+      ) : (
+        <section className="card" aria-labelledby="reports-heading">
+          <h2 id="reports-heading" className="section-title">Recent price reports</h2>
+          <p className="muted small-text">Hiding a report removes it from public view and puts the drink back to its previous price.</p>
+          <LiveFeed limit={50} />
+        </section>
+      )}
     </>
   );
 }

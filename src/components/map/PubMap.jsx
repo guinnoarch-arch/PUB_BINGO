@@ -39,6 +39,7 @@ export default function PubMap({ pubs, pricesByPub, origin, onPickOrigin, onOpen
     if (!layer) return;
     layer.clearLayers();
     for (const pub of pubs) {
+      if (!Number.isFinite(pub.lat) || !Number.isFinite(pub.lng)) continue;
       const row = pricesByPub?.get(pub.id);
       const dimmed = pricesByPub && !row;
       const pin = document.createElement("div");

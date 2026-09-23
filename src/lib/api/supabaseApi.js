@@ -54,7 +54,8 @@ export function createSupabaseApi(url, anonKey) {
     },
 
     async listPubs() {
-      return unwrap(await supabase.from("pubs").select("*, drinks(*)").order("name"), "Couldn't load pubs.");
+      // Admins can read hidden pubs too, so filter explicitly: the public app only lists published ones.
+      return unwrap(await supabase.from("pubs").select("*, drinks(*)").eq("is_published", true).order("name"), "Couldn't load pubs.");
     },
 
     async getPub(id) {
@@ -68,7 +69,7 @@ export function createSupabaseApi(url, anonKey) {
     async getDrinkHistory(drinkId, limit = 50) {
       return unwrap(await supabase
         .from("price_reports")
-        .select("id, price, measure, note, reported_at, source, is_hidden, reporter_profile:profiles(username)")
+        .select("id, price, measure, note, reported_at, source, source_url, is_hidden, reporter_profile:profiles(username)")
         .eq("drink_id", drinkId)
         .order("reported_at", { ascending: false })
         .limit(limit), "Couldn't load price history.");
@@ -160,6 +161,42 @@ export function createSupabaseApi(url, anonKey) {
     },
 
     admin: {
+      async listPubs() {
+        return unwrap(await supabase
+          .from("pubs")
+          .select("*, drinks(id, name, category, measure, current_price, source, source_url, last_updated_at), pub_admin(*), pub_photos(count)")
+          .order("name"), "Couldn't load pubs.");
+      },
+      async getPub(id) {
+        return unwrap(await supabase.from("pubs").select("*, drinks(*), pub_admin(*)").eq("id", id).maybeSingle(), "Couldn't load this pub.");
+      },
+      async savePub(pub) {
+        return unwrap(await supabase.rpc("admin_save_pub", { p_pub: pub }), "Couldn't save the pub.");
+      },
+      async savePubAdmin(pubId, { pricesOnline, notes, markChecked }) {
+        return unwrap(await supabase.rpc("admin_save_pub_admin", {
+          p_pub_id: pubId, p_prices_online: pricesOnline, p_notes: notes, p_mark_checked: Boolean(markChecked)
+        }), "Couldn't save notes.");
+      },
+      async setDrinkPrice(value) {
+        return unwrap(await supabase.rpc("admin_set_drink_price", {
+          p_pub_id: value.pubId,
+          p_drink_id: value.drinkId || null,
+          p_drink_name: value.drinkName || null,
+          p_category: value.category || null,
+          p_measure: value.measure || null,
+          p_price: value.price,
+          p_source: value.source,
+          p_source_url: value.sourceUrl || null,
+          p_note: value.note || null
+        }), "Couldn't save the price.");
+      },
+      async updateDrink(drinkId, { name, category, measure }) {
+        return unwrap(await supabase.rpc("admin_update_drink", { p_drink_id: drinkId, p_name: name, p_category: category, p_measure: measure }), "Couldn't update the drink.");
+      },
+      async deleteDrink(drinkId) {
+        unwrap(await supabase.rpc("admin_delete_drink", { p_drink_id: drinkId }), "Couldn't delete the drink.");
+      },
       async setUploadsPaused(pubId, paused) {
         unwrap(await supabase.rpc("admin_set_uploads_paused", { p_pub_id: pubId, p_paused: paused }));
       },
