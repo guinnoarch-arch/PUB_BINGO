@@ -7,6 +7,7 @@ export function friendlyError(error, fallback = "Something went wrong. Please tr
   if (/email not confirmed/i.test(message)) return "Please confirm your email first. Check your inbox for the link.";
   if (/user already registered/i.test(message)) return "An account with that email already exists. Try signing in.";
   if (/password should be at least/i.test(message)) return "Password must be at least 8 characters.";
+  if (/invalid path specified in request url/i.test(message)) return "The app's database address is set up wrong. VITE_SUPABASE_URL should be just https://xxxx.supabase.co.";
   if (/rate limit|too many requests/i.test(message)) return "Too many attempts. Please wait a minute and try again.";
   if (/jwt expired|invalid jwt/i.test(message)) return "Your session has expired. Please sign in again.";
   if (/row-level security|permission denied/i.test(message)) return "You don't have permission to do that.";

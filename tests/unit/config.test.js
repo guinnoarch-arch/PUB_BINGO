@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { looksLikeSecretKey } from "../../src/lib/api/index.js";
+import { looksLikeSecretKey, normaliseSupabaseUrl } from "../../src/lib/api/index.js";
 import { friendlyError } from "../../src/lib/api/errors.js";
 
 const jwt = payload => `x.${btoa(JSON.stringify(payload)).replace(/=+$/, "")}.y`;
@@ -11,6 +11,21 @@ describe("looksLikeSecretKey", () => {
     expect(looksLikeSecretKey(jwt({ role: "anon" }))).toBe(false);
     expect(looksLikeSecretKey("sb_publishable_abc")).toBe(false);
     expect(looksLikeSecretKey("not.a.jwt")).toBe(false);
+  });
+});
+
+describe("normaliseSupabaseUrl", () => {
+  it("keeps only the project address", () => {
+    expect(normaliseSupabaseUrl("https://abcd.supabase.co")).toBe("https://abcd.supabase.co");
+    expect(normaliseSupabaseUrl("https://abcd.supabase.co/rest/v1/")).toBe("https://abcd.supabase.co");
+    expect(normaliseSupabaseUrl(" https://abcd.supabase.co/ ")).toBe("https://abcd.supabase.co");
+    expect(normaliseSupabaseUrl("abcd.supabase.co")).toBe("https://abcd.supabase.co");
+    expect(normaliseSupabaseUrl('"https://abcd.supabase.co"')).toBe("https://abcd.supabase.co");
+  });
+
+  it("rejects things that aren't URLs", () => {
+    expect(normaliseSupabaseUrl("")).toBe("");
+    expect(normaliseSupabaseUrl("not a url")).toBe("");
   });
 });
 
