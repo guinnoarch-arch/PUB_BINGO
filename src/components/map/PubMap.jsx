@@ -13,6 +13,7 @@ export default function PubMap({ pubs, pricesByPub, unconfirmedIds, origin, onPi
   const mapRef = useRef(null);
   const markersRef = useRef(null);
   const originRef = useRef(null);
+  const fittedRef = useRef(false);
   const handlersRef = useRef({ onPickOrigin, onOpenPub });
   handlersRef.current = { onPickOrigin, onOpenPub };
 
@@ -72,6 +73,13 @@ export default function PubMap({ pubs, pricesByPub, unconfirmedIds, origin, onPi
       marker.bindPopup(popup);
       marker.on("click", () => marker.openPopup());
       layer.addLayer(marker);
+    }
+    // On first load, zoom to show every pub (the area now reaches up to King's Cross).
+    const points = pubs.filter(p => Number.isFinite(p.lat) && Number.isFinite(p.lng)).map(p => [p.lat, p.lng]);
+    if (!fittedRef.current && points.length > 1 && mapRef.current) {
+      // No animation: an animated zoom still running when the map is removed makes Leaflet throw.
+      mapRef.current.fitBounds(points, { padding: [30, 30], maxZoom: 16, animate: false });
+      fittedRef.current = true;
     }
   }, [pubs, pricesByPub, unconfirmedIds, selectedPubId]);
 

@@ -71,5 +71,15 @@ export const SEED_EVENTS = [
     start_time: "19:30",
     end_time: null,
     source_url: "http://www.thecraftbeerco.com/events"
+  },
+  {
+    pub_id: "the-rocket",
+    title: "Quiz night",
+    category: "quiz",
+    description: "Weekly Monday quiz.",
+    weekdays: [1],
+    start_time: null,
+    end_time: null,
+    source_url: "https://www.therocketeustonroad.co.uk/"
   }
 ];

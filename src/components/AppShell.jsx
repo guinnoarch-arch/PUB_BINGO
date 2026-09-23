@@ -52,7 +52,7 @@ export default function AppShell({ children, theme, onToggleTheme, phoneMode, on
             <span className="brand-icon"><img src="/icons/pb-icon-192.png?v=2" alt="" /></span>
             <span>
               <span className="brand-title">Pub Bingo</span>
-              <span className="brand-subtitle">Cheapest pints in Soho &amp; Covent Garden</span>
+              <span className="brand-subtitle">Cheapest pints in central London</span>
             </span>
           </Link>
           <div className="header-actions">

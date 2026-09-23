@@ -1,10 +1,10 @@
-// Seed dataset: 14 real pubs across Soho, Covent Garden & Holborn.
+// Seed dataset: 15 real pubs across Soho, Covent Garden, Holborn and King's Cross.
 // Names and addresses are real. Coordinates are approximate (street level).
 // Prices are plausible central-London estimates, to be refined by community reports.
 // Opening years and histories are best-effort and should be checked; null = not known yet.
 // This file is the single source of truth: `npm run seed:sql` generates supabase/seed.sql from it.
 
-export const AREAS = ["Soho", "Covent Garden", "Holborn"];
+export const AREAS = ["Soho", "Covent Garden", "Holborn", "King's Cross"];
 
 export const CATEGORIES = ["Lager", "IPA", "Pale Ale", "Real Ale", "Stout", "Cider", "Wheat Beer", "Other"];
 
@@ -292,6 +292,25 @@ export const SEED_PUBS = [
       { name: "Madri Excepcional", category: "Lager", price: 7.4 },
       { name: "Beavertown Neck Oil", category: "Pale Ale", price: 7.5 },
       { name: "Aspall Suffolk Cyder", category: "Cider", price: 7.0 }
+    ]
+  },
+  {
+    id: "the-rocket",
+    name: "The Rocket",
+    address: "120 Euston Road, London NW1 2AL",
+    area: "King's Cross",
+    lat: 51.52808,
+    lng: -0.13052,
+    opened_year: 1899,
+    tags: ["historic", "victorian-interior", "sports-tv", "food", "quiz-night", "live-music", "dog-friendly"],
+    description:
+      "A Grade II listed Victorian corner pub on Euston Road, rebuilt in 1899 for the Cannon Brewery and once called The Rising Sun. Its arched windows wrap around the corner, and it's handy for Euston, King's Cross and St Pancras.",
+    drinks: [
+      { name: "Guinness", category: "Stout", price: 6.9 },
+      { name: "Peroni", category: "Lager", price: 7.2 },
+      { name: "BrewDog Punk IPA", category: "IPA", price: 7.3 },
+      { name: "Magners", category: "Cider", price: 6.8 },
+      { name: "Bulmers Original", category: "Cider", price: 6.7 }
     ]
   }
 ];

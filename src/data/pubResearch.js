@@ -100,5 +100,12 @@ export const PUB_RESEARCH = {
     operator: "Greene King",
     prices_online: "unknown",
     notes: "Greene King per-pub menu page: check for prices. A search summary claimed Guinness £6.45, but this looks mixed up with another pub, so don't trust it. Phone 020 7836 5863."
+  },
+  "the-rocket": {
+    website: "https://www.therocketeustonroad.co.uk/",
+    drinks_menu_url: "https://www.therocketeustonroad.co.uk/drinks",
+    operator: "Mitchells & Butlers",
+    prices_online: "no",
+    notes: "[Sep 2026 research] Added at Archie's request. Drinks page lists Peroni, BrewDog Punk IPA, Guinness, Magners, Bulmers, Rekorderlig, plus 3 regular cask ales (names not found), but NO PRICES, so seed prices are estimates. Deals: meal + drink from £9.50 Mon-Fri 12-6pm (+£1 for alcohol). Monday quiz night (CAMRA). Sky Sports, food, child and dog friendly, regular live entertainment; inapub mentions a garden: check. CHECK MAP PIN: coordinates are approximate (south side of Euston Road). Formerly The Rising Sun / Friar and Firkin; owners per Wikipedia: Mitchells & Butlers."
   }
 };
