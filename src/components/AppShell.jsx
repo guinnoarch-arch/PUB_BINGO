@@ -49,7 +49,7 @@ export default function AppShell({ children, theme, onToggleTheme, phoneMode, on
       <div className="app-fixed-area">
         <header className="app-header">
           <Link to="/" className="brand" aria-label="Pub Bingo home">
-            <span className="brand-icon"><img src="/icons/pb-icon-192.png" alt="" /></span>
+            <span className="brand-icon"><img src="/icons/pb-icon-192.png?v=2" alt="" /></span>
             <span>
               <span className="brand-title">Pub Bingo</span>
               <span className="brand-subtitle">Cheapest pints in Soho &amp; Covent Garden</span>

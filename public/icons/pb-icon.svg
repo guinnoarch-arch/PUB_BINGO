@@ -1,16 +1,43 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <!-- Tulip-shaped stout glass: widest near the top, tapering to the base -->
+    <clipPath id="glass">
+      <path d="M164 80 C150 120 146 170 156 220 C168 300 186 390 194 440 L318 440 C326 390 344 300 356 220 C366 170 362 120 348 80 Z"/>
+    </clipPath>
+    <linearGradient id="stout" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#4a1712"/>
+      <stop offset="0.18" stop-color="#1a0c08"/>
+      <stop offset="0.82" stop-color="#1a0c08"/>
+      <stop offset="1" stop-color="#4a1712"/>
+    </linearGradient>
+    <linearGradient id="head" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#fbf5e6"/>
+      <stop offset="1" stop-color="#e9dcbc"/>
+    </linearGradient>
+  </defs>
   <rect width="512" height="512" rx="112" fill="#1f3d2b"/>
-  <path d="M150 96h212l-22 330a28 28 0 0 1-28 26H200a28 28 0 0 1-28-26Z" fill="#1c1410"/>
-  <path d="M150 96h212l-5 72H155Z" fill="#f3e6c8"/>
-  <g fill="#c8912e">
-    <rect x="186" y="200" width="40" height="40" rx="8"/>
-    <rect x="236" y="200" width="40" height="40" rx="8" fill="#f3e6c8"/>
-    <rect x="286" y="200" width="40" height="40" rx="8"/>
-    <rect x="190" y="252" width="38" height="38" rx="8" fill="#f3e6c8"/>
-    <rect x="237" y="252" width="38" height="38" rx="8"/>
-    <rect x="284" y="252" width="38" height="38" rx="8" fill="#f3e6c8"/>
-    <rect x="194" y="302" width="36" height="36" rx="8"/>
-    <rect x="238" y="302" width="36" height="36" rx="8" fill="#f3e6c8"/>
-    <rect x="282" y="302" width="36" height="36" rx="8"/>
+  <!-- stout -->
+  <g clip-path="url(#glass)">
+    <rect x="140" y="70" width="240" height="380" fill="url(#stout)"/>
+    <!-- creamy head with a soft line where it meets the stout -->
+    <path d="M140 70 H380 V148 Q256 164 140 148 Z" fill="url(#head)"/>
+    <path d="M140 148 Q256 164 380 148" fill="none" stroke="#c9b48a" stroke-width="4" opacity="0.7"/>
+  </g>
+  <!-- domed top of the head -->
+  <ellipse cx="256" cy="81" rx="92" ry="13" fill="#fdf8ec"/>
+  <!-- glass base and highlight -->
+  <path d="M194 440 Q256 450 318 440 L315 456 Q256 466 197 456 Z" fill="#6b5a4e" opacity="0.9"/>
+  <path d="M172 110 C164 160 166 210 176 260" fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round" opacity="0.28"/>
+  <!-- bingo card -->
+  <g>
+    <rect x="189" y="196" width="38" height="38" rx="8" fill="#c8912e"/>
+    <rect x="237" y="196" width="38" height="38" rx="8" fill="#f3e6c8"/>
+    <rect x="285" y="196" width="38" height="38" rx="8" fill="#c8912e"/>
+    <rect x="191" y="244" width="37" height="37" rx="8" fill="#f3e6c8"/>
+    <rect x="237.5" y="244" width="37" height="37" rx="8" fill="#c8912e"/>
+    <rect x="284" y="244" width="37" height="37" rx="8" fill="#f3e6c8"/>
+    <rect x="194" y="291" width="35" height="35" rx="8" fill="#c8912e"/>
+    <rect x="238.5" y="291" width="35" height="35" rx="8" fill="#f3e6c8"/>
+    <rect x="283" y="291" width="35" height="35" rx="8" fill="#c8912e"/>
   </g>
 </svg>

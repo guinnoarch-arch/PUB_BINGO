@@ -1,6 +1,6 @@
 // Bump CACHE_NAME on each release so old files are cleared.
-const CACHE_NAME = "pub-bingo-v0.3.0-static";
-const APP_SHELL = ["/", "/index.html", "/manifest.webmanifest", "/icons/pb-icon-192.png", "/icons/pb-icon-512.png"];
+const CACHE_NAME = "pub-bingo-v0.4.0-static";
+const APP_SHELL = ["/", "/index.html", "/manifest.webmanifest", "/icons/pb-icon-192.png?v=2", "/icons/pb-icon-512.png?v=2"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
