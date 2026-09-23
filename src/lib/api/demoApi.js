@@ -41,6 +41,7 @@ export function createDemoApi() {
   const bingo = [];
   const photos = [];
   const photoUrls = new Map();
+  const menus = [];
   const authListeners = new Set();
   const changeListeners = new Set();
   let session = null;
@@ -301,6 +302,27 @@ export function createDemoApi() {
         }
         Object.assign(drink, { name: clean, category, measure });
         return clone(drink);
+      },
+      async uploadMenu(userId, pubId, file) {
+        requireAdmin();
+        await wait();
+        const path = `${pubId}/${Date.now()}-${file.name || "menu.pdf"}`;
+        // Demo only: the file lives in this tab (viewUrl); prices need an https source link like the real app gives.
+        const row = {
+          id: uid(), pub_id: pubId, storage_path: path, file_name: file.name || "menu.pdf", uploaded_by: userId,
+          uploaded_at: new Date().toISOString(), prices_imported: 0,
+          url: `https://demo.pub-bingo.invalid/menus/${encodeURIComponent(path)}`, viewUrl: URL.createObjectURL(file)
+        };
+        menus.unshift(row);
+        return clone(row);
+      },
+      async listMenus(pubId) {
+        requireAdmin();
+        return clone(menus.filter(m => m.pub_id === pubId));
+      },
+      async markMenuImported(menuId, count) {
+        const menu = menus.find(m => m.id === menuId);
+        if (menu) menu.prices_imported = count;
       },
       async listEvents({ pubId } = {}) {
         requireAdmin();

@@ -485,3 +485,18 @@ textarea { width: 100%; padding: 10px 12px; border-radius: 12px; border: 1px sol
 .app-shell.phone-mode .chip-row.scroll-row { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
 .app-shell.phone-mode .chip-row.scroll-row .chip { flex-shrink: 0; white-space: nowrap; }
 .app-shell.phone-mode .segmented button { padding: 6px 10px; font-size: 0.82rem; }
+
+/* ---------- Menu import ---------- */
+.menu-import { display: grid; gap: 12px; }
+.import-review { display: grid; gap: 10px; }
+.import-sheet { min-width: 820px; }
+.import-sheet tbody tr { cursor: default !important; }
+.import-sheet .row-selected { background: rgba(21, 128, 61, 0.07); }
+.import-sheet .price-input input { width: 90px; min-height: 36px; padding: 6px 8px; }
+.new-drink-fields { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.new-drink-fields input { width: 220px; min-height: 36px; padding: 6px 8px; }
+.new-drink-fields select, .import-sheet td > select { width: auto; min-height: 36px; padding: 6px 8px; }
+.menu-raw { max-width: 280px; }
+.menu-text pre { white-space: pre-wrap; font-size: 0.8rem; max-height: 260px; overflow: auto; background: rgba(var(--primary-rgb), 0.05); padding: 10px; border-radius: 10px; }
+.menu-history ul { list-style: none; padding: 0; margin: 6px 0 0; }
+.menu-history li { padding: 4px 0; }

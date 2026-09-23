@@ -1,4 +1,4 @@
-import { StrictMode, useEffect, useState } from "react";
+import { StrictMode, Suspense, lazy, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import { api, configError } from "./lib/api/index.js";
@@ -13,9 +13,11 @@ import FeedPage from "./pages/FeedPage.jsx";
 import FavouritesPage from "./pages/FavouritesPage.jsx";
 import BingoPage from "./pages/BingoPage.jsx";
 import AccountPage from "./pages/AccountPage.jsx";
-import AdminPage from "./pages/AdminPage.jsx";
-import AdminPubPage from "./pages/AdminPubPage.jsx";
+// Admin screens (and the PDF reader they use) load only when an admin opens them.
+const AdminPage = lazy(() => import("./pages/AdminPage.jsx"));
+const AdminPubPage = lazy(() => import("./pages/AdminPubPage.jsx"));
 import NotFoundPage from "./pages/NotFoundPage.jsx";
+import { Loading } from "./components/ui/States.jsx";
 import "./styles/global.css";
 
 const THEME_KEY = "pub-bingo-theme";
@@ -84,8 +86,8 @@ function App() {
           <Route path="/favourites" element={<FavouritesPage />} />
           <Route path="/bingo" element={<BingoPage />} />
           <Route path="/account" element={<AccountPage />} />
-          <Route path="/admin" element={<AdminPage />} />
-          <Route path="/admin/pubs/:pubId" element={<AdminPubPage />} />
+          <Route path="/admin" element={<Suspense fallback={<Loading />}><AdminPage /></Suspense>} />
+          <Route path="/admin/pubs/:pubId" element={<Suspense fallback={<Loading />}><AdminPubPage /></Suspense>} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </ErrorBoundary>

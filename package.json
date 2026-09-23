@@ -16,6 +16,7 @@
     "@supabase/supabase-js": "^2.117.0",
     "@vitejs/plugin-react": "^4.3.4",
     "leaflet": "^1.9.4",
+    "pdfjs-dist": "^6.3.289",
     "qrcode": "^1.5.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

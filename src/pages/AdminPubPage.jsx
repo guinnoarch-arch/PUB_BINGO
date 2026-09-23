@@ -10,6 +10,7 @@ import { SourceBadge } from "../components/ui/Badges.jsx";
 import { EmptyState, ErrorState, Loading } from "../components/ui/States.jsx";
 import DrinkHistory from "../components/pub/DrinkHistory.jsx";
 import AdminEvents from "../components/events/AdminEvents.jsx";
+import MenuImport from "../components/pub/MenuImport.jsx";
 
 const EMPTY_PUB = {
   id: "", name: "", area: "Soho", address: "", lat: "", lng: "", opened_year: "", tags: [], description: "",
@@ -540,6 +541,11 @@ export default function AdminPubPage() {
               Use “Set price” when you've read a price on the pub's own menu (add the link) or checked it in person. It's saved in the drink's history and shown with a “Pub website” or “Verified” badge.
             </p>
             <DrinksTable pub={pub} onChanged={reload} />
+          </section>
+
+          <section className="card" aria-labelledby="menu-import-heading">
+            <h2 id="menu-import-heading" className="section-title">Import prices from a PDF menu</h2>
+            <MenuImport pub={pub} onImported={reload} />
           </section>
 
           <section className="card" aria-labelledby="events-admin-heading">

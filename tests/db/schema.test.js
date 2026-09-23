@@ -62,9 +62,11 @@ beforeAll(async () => {
   await db.query(read("supabase/migrations/0001_init.sql"));
   await db.query(read("supabase/migrations/0002_pub_admin.sql"));
   await db.query(read("supabase/migrations/0003_events.sql"));
+  await db.query(read("supabase/migrations/0004_menu_uploads.sql"));
   // Migrations must be safe to run twice.
   await db.query(read("supabase/migrations/0002_pub_admin.sql"));
   await db.query(read("supabase/migrations/0003_events.sql"));
+  await db.query(read("supabase/migrations/0004_menu_uploads.sql"));
   await db.query(read("supabase/seed.sql"));
 
   users.alice = await createUser("Alice_1");
@@ -456,5 +458,43 @@ describe("0003: events (What's on)", () => {
     await db.query(read("supabase/migrations/0003_events.sql"));
     const { rows } = await db.query("select notes from public.pub_admin where pub_id = 'the-porterhouse'");
     expect(rows[0].notes.split("[Sep 2026 research]").length - 1).toBe(1);
+  });
+});
+
+describe("0004: menu uploads", () => {
+  const upload = (userId, name) => as(userId, () => db.query(
+    "insert into storage.objects (bucket_id, name, owner_id) values ('menus', $1, $2)", [name, userId]
+  ));
+  const record = (userId, pub, path) => as(userId, () => db.query(
+    "insert into public.menu_uploads (pub_id, storage_path, file_name, uploaded_by) values ($1, $2, 'menu.pdf', $3) returning *", [pub, path, userId]
+  ).then(r => r.rows[0]));
+
+  it("creates a public, PDF-only menus bucket", async () => {
+    const { rows } = await db.query("select public, file_size_limit, allowed_mime_types from storage.buckets where id = 'menus'");
+    expect(rows[0]).toEqual({ public: true, file_size_limit: "10485760", allowed_mime_types: ["application/pdf"] });
+  });
+
+  it("only admins can upload menu files and records", async () => {
+    await expect(upload(users.alice, "the-porterhouse/x.pdf")).rejects.toThrow(/row-level security/);
+    await expect(record(users.alice, "the-porterhouse", "the-porterhouse/x.pdf")).rejects.toThrow(/row-level security/);
+    await upload(users.admin, "the-porterhouse/spring.pdf");
+    const row = await record(users.admin, "the-porterhouse", "the-porterhouse/spring.pdf");
+    expect(row).toMatchObject({ pub_id: "the-porterhouse", prices_imported: 0, uploaded_by: users.admin });
+  });
+
+  it("keeps the upload list admin-only", async () => {
+    await expect(asAnon(() => db.query("select * from public.menu_uploads"))).rejects.toThrow(/permission denied/);
+    expect((await as(users.alice, () => db.query("select * from public.menu_uploads"))).rows).toHaveLength(0);
+    expect((await as(users.admin, () => db.query("select * from public.menu_uploads"))).rows).toHaveLength(1);
+  });
+
+  it("files must live in the pub's own folder", async () => {
+    await expect(record(users.admin, "the-harp", "the-porterhouse/other.pdf")).rejects.toThrow(/check constraint/);
+  });
+
+  it("admins can record how many prices were imported", async () => {
+    await as(users.admin, () => db.query("update public.menu_uploads set prices_imported = 4 where storage_path = 'the-porterhouse/spring.pdf'"));
+    const { rows } = await db.query("select prices_imported from public.menu_uploads where storage_path = 'the-porterhouse/spring.pdf'");
+    expect(rows[0].prices_imported).toBe(4);
   });
 });

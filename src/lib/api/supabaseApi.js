@@ -202,6 +202,26 @@ export function createSupabaseApi(url, anonKey) {
       async updateDrink(drinkId, { name, category, measure }) {
         return unwrap(await supabase.rpc("admin_update_drink", { p_drink_id: drinkId, p_name: name, p_category: category, p_measure: measure }), "Couldn't update the drink.");
       },
+      async uploadMenu(userId, pubId, file) {
+        const safe = String(file.name || "menu.pdf").replace(/[^A-Za-z0-9._-]+/g, "-").slice(-80);
+        const path = `${pubId}/${Date.now()}-${safe.endsWith(".pdf") ? safe : `${safe}.pdf`}`;
+        unwrap(await supabase.storage.from("menus").upload(path, file, { contentType: "application/pdf", upsert: false }), "Couldn't upload the menu.");
+        const { data, error } = await supabase.from("menu_uploads")
+          .insert({ pub_id: pubId, storage_path: path, file_name: String(file.name || "menu.pdf").slice(0, 200), uploaded_by: userId })
+          .select().single();
+        if (error) {
+          await supabase.storage.from("menus").remove([path]);
+          throw new ApiError(error, "Couldn't save the menu.");
+        }
+        return { ...data, url: supabase.storage.from("menus").getPublicUrl(path).data.publicUrl };
+      },
+      async listMenus(pubId) {
+        const rows = unwrap(await supabase.from("menu_uploads").select("*").eq("pub_id", pubId).order("uploaded_at", { ascending: false }), "Couldn't load menus.");
+        return rows.map(r => ({ ...r, url: supabase.storage.from("menus").getPublicUrl(r.storage_path).data.publicUrl }));
+      },
+      async markMenuImported(menuId, count) {
+        unwrap(await supabase.from("menu_uploads").update({ prices_imported: count }).eq("id", menuId));
+      },
       async listEvents({ pubId } = {}) {
         let query = supabase.from("events").select("*").order("title");
         if (pubId) query = query.eq("pub_id", pubId);

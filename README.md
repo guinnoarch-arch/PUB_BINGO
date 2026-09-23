@@ -19,6 +19,7 @@ Built with the same stack and look as Guinness & Holley Budgeting: **React + Vit
 | **Photos** | Every pub has a generated illustration. Signed-in users can upload photos (resized, with location data stripped). **Admins can pause uploads per pub** and hide photos. |
 | **Admin** | A spreadsheet of every pub (drinks, % real prices, last update, website, whether prices are online, operator, missing info), sortable and filterable, with **Download CSV**. Click a pub to edit its details, set prices from its website or an in-person check (with the source saved), keep private research notes, and pause photo uploads. Hide bad price reports (the price rolls back) and photos. |
 | **What's on** | Search pubs by feature (beer garden, sport on TV, live music, quiz, comedy, dog friendly…) and see events for tonight, tomorrow, the weekend or the next 7 days, filtered by type. Weekly events (e.g. quiz every Wednesday) and one-off events (e.g. a match screening) are supported, always in London time. Each pub page shows "What's on here". Admins add, edit and publish events; events found by web research start as "Needs checking". |
+| **PDF menu import** | Admin → pub → "Import prices from a PDF menu": upload the pub's menu, the app reads the prices, matches them to the pub's drinks (or suggests new ones), and you tick which to save. Saved prices get a "Pub website" badge linking to the stored PDF. Scanned or photo menus have no text to read, so enter those by hand (or send them to Claude). |
 | **Hidden pubs** | Admins can add a pub with only a name and area. It stays hidden from the public (enforced in the database) until it has an address and map position and is set Live. |
 
 ## Where data lives
@@ -29,7 +30,7 @@ Built with the same stack and look as Guinness & Holley Budgeting: **React + Vit
 ## Setup (one-off, about 10 minutes)
 
 1. **Create a Supabase project** (free) at supabase.com.
-2. In **SQL Editor**, run the migrations in order (`supabase/migrations/0001_init.sql`, `0002_pub_admin.sql`, `0003_events.sql`), then `supabase/seed.sql`.
+2. In **SQL Editor**, run the migrations in order (`supabase/migrations/0001_init.sql`, `0002_pub_admin.sql`, `0003_events.sql`, `0004_menu_uploads.sql`), then `supabase/seed.sql`.
    - **Already set up?** Run any migrations you haven't run yet, in order, then run `seed.sql` again. It only adds missing things (websites, notes, researched events) and never overwrites your prices or edits.
 3. In **Authentication → Providers**, make sure Email is enabled. Leave "Confirm email" on (recommended).
 4. In **Authentication → URL Configuration**, set the Site URL to your Vercel URL.
@@ -99,7 +100,7 @@ src/
   lib/AppContext.jsx          session, pubs, favourites, live updates
   components/                 shell, map, pub illustration, forms, feed
   pages/                      Find, Pub, Leaderboard, Feed, Favourites, Bingo, Account, Admin
-supabase/migrations/          0001 schema, RLS, functions, storage; 0002 hidden pubs, websites, admin tools; 0003 events
+supabase/migrations/          0001 schema, RLS, functions, storage; 0002 hidden pubs, websites, admin tools; 0003 events; 0004 PDF menu uploads
 docs/price-accuracy.md        price research and plan
 supabase/seed.sql             generated seed
 tests/unit, tests/db          Vitest suites
