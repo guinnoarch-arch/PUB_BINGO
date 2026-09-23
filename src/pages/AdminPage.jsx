@@ -15,6 +15,7 @@ const COLUMNS = [
   ["lastPriceUpdate", "Last price update"],
   ["website", "Website"],
   ["pricesOnline", "Prices online?"],
+  ["eventCount", "Events"],
   ["operator", "Operator"],
   ["missing", "Missing info"]
 ];
@@ -24,7 +25,8 @@ const FILTERS = [
   ["published", "Live"],
   ["hidden", "Hidden"],
   ["needs-prices", "Has estimates"],
-  ["no-website", "No website"]
+  ["no-website", "No website"],
+  ["events-to-check", "Events to check"]
 ];
 
 function downloadCsv(rows) {
@@ -126,6 +128,10 @@ function PubsTable() {
                   <td>
                     <span className={`prices-online ${row.pricesOnline}`}>{PRICES_ONLINE_LABELS[row.pricesOnline]}</span>
                     {row.menuUrl && <a className="small-text" href={row.menuUrl} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()}> menu ↗</a>}
+                  </td>
+                  <td className="num">
+                    {row.eventCount}
+                    {row.eventsToCheck > 0 && <span className="to-check" title="Events waiting to be checked and published"> +{row.eventsToCheck} to check</span>}
                   </td>
                   <td>{row.operator || <span className="muted">–</span>}</td>
                   <td className="small-text">{row.missing.length ? row.missing.join(", ") : <span className="ok-text">Complete</span>}</td>

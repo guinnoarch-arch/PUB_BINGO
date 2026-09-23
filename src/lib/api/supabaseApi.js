@@ -66,6 +66,13 @@ export function createSupabaseApi(url, anonKey) {
         .maybeSingle(), "Couldn't load this pub.");
     },
 
+    // Published events only (admins can read unpublished ones too, so filter explicitly).
+    async listEvents({ pubId } = {}) {
+      let query = supabase.from("events").select("*").eq("is_published", true);
+      if (pubId) query = query.eq("pub_id", pubId);
+      return unwrap(await query, "Couldn't load what's on.");
+    },
+
     async getDrinkHistory(drinkId, limit = 50) {
       return unwrap(await supabase
         .from("price_reports")
@@ -102,6 +109,7 @@ export function createSupabaseApi(url, anonKey) {
         .channel("pub-bingo-live")
         .on("postgres_changes", { event: "*", schema: "public", table: "price_reports" }, payload => callback({ table: "price_reports", payload }))
         .on("postgres_changes", { event: "*", schema: "public", table: "drinks" }, payload => callback({ table: "drinks", payload }))
+        .on("postgres_changes", { event: "*", schema: "public", table: "events" }, payload => callback({ table: "events", payload }))
         .subscribe(status => callback({ status }));
       return () => { supabase.removeChannel(channel); };
     },
@@ -164,7 +172,7 @@ export function createSupabaseApi(url, anonKey) {
       async listPubs() {
         return unwrap(await supabase
           .from("pubs")
-          .select("*, drinks(id, name, category, measure, current_price, source, source_url, last_updated_at), pub_admin(*), pub_photos(count)")
+          .select("*, drinks(id, name, category, measure, current_price, source, source_url, last_updated_at), pub_admin(*), pub_photos(count), events(id, is_published)")
           .order("name"), "Couldn't load pubs.");
       },
       async getPub(id) {
@@ -193,6 +201,17 @@ export function createSupabaseApi(url, anonKey) {
       },
       async updateDrink(drinkId, { name, category, measure }) {
         return unwrap(await supabase.rpc("admin_update_drink", { p_drink_id: drinkId, p_name: name, p_category: category, p_measure: measure }), "Couldn't update the drink.");
+      },
+      async listEvents({ pubId } = {}) {
+        let query = supabase.from("events").select("*").order("title");
+        if (pubId) query = query.eq("pub_id", pubId);
+        return unwrap(await query, "Couldn't load events.");
+      },
+      async saveEvent(event) {
+        return unwrap(await supabase.rpc("admin_save_event", { p_event: event }), "Couldn't save the event.");
+      },
+      async deleteEvent(eventId) {
+        unwrap(await supabase.rpc("admin_delete_event", { p_event_id: eventId }), "Couldn't delete the event.");
       },
       async deleteDrink(drinkId) {
         unwrap(await supabase.rpc("admin_delete_drink", { p_drink_id: drinkId }), "Couldn't delete the drink.");

@@ -22,7 +22,7 @@ export const PUB_RESEARCH = {
     drinks_menu_url: "https://www.coachandhorsessoho.pub/drink",
     operator: "Greene King",
     prices_online: "unknown",
-    notes: "Also listed at greeneking.co.uk/pubs/greater-london/coach-and-horses-soho. LEAD (unverified, date unknown): pint-prices.com lists Amstel at £5.70 (https://www.pint-prices.com/pub/29%20Greek%20St,%20London%20W1D%205DH/The%20Coach%20&%20Horses). Seed drink list is a guess: check the /drink page. Phone 020 7437 5920."
+    notes: "[Sep 2026 research] OWNER UNCLEAR: some sources say Greene King, another says Fuller's; check. Piano sing-along Wed & Sat (since 1988). Also listed at greeneking.co.uk/pubs/greater-london/coach-and-horses-soho. LEAD (unverified, date unknown): pint-prices.com lists Amstel at £5.70 (https://www.pint-prices.com/pub/29%20Greek%20St,%20London%20W1D%205DH/The%20Coach%20&%20Horses). Seed drink list is a guess: check the /drink page. Phone 020 7437 5920."
   },
   "the-blue-posts-berwick-street": {
     website: "https://www.theblueposts.net/",
@@ -50,7 +50,7 @@ export const PUB_RESEARCH = {
     drinks_menu_url: "https://untappd.com/v/the-craft-beer-co/1608850/beers",
     operator: "The Craft Beer Co.",
     prices_online: "partial",
-    notes: "Brands this site as 'Covent Garden' though it is on High Holborn. ~15 cask + 30 keg lines that rotate constantly, so fixed drink lists go stale fast; Untappd shows the live beer list (prices sometimes). LEAD (review, date unknown): ~£7.70 a pint, specials much more. coventgarden@thecraftbeerco.com, 020 7836 5485."
+    notes: "Events page: http://www.thecraftbeerco.com/events (weekly quiz Wed 8pm, open mic Fri 7:30pm, tap takeovers). Brands this site as 'Covent Garden' though it is on High Holborn. ~15 cask + 30 keg lines that rotate constantly, so fixed drink lists go stale fast; Untappd shows the live beer list (prices sometimes). LEAD (review, date unknown): ~£7.70 a pint, specials much more. coventgarden@thecraftbeerco.com, 020 7836 5485."
   },
   "the-cross-keys": {
     website: null,
@@ -82,10 +82,10 @@ export const PUB_RESEARCH = {
   },
   "the-porterhouse": {
     website: "https://porterhouse.london/",
-    drinks_menu_url: null,
+    drinks_menu_url: "https://porterhouse.london/wp-content/uploads/2026/04/QR-Code-Drinks-Menu-Spring-2026-Version-2.pdf",
     operator: "Porterhouse Brewing Co.",
-    prices_online: "unknown",
-    notes: "30+ taps including Porterhouse's own beers. Also porterhousebrewco.com. Phone 020 7379 7917."
+    prices_online: "yes",
+    notes: "[Sep 2026 research] Publishes PDF drinks menus WITH PRICES. Current menu: 'QR Code Drinks Menu Spring 2026 Version 2' (https://porterhouse.london/wp-content/uploads/2026/04/QR-Code-Drinks-Menu-Spring-2026-Version-2.pdf), found by Archie; its prices still need entering. Older menus for comparison: Oct 2024 Temple Lager £6.60, Yippy IPA £6.80, Oyster Stout £6.80, Budvar £6.90 a pint; halves £3.10-£3.65. Our seed drinks (Plain Porter, Hop Head, Stonewell Cider) may not be on the current menu. Events page: https://porterhouse.london/events/ (live music Thu-Sat, Irish session Sun afternoons). 18 screens for sport, especially rugby; listed on Fanzo: https://www.fanzo.com/en/bar/248658/the-porterhouse. 30+ taps. Phone 020 7379 7917."
   },
   "the-punch-and-judy": {
     website: "https://www.greeneking.co.uk/pubs/greater-london/punch-and-judy",

@@ -32,13 +32,15 @@ export default function AppShell({ children, theme, onToggleTheme, phoneMode, on
   const url = shareUrl();
   const isLocal = ["localhost", "127.0.0.1"].includes(window.location.hostname);
 
+  // [path, label, short label for phone view]
   const nav = [
-    ["/", "Find"],
-    ["/leaderboard", "Leaderboard"],
-    ["/feed", "Feed"],
-    ["/bingo", "Bingo"],
-    ["/favourites", "Favourites"],
-    ...(isAdmin ? [["/admin", "Admin"]] : [])
+    ["/", "Find", "Find"],
+    ["/whats-on", "What's on", "What's on"],
+    ["/leaderboard", "Leaderboard", "Top"],
+    ["/feed", "Feed", "Feed"],
+    ["/bingo", "Bingo", "Bingo"],
+    ["/favourites", "Favourites", "Saved"],
+    ...(isAdmin ? [["/admin", "Admin", "Admin"]] : [])
   ];
 
   return (
@@ -85,9 +87,9 @@ export default function AppShell({ children, theme, onToggleTheme, phoneMode, on
         {!isOnline && <div className="app-banner warning" role="status">You're offline. Showing the last loaded prices.</div>}
 
         <nav className="top-nav" aria-label="Main">
-          {nav.map(([to, label]) => (
+          {nav.map(([to, label, short]) => (
             <NavLink key={to} to={to} end={to === "/"} className={({ isActive }) => `nav-item ${isActive ? "active" : ""} ${to === "/admin" ? "nav-item-admin" : ""}`}>
-              {label}
+              {phoneMode && short !== label ? <><span aria-hidden="true">{short}</span><span className="sr-only">{label}</span></> : label}
             </NavLink>
           ))}
         </nav>

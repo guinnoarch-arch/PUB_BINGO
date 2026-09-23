@@ -11,6 +11,7 @@ import PubIllustration from "../components/pub/PubIllustration.jsx";
 import ReportPriceForm from "../components/pub/ReportPriceForm.jsx";
 import DrinkHistory from "../components/pub/DrinkHistory.jsx";
 import PhotoSection from "../components/pub/PhotoSection.jsx";
+import PubWhatsOn from "../components/events/PubWhatsOn.jsx";
 
 export default function PubPage() {
   const { pubId } = useParams();
@@ -101,6 +102,8 @@ export default function PubPage() {
           </div>
         </div>
       </section>
+
+      <PubWhatsOn pub={pub} />
 
       <section className="card" aria-labelledby="drinks-heading">
         <div className="section-header">

@@ -50,6 +50,8 @@ export function summarisePub(pub) {
     pricesCheckedAt: admin.prices_checked_at || null,
     notes: admin.notes || "",
     uploadsPaused: Boolean(pub.uploads_paused),
+    eventCount: (pub.events || []).filter(e => e.is_published).length,
+    eventsToCheck: (pub.events || []).filter(e => !e.is_published).length,
     photoCount,
     missing: missingInfo(pub)
   };
@@ -65,7 +67,8 @@ const COMPARE = {
   website: (a, b) => Number(Boolean(b.website)) - Number(Boolean(a.website)),
   pricesOnline: (a, b) => ["yes", "partial", "unknown", "no"].indexOf(a.pricesOnline) - ["yes", "partial", "unknown", "no"].indexOf(b.pricesOnline),
   operator: (a, b) => a.operator.localeCompare(b.operator),
-  missing: (a, b) => a.missing.length - b.missing.length
+  missing: (a, b) => a.missing.length - b.missing.length,
+  eventCount: (a, b) => a.eventCount - b.eventCount || a.eventsToCheck - b.eventsToCheck
 };
 
 export function sortRows(rows, key = "name", direction = "asc") {
@@ -74,7 +77,7 @@ export function sortRows(rows, key = "name", direction = "asc") {
   return direction === "desc" ? sorted.reverse() : sorted;
 }
 
-// status: all | published | hidden | needs-prices (has seed estimates) | no-website
+// status: all | published | hidden | needs-prices (has seed estimates) | no-website | events-to-check
 export function filterRows(rows, { text = "", status = "all" } = {}) {
   const needle = text.trim().toLowerCase();
   return rows.filter(row => {
@@ -83,6 +86,7 @@ export function filterRows(rows, { text = "", status = "all" } = {}) {
     if (status === "hidden") return !row.published;
     if (status === "needs-prices") return row.bySource.seed > 0 || row.drinkCount === 0;
     if (status === "no-website") return !row.website;
+    if (status === "events-to-check") return row.eventsToCheck > 0;
     return true;
   });
 }
@@ -127,6 +131,8 @@ const CSV_COLUMNS = [
   ["Prices last checked", r => (r.pricesCheckedAt ? r.pricesCheckedAt.slice(0, 10) : "")],
   ["Operator", r => r.operator],
   ["Missing info", r => r.missing.join("; ")],
+  ["Events live", r => r.eventCount],
+  ["Events to check", r => r.eventsToCheck],
   ["Photo uploads", r => (r.uploadsPaused ? "Paused" : "Open")],
   ["Notes", r => r.notes]
 ];

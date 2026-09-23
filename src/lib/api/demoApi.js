@@ -3,6 +3,8 @@
 // but nothing is shared or saved: a page reload starts again from the seed data.
 import { SEED_PUBS } from "../../data/seedPubs.js";
 import { PUB_RESEARCH } from "../../data/pubResearch.js";
+import { SEED_EVENTS } from "../../data/seedEvents.js";
+import { EVENT_CATEGORIES } from "../../data/features.js";
 import { validatePriceReport } from "../core/prices.js";
 import { normaliseText } from "../core/search.js";
 import { preparePhoto } from "./photos.js";
@@ -27,6 +29,10 @@ export function createDemoApi() {
     const drink = { id: uid(), pub_id: pub.id, name: d.name, category: d.category, measure: d.measure || "pint", current_price: d.price, source: "seed", last_updated_at: updated };
     drinks.push(drink);
     reports.push({ id: uid(), pub_id: pub.id, drink_id: drink.id, drink_name: d.name, category: d.category, measure: drink.measure, price: d.price, note: null, reported_at: updated, reporter: null, source: "seed", is_hidden: false });
+  }));
+
+  const events = SEED_EVENTS.map(e => ({
+    id: uid(), schedule: "weekly", event_date: null, source: "research", is_published: false, checked_at: null, ...e
   }));
 
   // One demo admin account so the admin screens can be tried out.
@@ -103,6 +109,11 @@ export function createDemoApi() {
         drinks: drinks.filter(d => d.pub_id === id),
         pub_photos: photos.filter(p => p.pub_id === id && (!p.is_hidden || admin))
       });
+    },
+
+    async listEvents({ pubId } = {}) {
+      await wait(60);
+      return clone(events.filter(e => e.is_published && visible(e.pub_id) && (!pubId || e.pub_id === pubId)));
     },
 
     async getDrinkHistory(drinkId) {
@@ -198,7 +209,8 @@ export function createDemoApi() {
           ...pub,
           drinks: drinks.filter(d => d.pub_id === pub.id),
           pub_admin: pubAdmin.get(pub.id) || null,
-          pub_photos: [{ count: photos.filter(p => p.pub_id === pub.id).length }]
+          pub_photos: [{ count: photos.filter(p => p.pub_id === pub.id).length }],
+          events: events.filter(e => e.pub_id === pub.id).map(e => ({ id: e.id, is_published: e.is_published }))
         })).sort((a, b) => a.name.localeCompare(b.name)));
       },
       async getPub(id) {
@@ -289,6 +301,46 @@ export function createDemoApi() {
         }
         Object.assign(drink, { name: clean, category, measure });
         return clone(drink);
+      },
+      async listEvents({ pubId } = {}) {
+        requireAdmin();
+        return clone(events.filter(e => !pubId || e.pub_id === pubId).sort((a, b) => a.title.localeCompare(b.title)));
+      },
+      async saveEvent(input) {
+        requireAdmin();
+        await wait();
+        const title = String(input.title || "").trim();
+        const days = [...new Set((input.weekdays || []).map(Number))].sort();
+        if (title.length < 2 || title.length > 100) fail("Event title must be 2-100 characters");
+        if (!EVENT_CATEGORIES.some(c => c.key === input.category)) fail("Pick an event type");
+        if (!pubs.some(p => p.id === input.pub_id)) fail("Unknown pub");
+        if (input.schedule === "weekly" && (!days.length || days.some(d => d < 0 || d > 6))) fail("Pick at least one day of the week");
+        if (input.schedule === "one-off" && !input.event_date) fail("Pick a date for a one-off event");
+        if (input.source_url && !/^https?:\/\/\S+$/.test(input.source_url)) fail("Link must start with http:// or https://");
+        if (events.some(e => e.pub_id === input.pub_id && e.title === title && e.id !== input.id)) fail("This pub already has an event with that title");
+        const row = {
+          pub_id: input.pub_id, title, category: input.category, description: input.description || "", schedule: input.schedule,
+          weekdays: input.schedule === "weekly" ? days : [], event_date: input.schedule === "one-off" ? input.event_date : null,
+          start_time: input.start_time || null, end_time: input.end_time || null,
+          source_url: input.source_url || null, is_published: Boolean(input.is_published)
+        };
+        let saved = input.id ? events.find(e => e.id === input.id) : null;
+        if (input.id && !saved) fail("Event not found");
+        if (saved) {
+          if (row.is_published && !saved.is_published) row.checked_at = new Date().toISOString();
+          Object.assign(saved, row);
+        } else {
+          saved = { id: uid(), source: input.source || "admin", checked_at: row.is_published ? new Date().toISOString() : null, ...row };
+          events.push(saved);
+        }
+        emit({ table: "events", payload: {} });
+        return clone(saved);
+      },
+      async deleteEvent(eventId) {
+        requireAdmin();
+        const index = events.findIndex(e => e.id === eventId);
+        if (index !== -1) events.splice(index, 1);
+        emit({ table: "events", payload: {} });
       },
       async deleteDrink(drinkId) {
         requireAdmin();

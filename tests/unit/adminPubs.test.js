@@ -92,3 +92,14 @@ describe("toCsv", () => {
     expect(csv.slice(1).join("\r\n")).toContain(`"'=HYPERLINK(bad)\nline 2"`);
   });
 });
+
+describe("events in the admin table", () => {
+  it("counts live events and ones waiting to be checked, and filters on them", () => {
+    const withEvents = summarisePub(pub({ events: [{ is_published: true }, { is_published: false }, { is_published: false }] }));
+    const without = summarisePub(pub({ id: "z", name: "Zed" }));
+    expect(withEvents).toMatchObject({ eventCount: 1, eventsToCheck: 2 });
+    expect(without).toMatchObject({ eventCount: 0, eventsToCheck: 0 });
+    expect(filterRows([withEvents, without], { status: "events-to-check" })).toHaveLength(1);
+    expect(sortRows([withEvents, without], "eventCount", "desc")[0].eventCount).toBe(1);
+  });
+});

@@ -9,6 +9,7 @@ import { timeAgo } from "../lib/core/time.js";
 import { SourceBadge } from "../components/ui/Badges.jsx";
 import { EmptyState, ErrorState, Loading } from "../components/ui/States.jsx";
 import DrinkHistory from "../components/pub/DrinkHistory.jsx";
+import AdminEvents from "../components/events/AdminEvents.jsx";
 
 const EMPTY_PUB = {
   id: "", name: "", area: "Soho", address: "", lat: "", lng: "", opened_year: "", tags: [], description: "",
@@ -539,6 +540,12 @@ export default function AdminPubPage() {
               Use “Set price” when you've read a price on the pub's own menu (add the link) or checked it in person. It's saved in the drink's history and shown with a “Pub website” or “Verified” badge.
             </p>
             <DrinksTable pub={pub} onChanged={reload} />
+          </section>
+
+          <section className="card" aria-labelledby="events-admin-heading">
+            <h2 id="events-admin-heading" className="section-title">What's on (events)</h2>
+            <p className="muted small-text">Events found by web research start as “Needs checking”. Check the source, fix the details if needed, then publish. Features like beer garden or sport on TV are the tags in Pub details above.</p>
+            <AdminEvents pub={pub} />
           </section>
 
           <section className="card" aria-labelledby="research-heading">

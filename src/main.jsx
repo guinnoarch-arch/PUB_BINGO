@@ -6,6 +6,7 @@ import { AppProvider } from "./lib/AppContext.jsx";
 import AppShell from "./components/AppShell.jsx";
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
 import FindPage from "./pages/FindPage.jsx";
+import WhatsOnPage from "./pages/WhatsOnPage.jsx";
 import PubPage from "./pages/PubPage.jsx";
 import LeaderboardPage from "./pages/LeaderboardPage.jsx";
 import FeedPage from "./pages/FeedPage.jsx";
@@ -77,6 +78,7 @@ function App() {
         <Routes>
           <Route path="/" element={<FindPage />} />
           <Route path="/pubs/:pubId" element={<PubPage />} />
+          <Route path="/whats-on" element={<WhatsOnPage />} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />
           <Route path="/feed" element={<FeedPage />} />
           <Route path="/favourites" element={<FavouritesPage />} />

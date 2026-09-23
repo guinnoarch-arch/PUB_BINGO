@@ -61,8 +61,10 @@ beforeAll(async () => {
   await db.query(read("tests/db/supabase-stub.sql"));
   await db.query(read("supabase/migrations/0001_init.sql"));
   await db.query(read("supabase/migrations/0002_pub_admin.sql"));
+  await db.query(read("supabase/migrations/0003_events.sql"));
   // Migrations must be safe to run twice.
   await db.query(read("supabase/migrations/0002_pub_admin.sql"));
+  await db.query(read("supabase/migrations/0003_events.sql"));
   await db.query(read("supabase/seed.sql"));
 
   users.alice = await createUser("Alice_1");
@@ -383,5 +385,76 @@ describe("0002: hidden pubs, websites and admin tools", () => {
     expect(rows[0].website).toBe("https://example.com/harp");
     const notes = await db.query("select notes from public.pub_admin where pub_id = 'the-toucan'");
     expect(notes.rows[0].notes).toBe("Menu checked");
+  });
+});
+
+describe("0003: events (What's on)", () => {
+  const saveEvent = (userId, event) => as(userId, () => db.query("select * from public.admin_save_event($1)", [event]).then(r => r.rows[0]));
+
+  it("seeds researched events unpublished, and adds feature tags", async () => {
+    const { rows } = await db.query("select count(*)::int as n, bool_or(is_published) as any_published from public.events where source = 'research'");
+    expect(rows[0]).toEqual({ n: 7, any_published: false });
+    const tags = await db.query("select tags from public.pubs where id = 'the-porterhouse'");
+    expect(tags.rows[0].tags).toContain("sports-tv");
+  });
+
+  it("hides unpublished events from the public but not admins", async () => {
+    expect((await asAnon(() => db.query("select * from public.events"))).rows).toHaveLength(0);
+    expect((await as(users.alice, () => db.query("select * from public.events"))).rows).toHaveLength(0);
+    expect((await as(users.admin, () => db.query("select * from public.events"))).rows.length).toBeGreaterThanOrEqual(7);
+  });
+
+  it("publishing an event makes it public and records when it was checked", async () => {
+    const { rows } = await db.query("select * from public.events where pub_id = 'the-coach-and-horses'");
+    const saved = await saveEvent(users.admin, { ...rows[0], weekdays: rows[0].weekdays, start_time: "19:00", is_published: true });
+    expect(saved.is_published).toBe(true);
+    expect(saved.checked_at).toBeInstanceOf(Date);
+    expect(saved.start_time).toBe("19:00:00");
+    const pub = await asAnon(() => db.query("select title from public.events"));
+    expect(pub.rows.map(r => r.title)).toEqual(["Piano sing-along"]);
+  });
+
+  it("creates one-off events like a match screening", async () => {
+    const saved = await saveEvent(users.admin, {
+      pub_id: "the-porterhouse", title: "England v France (Six Nations)", category: "sports", schedule: "one-off",
+      event_date: "2027-03-13", start_time: "20:00", is_published: true, source_url: "https://www.fanzo.com/en/bar/248658/the-porterhouse"
+    });
+    expect(saved).toMatchObject({ schedule: "one-off", category: "sports", source: "admin" });
+    expect(saved.created_by).toBe(users.admin);
+  });
+
+  it("validates events with friendly messages", async () => {
+    const base = { pub_id: "the-harp", title: "Quiz", category: "quiz", schedule: "weekly", weekdays: [2] };
+    await expect(saveEvent(users.admin, { ...base, weekdays: [] })).rejects.toThrow(/at least one day/);
+    await expect(saveEvent(users.admin, { ...base, weekdays: [9] })).rejects.toThrow(/at least one day/);
+    await expect(saveEvent(users.admin, { ...base, schedule: "one-off", event_date: "" })).rejects.toThrow(/Pick a date/);
+    await expect(saveEvent(users.admin, { ...base, category: "rave" })).rejects.toThrow(/event type/);
+    await expect(saveEvent(users.admin, { ...base, title: "Q" })).rejects.toThrow(/2-100/);
+    await expect(saveEvent(users.admin, { ...base, start_time: "25:99" })).rejects.toThrow(/date and times/);
+    await expect(saveEvent(users.admin, { ...base, source_url: "fanzo.com" })).rejects.toThrow(/http/);
+    await expect(saveEvent(users.admin, { ...base, pub_id: "nowhere" })).rejects.toThrow(/Unknown pub/);
+    await saveEvent(users.admin, base);
+    await expect(saveEvent(users.admin, base)).rejects.toThrow(/already has an event/);
+  });
+
+  it("only lets admins save or delete events", async () => {
+    await expect(saveEvent(users.alice, { pub_id: "the-harp", title: "Mine", category: "quiz", schedule: "weekly", weekdays: [1] })).rejects.toThrow(/Admins only/);
+    const { rows } = await db.query("select id from public.events limit 1");
+    await expect(as(users.alice, () => db.query("select public.admin_delete_event($1)", [rows[0].id]))).rejects.toThrow(/Admins only/);
+    await expect(as(users.alice, () => db.query("insert into public.events (pub_id, title, category, schedule, weekdays) values ('the-harp', 'x y', 'quiz', 'weekly', '{1}')"))).rejects.toThrow(/permission denied/);
+    await as(users.admin, () => db.query("select public.admin_delete_event($1)", [rows[0].id]));
+  });
+
+  it("hides events of hidden pubs even if published", async () => {
+    await as(users.admin, () => db.query("select public.admin_save_pub($1)", [{ id: "secret-bar", name: "Secret Bar", area: "Soho", is_published: false }]));
+    await saveEvent(users.admin, { pub_id: "secret-bar", title: "Secret gig", category: "live-music", schedule: "weekly", weekdays: [5], is_published: true });
+    const visible = await asAnon(() => db.query("select title from public.events where pub_id = 'secret-bar'"));
+    expect(visible.rows).toHaveLength(0);
+  });
+
+  it("migration notes updates don't duplicate on re-run", async () => {
+    await db.query(read("supabase/migrations/0003_events.sql"));
+    const { rows } = await db.query("select notes from public.pub_admin where pub_id = 'the-porterhouse'");
+    expect(rows[0].notes.split("[Sep 2026 research]").length - 1).toBe(1);
   });
 });

@@ -20,7 +20,11 @@ export const TAGS = [
   "food",
   "no-music-no-tv",
   "cellar-bar",
-  "victorian-interior"
+  "victorian-interior",
+  "quiz-night",
+  "comedy",
+  "sing-along",
+  "dog-friendly"
 ];
 
 export const SEED_PUBS = [
@@ -69,7 +73,7 @@ export const SEED_PUBS = [
     lat: 51.51286,
     lng: -0.13108,
     opened_year: 1847,
-    tags: ["historic", "real-ale-specialist"],
+    tags: ["historic", "real-ale-specialist", "sing-along"],
     description:
       "A classic Soho boozer long linked with writers, artists and Private Eye lunches, once famous for its notoriously blunt landlord.",
     drinks: [
@@ -88,7 +92,7 @@ export const SEED_PUBS = [
     lat: 51.51331,
     lng: -0.13521,
     opened_year: null,
-    tags: ["historic", "food"],
+    tags: ["historic", "food", "live-music", "comedy"],
     description:
       "A traditional Soho corner pub by the Berwick Street market. One of several Blue Posts pubs in the area, supposedly named after the posts that marked the old royal hunting grounds.",
     drinks: [
@@ -145,7 +149,7 @@ export const SEED_PUBS = [
     lat: 51.51676,
     lng: -0.12549,
     opened_year: null,
-    tags: ["craft-beer", "real-ale-specialist"],
+    tags: ["craft-beer", "real-ale-specialist", "quiz-night"],
     description:
       "A craft beer bar with a long wall of rotating keg and cask lines, from local London breweries to rare imports.",
     drinks: [
@@ -241,7 +245,7 @@ export const SEED_PUBS = [
     lat: 51.51077,
     lng: -0.1231,
     opened_year: null,
-    tags: ["craft-beer", "irish-pub", "live-music"],
+    tags: ["craft-beer", "irish-pub", "live-music", "sports-tv"],
     description:
       "A sprawling multi-level Irish brewpub full of brass and copper pipework, pouring Porterhouse's own stouts and ales alongside a long bottle list.",
     drinks: [
