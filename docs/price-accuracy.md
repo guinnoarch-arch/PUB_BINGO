@@ -55,11 +55,11 @@ Every price change is kept in the drink's history, so trends and mistakes can al
 - **Trust levels:** users whose reports keep matching others get a "trusted reporter" badge, and their reports count for more.
 
 **4. Stop showing guesses (your call).** There are three options:
-- **(a)** Keep showing estimates with the badge. This is what happens now.
+- **(a)** Keep showing estimates with the badge everywhere.
 - **(b)** Show "Price not confirmed yet: report it", with no number, until a real price exists.
 - **(c)** Leave estimates out of search results and the leaderboard, but keep them on the pub page.
 
-My recommendation is **(c)** while you work through step 1, then (b) once most prices are real. That way the leaderboard is never topped by a made-up price.
+**Chosen: (c).** Estimates are left out of search results, map prices and the leaderboard; pub pages still show them, marked "Estimate". Search lists pubs that stock a drink without a confirmed price under "price not confirmed yet", with a Report price button.
 
 **5. Automate chain menus later (optional).** A scheduled job could read the Nicholson's, Greene King and Fuller's menu pages each week and flag prices that have changed, for an admin to approve. Check each site's terms before scraping. It would also need these sites added to the build environment's network allowlist.
 

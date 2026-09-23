@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useApp } from "../lib/AppContext.jsx";
 import { CATEGORIES } from "../data/seedPubs.js";
-import { cheapestPerPub, cheapestPints, searchDrinks } from "../lib/core/search.js";
+import { cheapestPerPub, cheapestPints, searchDrinks, unconfirmedPubs } from "../lib/core/search.js";
 import { formatDistance, isInArea } from "../lib/core/geo.js";
 import PubMap from "../components/map/PubMap.jsx";
 import FavouriteButton from "../components/ui/FavouriteButton.jsx";
@@ -28,13 +28,16 @@ export default function FindPage() {
     setParams(next, { replace: true });
   };
 
+  // Only confirmed prices (community, pub website, admin check) are listed; estimates stay on pub pages.
   const results = useMemo(
-    () => searchDrinks(pubs, { query, category, origin, sortBy }),
+    () => searchDrinks(pubs, { query, category, origin, sortBy, realOnly: true }),
     [pubs, query, category, origin, sortBy]
   );
   const filtering = Boolean(query.trim() || category);
+  const unconfirmed = useMemo(() => (filtering ? unconfirmedPubs(pubs, { query, category }) : []), [pubs, query, category, filtering]);
+  const unconfirmedIds = useMemo(() => new Set(unconfirmed.map(u => u.pub.id)), [unconfirmed]);
   const pricesByPub = useMemo(() => (filtering ? cheapestPerPub(results) : null), [filtering, results]);
-  const cheapestNow = useMemo(() => cheapestPints(pubs, { limit: 5 }), [pubs]);
+  const cheapestNow = useMemo(() => cheapestPints(pubs, { limit: 5, realOnly: true }), [pubs]);
 
   function pickOrigin(point) {
     setOrigin(point);
@@ -104,6 +107,7 @@ export default function FindPage() {
           <PubMap
             pubs={pubs}
             pricesByPub={pricesByPub}
+            unconfirmedIds={unconfirmedIds}
             origin={origin}
             onPickOrigin={pickOrigin}
             onOpenPub={id => navigate(`/pubs/${id}`)}
@@ -113,7 +117,7 @@ export default function FindPage() {
         <section className="card results-card" aria-labelledby="results-heading">
           <div className="section-header">
             <h2 id="results-heading" className="section-title">
-              {filtering ? `${results.length} result${results.length === 1 ? "" : "s"}` : "All drinks"}
+              {filtering ? `${results.length} confirmed price${results.length === 1 ? "" : "s"}` : "Confirmed prices"}
             </h2>
             <div className="segmented" role="group" aria-label="Sort results">
               <button type="button" className={sortBy === "price" ? "active" : ""} aria-pressed={sortBy === "price"} onClick={() => setSortBy("price")}>Cheapest</button>
@@ -132,7 +136,15 @@ export default function FindPage() {
 
           {pubsStatus === "loading" && <Loading label="Loading pubs and prices…" />}
           {pubsStatus === "error" && <ErrorState message={pubsError} onRetry={() => reloadPubs()} />}
-          {pubsStatus === "ready" && results.length === 0 && (
+          {pubsStatus === "ready" && results.length === 0 && !filtering && (
+            <EmptyState title="No confirmed prices yet">
+              <p>Prices show here once someone reports what they paid. Open any pub and tap “Report a price”, or search for a drink to see where it's sold.</p>
+            </EmptyState>
+          )}
+          {pubsStatus === "ready" && results.length === 0 && filtering && unconfirmed.length > 0 && (
+            <p className="status-message">No confirmed prices for “{query || category}” yet. These pubs stock it. Know the price? Report it!</p>
+          )}
+          {pubsStatus === "ready" && results.length === 0 && filtering && unconfirmed.length === 0 && (
             <EmptyState title={`No pubs found for “${query || category}”`}>
               <p>Try one of these, or add the drink from a pub's page if you've seen it.</p>
               <div className="chip-row">
@@ -165,6 +177,19 @@ export default function FindPage() {
             </ol>
           )}
           {!filtering && results.length > 30 && <p className="muted small-text">Showing the 30 cheapest. Search to narrow it down.</p>}
+          {pubsStatus === "ready" && unconfirmed.length > 0 && (
+            <div className="unconfirmed-block">
+              <h3 className="section-title">{results.length ? "Also stocked here (price not confirmed yet)" : "Stocked here (price not confirmed yet)"}</h3>
+              <ul className="unconfirmed-list">
+                {unconfirmed.map(({ pub, drinks }) => (
+                  <li key={pub.id}>
+                    <Link to={`/pubs/${pub.id}`} className="result-link"><strong>{pub.name}</strong> <span className="muted">· {pub.area} · {drinks.join(", ")}</span></Link>
+                    <Link to={`/pubs/${pub.id}#report`} className="secondary-button small">Report price</Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </section>
       </div>
 
@@ -174,6 +199,7 @@ export default function FindPage() {
             <h2 id="cheapest-heading" className="section-title">Cheapest pint right now</h2>
             <Link to="/leaderboard" className="text-button">Full leaderboard</Link>
           </div>
+          {cheapestNow.length === 0 && <p className="muted">No confirmed prices yet. Be the first to report one!</p>}
           <ol className="mini-list">
             {cheapestNow.map((row, index) => (
               <li key={row.drink.id}>

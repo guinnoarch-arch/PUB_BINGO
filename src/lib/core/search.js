@@ -62,11 +62,18 @@ export function sortResults(rows, sortBy = "price") {
 
 // Every (pub, drink) pair matching the query, sorted cheapest-first (or nearest-first).
 // Drinks with no valid price are skipped rather than sorted to the top.
-export function searchDrinks(pubs, { query = "", origin = null, sortBy = "price", category = null } = {}) {
+// A "real" price came from a visitor, the pub's website or an admin check, not a starting estimate.
+export function isRealPrice(drink) {
+  return Boolean(drink) && drink.source !== "seed";
+}
+
+// realOnly: leave out starting estimates (used for public search, map pins and the leaderboard).
+export function searchDrinks(pubs, { query = "", origin = null, sortBy = "price", category = null, realOnly = false } = {}) {
   const rows = [];
   for (const pub of pubs || []) {
     for (const drink of pub.drinks || []) {
       if (!(Number(drink.current_price) > 0)) continue;
+      if (realOnly && !isRealPrice(drink)) continue;
       if (category && drink.category !== category) continue;
       if (!drinkMatches(drink, query)) continue;
       rows.push(enrichDrink(pub, drink, origin));
@@ -86,8 +93,20 @@ export function cheapestPerPub(rows) {
 }
 
 // "Cheapest pint right now": the cheapest drinks across all pubs, optionally one per pub.
-export function cheapestPints(pubs, { limit = 10, category = null, onePerPub = true } = {}) {
-  let rows = searchDrinks(pubs, { category });
+// Pubs that stock a matching drink but only have an estimate for it (no real price yet).
+export function unconfirmedPubs(pubs, { query = "", category = null } = {}) {
+  const confirmed = new Set(searchDrinks(pubs, { query, category, realOnly: true }).map(row => row.pub.id));
+  const result = new Map();
+  for (const row of searchDrinks(pubs, { query, category })) {
+    if (isRealPrice(row.drink) || confirmed.has(row.pub.id)) continue;
+    if (!result.has(row.pub.id)) result.set(row.pub.id, { pub: row.pub, drinks: [] });
+    result.get(row.pub.id).drinks.push(row.drink.name);
+  }
+  return [...result.values()].sort((a, b) => a.pub.name.localeCompare(b.pub.name));
+}
+
+export function cheapestPints(pubs, { limit = 10, category = null, onePerPub = true, realOnly = false } = {}) {
+  let rows = searchDrinks(pubs, { category, realOnly });
   if (onePerPub) {
     const seen = new Set();
     rows = rows.filter(row => (seen.has(row.pub.id) ? false : seen.add(row.pub.id)));

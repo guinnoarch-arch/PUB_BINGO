@@ -452,3 +452,8 @@ textarea { width: 100%; padding: 10px 12px; border-radius: 12px; border: 1px sol
 .tag-picker .chip:focus-within { outline: 3px solid var(--accent); }
 .set-price-form { display: grid; gap: 10px; padding: 6px 0; }
 .inline-panel { padding: 14px; border: 1px solid var(--line); border-radius: 14px; margin-top: 8px; }
+.pub-pin.unconfirmed { background: #fff; color: var(--primary-dark); border-color: var(--primary); border-style: dashed; }
+.unconfirmed-block { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--line); }
+.unconfirmed-list { list-style: none; padding: 0; margin: 8px 0 0; }
+.unconfirmed-list li { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.unconfirmed-list li:last-child { border-bottom: 0; }

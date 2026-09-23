@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { useApp } from "../lib/AppContext.jsx";
 import { friendlyError } from "../lib/api/errors.js";
 import { CATEGORIES } from "../data/seedPubs.js";
@@ -43,6 +43,14 @@ export default function PubPage() {
   }, [api, pubId, changeVersion, reloadKey]);
 
   useEffect(() => () => { document.title = "Pub Bingo"; }, []);
+
+  // Links like /pubs/the-harp#report jump straight to the report form.
+  const { hash } = useLocation();
+  useEffect(() => {
+    if (status === "ready" && hash === "#report") {
+      window.requestAnimationFrame(() => reportRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+    }
+  }, [status, hash]);
 
   const drinks = useMemo(() => [...(pub?.drinks || [])].sort((a, b) =>
     CATEGORIES.indexOf(a.category) - CATEGORIES.indexOf(b.category) || pintPrice(a.current_price, a.measure) - pintPrice(b.current_price, b.measure)

@@ -7,7 +7,8 @@ import { formatPrice } from "../../lib/core/prices.js";
 // Leaflet map of all pubs. Pins show the cheapest matching price. Clicking the map sets the
 // "search from here" point. Built with plain Leaflet; pin/popup content is built with DOM
 // text nodes, never HTML strings, so pub or drink names can't inject markup.
-export default function PubMap({ pubs, pricesByPub, origin, onPickOrigin, onOpenPub, selectedPubId }) {
+// unconfirmedIds: pubs that stock the searched drink but have no confirmed price yet (shown as "£?").
+export default function PubMap({ pubs, pricesByPub, unconfirmedIds, origin, onPickOrigin, onOpenPub, selectedPubId }) {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
   const markersRef = useRef(null);
@@ -41,13 +42,14 @@ export default function PubMap({ pubs, pricesByPub, origin, onPickOrigin, onOpen
     for (const pub of pubs) {
       if (!Number.isFinite(pub.lat) || !Number.isFinite(pub.lng)) continue;
       const row = pricesByPub?.get(pub.id);
-      const dimmed = pricesByPub && !row;
+      const unconfirmed = !row && Boolean(unconfirmedIds?.has(pub.id));
+      const dimmed = pricesByPub && !row && !unconfirmed;
       const pin = document.createElement("div");
-      pin.className = `pub-pin${dimmed ? " dimmed" : ""}${pub.id === selectedPubId ? " selected" : ""}`;
-      pin.textContent = row ? formatPrice(row.pintPrice) : "🍺";
+      pin.className = `pub-pin${dimmed ? " dimmed" : ""}${unconfirmed ? " unconfirmed" : ""}${pub.id === selectedPubId ? " selected" : ""}`;
+      pin.textContent = row ? formatPrice(row.pintPrice) : unconfirmed ? "£?" : "🍺";
       const marker = L.marker([pub.lat, pub.lng], {
         icon: L.divIcon({ html: pin, className: "pub-pin-wrap", iconSize: null }),
-        title: row ? `${pub.name}: ${row.drink.name} ${formatPrice(row.price)}` : pub.name,
+        title: row ? `${pub.name}: ${row.drink.name} ${formatPrice(row.price)}` : unconfirmed ? `${pub.name}: price not confirmed yet` : pub.name,
         alt: pub.name,
         riseOnHover: true,
         zIndexOffset: row ? 1000 : 0
@@ -58,7 +60,9 @@ export default function PubMap({ pubs, pricesByPub, origin, onPickOrigin, onOpen
       const title = document.createElement("strong");
       title.textContent = pub.name;
       const detail = document.createElement("span");
-      detail.textContent = row ? `${row.drink.name} · ${formatPrice(row.price)}${row.measure !== "pint" ? ` / ${row.measure}` : ""}` : pub.area;
+      detail.textContent = row
+        ? `${row.drink.name} · ${formatPrice(row.price)}${row.measure !== "pint" ? ` / ${row.measure}` : ""}`
+        : unconfirmed ? "Stocks it, but the price isn't confirmed yet" : pub.area;
       const link = document.createElement("button");
       link.type = "button";
       link.className = "popup-link";
@@ -69,7 +73,7 @@ export default function PubMap({ pubs, pricesByPub, origin, onPickOrigin, onOpen
       marker.on("click", () => marker.openPopup());
       layer.addLayer(marker);
     }
-  }, [pubs, pricesByPub, selectedPubId]);
+  }, [pubs, pricesByPub, unconfirmedIds, selectedPubId]);
 
   useEffect(() => {
     const map = mapRef.current;

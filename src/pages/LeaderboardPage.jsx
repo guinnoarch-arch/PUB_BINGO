@@ -10,7 +10,8 @@ export default function LeaderboardPage() {
   const { pubs, pubsStatus, pubsError, reloadPubs, liveStatus } = useApp();
   const [category, setCategory] = useState(null);
   const [onePerPub, setOnePerPub] = useState(true);
-  const rows = useMemo(() => cheapestPints(pubs, { limit: 20, category, onePerPub }), [pubs, category, onePerPub]);
+  // Confirmed prices only: starting estimates never appear on the leaderboard.
+  const rows = useMemo(() => cheapestPints(pubs, { limit: 20, category, onePerPub, realOnly: true }), [pubs, category, onePerPub]);
 
   return (
     <>
@@ -33,13 +34,17 @@ export default function LeaderboardPage() {
           <input type="checkbox" checked={onePerPub} onChange={e => setOnePerPub(e.target.checked)} />
           One drink per pub
         </label>
-        <p className="muted small-text">Halves and other measures are ranked by their price per pint.</p>
+        <p className="muted small-text">Only confirmed prices count (reported by visitors, taken from a pub's website, or checked by us). Halves are ranked by their price per pint.</p>
       </section>
 
       <section className="card">
         {pubsStatus === "loading" && <Loading />}
         {pubsStatus === "error" && <ErrorState message={pubsError} onRetry={() => reloadPubs()} />}
-        {pubsStatus === "ready" && rows.length === 0 && <EmptyState title="Nothing to rank yet" />}
+        {pubsStatus === "ready" && rows.length === 0 && (
+          <EmptyState title="No confirmed prices yet">
+            {category ? `Nobody has confirmed a ${category} price yet. ` : ""}Open a pub and report what you paid to get on the board.
+          </EmptyState>
+        )}
         {rows.length > 0 && (
           <ol className="leaderboard">
             {rows.map((row, index) => (

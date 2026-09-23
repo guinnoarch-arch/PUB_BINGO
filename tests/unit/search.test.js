@@ -145,3 +145,40 @@ describe("geo", () => {
     expect(isInArea({ lat: 53.48, lng: -2.24 })).toBe(false);
   });
 });
+
+describe("real prices only", () => {
+  const withSources = () => {
+    const pubs = seedPubsAsApi();
+    const harp = pubs.find(p => p.id === "the-harp");
+    harp.drinks.find(d => d.name === "Guinness").source = "community";
+    const toucan = pubs.find(p => p.id === "the-toucan");
+    toucan.drinks.find(d => d.name === "Guinness").source = "website";
+    const salisbury = pubs.find(p => p.id === "the-salisbury");
+    salisbury.drinks.find(d => d.name === "Timothy Taylor Landlord").source = "admin";
+    return pubs;
+  };
+
+  it("leaves estimates out of search when asked", async () => {
+    const { isRealPrice } = await import("../../src/lib/core/search.js");
+    const rows = searchDrinks(withSources(), { query: "guinness", realOnly: true });
+    expect(rows.map(r => r.pub.id)).toEqual(["the-toucan", "the-harp"]);
+    expect(rows.every(r => isRealPrice(r.drink))).toBe(true);
+    expect(searchDrinks(seedPubsAsApi(), { realOnly: true })).toEqual([]);
+  });
+
+  it("lists pubs that stock a drink but only have an estimate", async () => {
+    const { unconfirmedPubs } = await import("../../src/lib/core/search.js");
+    const list = unconfirmedPubs(withSources(), { query: "guinness" });
+    expect(list).toHaveLength(10);
+    expect(list.map(x => x.pub.id)).not.toContain("the-harp");
+    expect(list.map(x => x.pub.id)).not.toContain("the-toucan");
+    expect(list[0].drinks).toEqual(["Guinness"]);
+  });
+
+  it("builds the leaderboard from real prices only", () => {
+    const board = cheapestPints(withSources(), { realOnly: true });
+    expect(board.map(r => [r.pub.id, r.drink.name])).toEqual([
+      ["the-toucan", "Guinness"], ["the-harp", "Guinness"], ["the-salisbury", "Timothy Taylor Landlord"]
+    ]);
+  });
+});
