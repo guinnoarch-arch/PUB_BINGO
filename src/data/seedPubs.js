@@ -7,6 +7,7 @@
 const ROCKET_MENU = "https://www.therocketeustonroad.co.uk/drinks";
 // Time of the screenshots (London, BST).
 const ROCKET_MENU_DATE = "2026-09-24T07:10:00+01:00";
+const ROCKET_ORDER_DATE = "2026-09-24T07:24:00+01:00";
 
 export const AREAS = ["Soho", "Covent Garden", "Holborn", "King's Cross"];
 
@@ -310,6 +311,22 @@ export const SEED_PUBS = [
     description:
       "A Grade II listed Victorian corner pub on Euston Road, rebuilt in 1899 for the Cannon Brewery and once called The Rising Sun. Its arched windows wrap around the corner, and it's handy for Euston, King's Cross and St Pancras.",
     drinks: [
+      // Draught (pints) from The Rocket's order-at-table menu on its website, Archie's screenshots 24 Sep 2026 07:24.
+      // Shown there as "out of stock" only because online ordering was switched off.
+      { name: "Timothy Taylor Landlord", category: "Real Ale", price: 6.45, source: "website", source_url: ROCKET_MENU, updated: ROCKET_ORDER_DATE },
+      { name: "Alpacalypse", category: "Other", price: 7.40, source: "website", source_url: ROCKET_MENU, updated: ROCKET_ORDER_DATE },
+      { name: "Beavertown Neck Oil", category: "Pale Ale", price: 7.90, source: "website", source_url: ROCKET_MENU, updated: ROCKET_ORDER_DATE },
+      { name: "Jubel Peach", category: "Lager", price: 7.95, source: "website", source_url: ROCKET_MENU, updated: ROCKET_ORDER_DATE },
+      { name: "Camden Hells", category: "Lager", price: 7.70, source: "website", source_url: ROCKET_MENU, updated: ROCKET_ORDER_DATE },
+      { name: "Asahi Super Dry", category: "Lager", price: 7.75, source: "website", source_url: ROCKET_MENU, updated: ROCKET_ORDER_DATE },
+      { name: "Heineken", category: "Lager", price: 7.05, source: "website", source_url: ROCKET_MENU, updated: ROCKET_ORDER_DATE },
+      { name: "Peroni Nastro Azzurro", category: "Lager", price: 7.60, source: "website", source_url: ROCKET_MENU, updated: ROCKET_ORDER_DATE },
+      { name: "Madri", category: "Lager", price: 7.15, source: "website", source_url: ROCKET_MENU, updated: ROCKET_ORDER_DATE },
+      { name: "Mahou", category: "Lager", price: 7.30, source: "website", source_url: ROCKET_MENU, updated: ROCKET_ORDER_DATE },
+      { name: "Coors", category: "Lager", price: 6.25, source: "website", source_url: ROCKET_MENU, updated: ROCKET_ORDER_DATE },
+      { name: "Guinness", category: "Stout", price: 6.65, source: "website", source_url: ROCKET_MENU, updated: ROCKET_ORDER_DATE },
+      { name: "Strongbow Dark Fruit", category: "Cider", price: 6.40, source: "website", source_url: ROCKET_MENU, updated: ROCKET_ORDER_DATE },
+      { name: "Inch's Cider", category: "Cider", price: 6.15, source: "website", source_url: ROCKET_MENU, updated: ROCKET_ORDER_DATE },
       // Real prices from The Rocket's own drinks page (Beer & Cider tab), from Archie's screenshots of 24 Sep 2026.
       // All packaged (bottles), not draught; sizes are as printed (none printed for some).
       { name: "Modelo", category: "Lager", price: 6.10, measure: "bottle", volume_ml: 355, source: "website", source_url: ROCKET_MENU, updated: ROCKET_MENU_DATE },
@@ -319,14 +336,14 @@ export const SEED_PUBS = [
       { name: "Desperados", category: "Lager", price: 6.30, measure: "bottle", volume_ml: 330, source: "website", source_url: ROCKET_MENU, updated: ROCKET_MENU_DATE },
       { name: "Daura Damm (gluten free)", category: "Lager", price: 6.05, measure: "bottle", volume_ml: 330, source: "website", source_url: ROCKET_MENU, updated: ROCKET_MENU_DATE },
       { name: "Schöfferhofer Grapefruit Wheat Beer", category: "Wheat Beer", price: 6.30, measure: "bottle", volume_ml: 500, source: "website", source_url: ROCKET_MENU, updated: ROCKET_MENU_DATE },
-      { name: "Newcastle Brown Ale", category: "Other", price: 5.90, measure: "bottle", source: "website", source_url: ROCKET_MENU, updated: ROCKET_MENU_DATE },
+      { name: "Newcastle Brown Ale", category: "Other", price: 5.90, measure: "bottle", volume_ml: 550, source: "website", source_url: ROCKET_MENU, updated: ROCKET_MENU_DATE },
       { name: "Sharp's Atlantic Pale Ale", category: "Pale Ale", price: 6.20, measure: "bottle", source: "website", source_url: ROCKET_MENU, updated: ROCKET_MENU_DATE },
       { name: "Sharp's Doom Bar", category: "Other", price: 6.20, measure: "bottle", volume_ml: 500, source: "website", source_url: ROCKET_MENU, updated: ROCKET_MENU_DATE },
-      { name: "Magners Original", category: "Cider", price: 6.25, measure: "bottle", source: "website", source_url: ROCKET_MENU, updated: ROCKET_MENU_DATE },
-      { name: "Thatchers Haze", category: "Cider", price: 6.75, measure: "bottle", source: "website", source_url: ROCKET_MENU, updated: ROCKET_MENU_DATE },
-      { name: "Rekorderlig Peach Raspberry", category: "Cider", price: 6.70, measure: "bottle", source: "website", source_url: ROCKET_MENU, updated: ROCKET_MENU_DATE },
-      { name: "Rekorderlig Strawberry Lime", category: "Cider", price: 6.70, measure: "bottle", source: "website", source_url: ROCKET_MENU, updated: ROCKET_MENU_DATE },
-      { name: "Rekorderlig Wild Berries", category: "Cider", price: 6.70, measure: "bottle", source: "website", source_url: ROCKET_MENU, updated: ROCKET_MENU_DATE }
+      { name: "Magners Original", category: "Cider", price: 6.25, measure: "bottle", volume_ml: 568, source: "website", source_url: ROCKET_MENU, updated: ROCKET_MENU_DATE },
+      { name: "Thatchers Haze", category: "Cider", price: 6.75, measure: "bottle", volume_ml: 500, source: "website", source_url: ROCKET_MENU, updated: ROCKET_MENU_DATE },
+      { name: "Rekorderlig Peach Raspberry", category: "Cider", price: 6.70, measure: "bottle", volume_ml: 500, source: "website", source_url: ROCKET_MENU, updated: ROCKET_MENU_DATE },
+      { name: "Rekorderlig Strawberry Lime", category: "Cider", price: 6.70, measure: "bottle", volume_ml: 500, source: "website", source_url: ROCKET_MENU, updated: ROCKET_MENU_DATE },
+      { name: "Rekorderlig Wild Berries", category: "Cider", price: 6.70, measure: "bottle", volume_ml: 500, source: "website", source_url: ROCKET_MENU, updated: ROCKET_MENU_DATE }
     ]
   }
 ];

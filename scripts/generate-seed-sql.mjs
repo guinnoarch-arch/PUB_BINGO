@@ -48,6 +48,14 @@ SEED_PUBS.forEach((pub, pubIndex) => {
   lines.push("");
 });
 
+lines.push("-- Fill in bottle/can sizes on drinks added before sizes were known (never overwrites a size).");
+SEED_PUBS.forEach(pub => pub.drinks.filter(d => d.volume_ml).forEach(d => {
+  lines.push(
+    `update public.drinks set volume_ml = ${d.volume_ml} where pub_id = ${q(pub.id)} and name = ${q(d.name)} and measure = ${q(d.measure || "pint")} and volume_ml is null;`
+  );
+}));
+lines.push("");
+
 lines.push("-- Researched regular events: seeded UNPUBLISHED until an admin checks them.");
 SEED_EVENTS.forEach(event => {
   lines.push(

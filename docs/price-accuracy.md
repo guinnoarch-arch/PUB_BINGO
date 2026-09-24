@@ -35,7 +35,7 @@ Every price change is kept in the drink's history, so trends and mistakes can al
 | The Porterhouse | porterhouse.london | Porterhouse Brewing Co. | Check | none |
 | The Punch and Judy | Greene King page (/menu) | Greene King | Per-pub menu page exists | pint-prices.com: Neck Oil £8.05, Peroni £7.85, Guinness £6.80 |
 | The Salisbury | Greene King page (/menu) | Greene King | Per-pub menu page exists | one search result looked mixed up with another pub, so ignore it |
-| The Rocket (King's Cross, added Sep 2026) | therocketeustonroad.co.uk (/drinks page) | Mitchells & Butlers | **Yes**: 15 bottled beers/ciders entered from screenshots (24 Sep 2026); draught not yet | none |
+| The Rocket (King's Cross, added Sep 2026) | therocketeustonroad.co.uk (/drinks page) | Mitchells & Butlers | **Yes**: 14 draught pints + 15 bottles entered from screenshots (24 Sep 2026). Bottle prices differ slightly between its drinks page and order-at-table menu: check | none |
 
 **Important caveats**
 - The environment I built this in blocks these websites, so I found them through web search but couldn't open the pages. The website links are very likely right, but give each a quick click. Whether the menus actually show prices still needs checking.

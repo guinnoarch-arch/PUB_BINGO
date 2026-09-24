@@ -75,7 +75,7 @@ npm run test:db   # runs the real migration + seed on Postgres and checks securi
 
 ## Seed data
 
-`src/data/seedPubs.js` is the single source: 15 real pubs and 85 drinks (The Rocket's 15 are real prices from its website). `src/data/pubResearch.js` holds websites, operators and admin research notes. Run `npm run seed:sql` after editing it to regenerate `supabase/seed.sql`.
+`src/data/seedPubs.js` is the single source: 15 real pubs and 99 drinks (The Rocket's 29 are real prices from its website). `src/data/pubResearch.js` holds websites, operators and admin research notes. Run `npm run seed:sql` after editing it to regenerate `supabase/seed.sql`.
 - Names and addresses are real. **Coordinates are approximate, and opening years and histories are best-effort and should be checked.** Where the year wasn't known it's left blank.
 - Prices are plausible estimates marked **Seed estimate** until someone reports a real price.
 - The French House traditionally serves halves only, so its drinks are listed per half and ranked by their pint equivalent.
