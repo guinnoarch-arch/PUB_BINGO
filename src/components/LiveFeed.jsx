@@ -5,10 +5,11 @@ import { friendlyError } from "../lib/api/errors.js";
 import { formatPrice } from "../lib/core/prices.js";
 import { timeAgo } from "../lib/core/time.js";
 import { EmptyState, ErrorState, Loading } from "./ui/States.jsx";
+import ReporterName from "./ui/ReporterName.jsx";
 
 // The most recent community price reports. Refreshes when anyone reports a price.
 export default function LiveFeed({ limit = 30, compact = false }) {
-  const { api, changeVersion, isAdmin, toast, notifyChange } = useApp();
+  const { api, changeVersion, isAdmin, feature, toast, notifyChange } = useApp();
   const [reports, setReports] = useState([]);
   const [status, setStatus] = useState("loading");
   const [error, setError] = useState("");
@@ -44,18 +45,21 @@ export default function LiveFeed({ limit = 30, compact = false }) {
         <li key={report.id} className={report.is_hidden ? "hidden-report" : ""}>
           <div className="feed-main">
             <span>
-              <strong>{report.reporter_profile?.username ? `@${report.reporter_profile.username}` : "Someone"}</strong>
-              {" paid "}
+              <strong><ReporterName username={report.reporter_profile?.username} /></strong>
+              {report.kind === "confirm" ? " confirmed " : " paid "}
               <strong>{formatPrice(report.price)}</strong>
               {report.measure !== "pint" ? ` for a ${report.measure}` : ""}
               {" for "}{report.drink_name}{" at "}
               <Link to={`/pubs/${report.pub_id}`}>{report.pub?.name || "a pub"}</Link>
+              {report.kind === "confirm" && " is still right 👍"}
+              {report.receipt_path && feature("receipts") && <span className="badge badge-receipt"> 🧾</span>}
+              {report.held && <span className="badge badge-held">Waiting for review</span>}
             </span>
-            {!compact && report.note && <span className="feed-note">“{report.note}”</span>}
+            {!compact && report.note && report.kind !== "confirm" && <span className="feed-note">“{report.note}”</span>}
           </div>
           <span className="feed-time">
             <time dateTime={report.reported_at}>{timeAgo(report.reported_at)}</time>
-            {isAdmin && !compact && (
+            {isAdmin && !compact && !report.held && (
               <button type="button" className="text-button danger" onClick={() => hide(report)}>
                 {report.is_hidden ? "Unhide" : "Hide"}
               </button>

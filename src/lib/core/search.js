@@ -69,7 +69,8 @@ export function sortResults(rows, sortBy = "price") {
 // Drinks with no valid price are skipped rather than sorted to the top.
 // A "real" price came from a visitor, the pub's website or an admin check, not a starting estimate.
 export function isRealPrice(drink) {
-  return Boolean(drink) && drink.source !== "seed";
+  // A fixed happy-hour price (e.g. "£5 pints 4-7pm", added by an admin) counts as real too.
+  return Boolean(drink) && (drink.source !== "seed" || Boolean(drink.deal?.fixed));
 }
 
 // realOnly: leave out starting estimates (used for public search, map pins and the leaderboard).

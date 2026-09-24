@@ -6,10 +6,13 @@ import { priceHistoryStats } from "../../lib/core/search.js";
 import { timeAgo } from "../../lib/core/time.js";
 import { SourceBadge } from "../ui/Badges.jsx";
 import { ErrorState, Loading } from "../ui/States.jsx";
+import PriceChart from "../ui/PriceChart.jsx";
+import ReporterName from "../ui/ReporterName.jsx";
+import NotLaunched from "../ui/NotLaunched.jsx";
 
 // Full price history for one drink: every report is kept so trends can be shown.
 export default function DrinkHistory({ drink }) {
-  const { api, changeVersion, isAdmin, toast, notifyChange } = useApp();
+  const { api, changeVersion, isAdmin, feature, toast, notifyChange } = useApp();
   const [rows, setRows] = useState(null);
   const [error, setError] = useState("");
 
@@ -33,7 +36,8 @@ export default function DrinkHistory({ drink }) {
 
   if (error) return <ErrorState message={error} />;
   if (!rows) return <Loading label="Loading history…" />;
-  const stats = priceHistoryStats(rows.filter(r => !r.is_hidden));
+  const visible = rows.filter(r => !r.is_hidden);
+  const stats = priceHistoryStats(visible);
 
   return (
     <div className="drink-history">
@@ -47,15 +51,24 @@ export default function DrinkHistory({ drink }) {
           )}
         </p>
       )}
+      {feature("price_trends") && visible.length > 1 && (
+        <div className="chart-block">
+          <NotLaunched feature="price_trends" />
+          <PriceChart points={visible.map(r => ({ at: r.reported_at, price: r.price }))} label={`${drink.name} price over time`} />
+        </div>
+      )}
       <ul>
         {rows.map(report => (
           <li key={report.id} className={report.is_hidden ? "hidden-report" : ""}>
             <strong>{formatPrice(report.price)}</strong>
             <SourceBadge source={report.source} url={report.source_url} />
+            {report.kind === "confirm" && <span className="badge badge-confirm">Still right</span>}
+            {report.receipt_path && feature("receipts") && <span className="badge badge-receipt" title="Backed by a receipt photo">🧾 Receipt</span>}
+            {report.held && <span className="badge badge-held">Waiting for review</span>}
             <span className="muted">
-              {report.reporter_profile?.username ? `@${report.reporter_profile.username}` : report.source === "seed" ? "starting estimate" : "someone"} · {timeAgo(report.reported_at)}
+              <ReporterName username={report.reporter_profile?.username} fallback={report.source === "seed" ? "starting estimate" : "someone"} /> · {timeAgo(report.reported_at)}
             </span>
-            {report.note && <span className="feed-note">“{report.note}”</span>}
+            {report.note && report.kind !== "confirm" && <span className="feed-note">“{report.note}”</span>}
             {isAdmin && report.source === "community" && (
               <button type="button" className="text-button danger" onClick={() => toggleHidden(report)}>{report.is_hidden ? "Unhide" : "Hide"}</button>
             )}

@@ -113,7 +113,7 @@ export function createSupabaseApi(url, anonKey) {
     async getDrinkHistory(drinkId, limit = 50) {
       return unwrap(await supabase
         .from("price_reports")
-        .select("id, price, measure, note, reported_at, source, source_url, is_hidden, reporter_profile:profiles(username)")
+        .select("id, price, measure, note, reported_at, source, source_url, is_hidden, kind, held, receipt_path, reporter_profile:profiles(username)")
         .eq("drink_id", drinkId)
         .order("reported_at", { ascending: false })
         .limit(limit), "Couldn't load price history.");
@@ -122,7 +122,7 @@ export function createSupabaseApi(url, anonKey) {
     async listRecentReports(limit = 30) {
       return unwrap(await supabase
         .from("price_reports")
-        .select("id, pub_id, drink_id, drink_name, category, measure, price, note, reported_at, source, is_hidden, pub:pubs(id, name, area), reporter_profile:profiles(username)")
+        .select("id, pub_id, drink_id, drink_name, category, measure, price, note, reported_at, source, is_hidden, kind, held, receipt_path, pub:pubs(id, name, area), reporter_profile:profiles(username)")
         .eq("source", "community")
         .order("reported_at", { ascending: false })
         .limit(limit), "Couldn't load the feed.");
@@ -147,6 +147,8 @@ export function createSupabaseApi(url, anonKey) {
         .on("postgres_changes", { event: "*", schema: "public", table: "price_reports" }, payload => callback({ table: "price_reports", payload }))
         .on("postgres_changes", { event: "*", schema: "public", table: "drinks" }, payload => callback({ table: "drinks", payload }))
         .on("postgres_changes", { event: "*", schema: "public", table: "events" }, payload => callback({ table: "events", payload }))
+        .on("postgres_changes", { event: "*", schema: "public", table: "app_features" }, payload => callback({ table: "app_features", payload }))
+        .on("postgres_changes", { event: "*", schema: "public", table: "deals" }, payload => callback({ table: "deals", payload }))
         .subscribe(status => callback({ status }));
       return () => { supabase.removeChannel(channel); };
     },
@@ -177,12 +179,81 @@ export function createSupabaseApi(url, anonKey) {
     },
 
     async getMyActivity(userId) {
-      const [reports, photos] = await Promise.all([
-        supabase.from("price_reports").select("price, measure, pub_id").eq("reporter", userId).limit(200),
-        supabase.from("pub_photos").select("id", { count: "exact", head: true }).eq("uploaded_by", userId)
+      const [reports, photos, checkins, menus, pours, trusted] = await Promise.all([
+        supabase.from("price_reports").select("price, measure, pub_id, category, kind, receipt_path, reported_at").eq("reporter", userId).eq("is_hidden", false).order("reported_at", { ascending: false }).limit(1000),
+        supabase.from("pub_photos").select("id", { count: "exact", head: true }).eq("uploaded_by", userId),
+        supabase.from("checkins").select("pub_id, created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(1000),
+        supabase.from("menu_submissions").select("status, created_at").eq("submitted_by", userId).limit(500),
+        supabase.from("pour_ratings").select("pub_id, rating, created_at").eq("user_id", userId).limit(1000),
+        supabase.rpc("is_trusted_reporter", { p_user_id: userId })
       ]);
       if (photos.error) throw new ApiError(photos.error);
-      return { reports: unwrap(reports), photoCount: photos.count || 0 };
+      // Tables from newer migrations may not exist yet; treat them as empty rather than failing.
+      const rows = result => (result.error ? [] : result.data || []);
+      const menuRows = rows(menus);
+      return {
+        reports: unwrap(reports),
+        photoCount: photos.count || 0,
+        checkins: rows(checkins),
+        menus: menuRows,
+        menusUsed: menuRows.filter(m => m.status === "used").length,
+        pourRatings: rows(pours),
+        trusted: trusted.error ? false : Boolean(trusted.data)
+      };
+    },
+
+    // Feature switches (Admin → Features). Missing table (migration not run yet) = everything off.
+    async listFeatures() {
+      const { data, error } = await supabase.from("app_features").select("key, is_live");
+      if (error) return [];
+      return data;
+    },
+    async confirmPrice(drinkId) {
+      return unwrap(await supabase.rpc("confirm_price", { p_drink_id: drinkId }), "Couldn't confirm the price.");
+    },
+    async uploadReceipt(userId, reportId, file) {
+      const prepared = await preparePhoto(file);
+      const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
+      unwrap(await supabase.storage.from("receipts").upload(path, prepared, { contentType: "image/jpeg", upsert: false }), "Couldn't upload the receipt.");
+      const { error } = await supabase.rpc("attach_receipt", { p_report_id: reportId, p_path: path });
+      if (error) {
+        await supabase.storage.from("receipts").remove([path]);
+        throw new ApiError(error, "Couldn't attach the receipt.");
+      }
+    },
+    async trustedUsernames() {
+      const { data, error } = await supabase.rpc("trusted_usernames");
+      return error ? [] : data;
+    },
+    async communityStats(since = null) {
+      return unwrap(await supabase.rpc("community_stats", { p_since: since }), "Couldn't load the reporters.");
+    },
+    async listDeals() {
+      const { data, error } = await supabase.from("deals").select("*").eq("is_published", true);
+      return error ? [] : data;
+    },
+    async checkIn(pubId, lat, lng) {
+      return unwrap(await supabase.rpc("check_in", { p_pub_id: pubId, p_lat: lat, p_lng: lng }), "Couldn't check you in.");
+    },
+    async pubBusy() {
+      const { data, error } = await supabase.rpc("pub_busy");
+      return error ? [] : data;
+    },
+    async ratePour(pubId, rating) {
+      unwrap(await supabase.rpc("rate_pour", { p_pub_id: pubId, p_rating: rating }), "Couldn't save your rating.");
+    },
+    async pourScores() {
+      const { data, error } = await supabase.rpc("pour_scores");
+      return error ? [] : data;
+    },
+    async listPriceWatches(userId) {
+      return unwrap(await supabase.from("price_watches").select("*").eq("user_id", userId).order("created_at"), "Couldn't load your price watches.");
+    },
+    async addPriceWatch({ query, maxPrice, area }) {
+      return unwrap(await supabase.rpc("add_price_watch", { p_query: query, p_max_price: maxPrice, p_area: area || null }), "Couldn't save the price watch.");
+    },
+    async deletePriceWatch(id) {
+      unwrap(await supabase.from("price_watches").delete().eq("id", id), "Couldn't remove the price watch.");
     },
 
     photoUrl(path) {
@@ -305,6 +376,32 @@ export function createSupabaseApi(url, anonKey) {
       async deleteMenuSubmission(id) {
         const path = unwrap(await supabase.rpc("admin_delete_menu_submission", { p_submission_id: id }), "Couldn't delete the menu.");
         if (path) await supabase.storage.from(SUBMISSIONS).remove([path]);
+      },
+      async setFeature(key, live) {
+        return unwrap(await supabase.rpc("admin_set_feature", { p_key: key, p_live: live }), "Couldn't change the feature.");
+      },
+      async listDeals(pubId) {
+        return unwrap(await supabase.from("deals").select("*").eq("pub_id", pubId).order("start_time"), "Couldn't load deals.");
+      },
+      async saveDeal(deal) {
+        return unwrap(await supabase.rpc("admin_save_deal", { p_deal: deal }), "Couldn't save the deal.");
+      },
+      async deleteDeal(id) {
+        unwrap(await supabase.rpc("admin_delete_deal", { p_deal_id: id }), "Couldn't delete the deal.");
+      },
+      async setOpeningHours(pubId, hours) {
+        unwrap(await supabase.rpc("admin_set_opening_hours", { p_pub_id: pubId, p_hours: hours }), "Couldn't save opening hours.");
+      },
+      async listHeldReports() {
+        return unwrap(await supabase.from("price_reports")
+          .select("id, pub_id, drink_id, drink_name, measure, price, note, reported_at, receipt_path, pub:pubs(id, name), drink:drinks(current_price), reporter_profile:profiles(username)")
+          .eq("held", true).order("reported_at", { ascending: false }).limit(100), "Couldn't load reports waiting for review.");
+      },
+      async reviewHeldReport(id, approve) {
+        unwrap(await supabase.rpc("admin_review_held_report", { p_report_id: id, p_approve: approve }), "Couldn't review the report.");
+      },
+      async receiptUrl(path) {
+        return unwrap(await supabase.storage.from("receipts").createSignedUrl(path, 3600), "Couldn't open the receipt.").signedUrl;
       },
       async setUploadsPaused(pubId, paused) {
         unwrap(await supabase.rpc("admin_set_uploads_paused", { p_pub_id: pubId, p_paused: paused }));

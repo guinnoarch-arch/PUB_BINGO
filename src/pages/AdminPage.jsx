@@ -6,6 +6,9 @@ import { PRICES_ONLINE_LABELS, adminTotals, filterRows, sortRows, summarisePub, 
 import { timeAgo } from "../lib/core/time.js";
 import LiveFeed from "../components/LiveFeed.jsx";
 import AdminMenus from "../components/suggestions/AdminMenus.jsx";
+import AdminFeatures from "../components/admin/AdminFeatures.jsx";
+import AdminDigest from "../components/admin/AdminDigest.jsx";
+import HeldReports from "../components/admin/HeldReports.jsx";
 import { EmptyState, ErrorState, Loading } from "../components/ui/States.jsx";
 
 const COLUMNS = [
@@ -151,8 +154,10 @@ function PubsTable() {
 
 const TABS = [
   ["pubs", "Pubs", "Pubs"],
+  ["week", "This week", "Week"],
   ["menus", "Menus sent in", "Menus"],
-  ["reports", "Price reports", "Reports"]
+  ["reports", "Price reports", "Reports"],
+  ["features", "Features", "Features"]
 ];
 
 export default function AdminPage() {
@@ -204,6 +209,9 @@ export default function AdminPage() {
               : <AdminMenus items={menus} onChanged={reloadMenus} />}
         </section>
       )}
+      {tab === "week" && <section className="card" aria-label="This week"><AdminDigest /></section>}
+      {tab === "features" && <section className="card" aria-label="Features"><AdminFeatures /></section>}
+      {tab === "reports" && <HeldReports />}
       {tab === "reports" && (
         <section className="card" aria-labelledby="reports-heading">
           <h2 id="reports-heading" className="section-title">Recent price reports</h2>

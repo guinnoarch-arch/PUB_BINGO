@@ -1,5 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { friendlyError } from "./api/errors.js";
+import { applyDeals } from "./core/deals.js";
+import { londonNow } from "./core/events.js";
 
 const AppContext = createContext(null);
 
@@ -20,6 +22,11 @@ export function AppProvider({ api, children }) {
   const [liveStatus, setLiveStatus] = useState("connecting");
   const [changeVersion, setChangeVersion] = useState(0);
   const [toasts, setToasts] = useState([]);
+  const [featureRows, setFeatureRows] = useState([]);
+  const [deals, setDeals] = useState([]);
+  const [clock, setClock] = useState(() => londonNow());
+  const [priceWatches, setPriceWatches] = useState([]);
+  const [extras, setExtras] = useState({ trusted: new Set(), busy: new Map(), pour: new Map() });
   const reloadTimer = useRef(null);
   const userId = session?.user?.id || null;
 
@@ -71,12 +78,28 @@ export function AppProvider({ api, children }) {
     return () => { active = false; };
   }, [api, userId, toast]);
 
+  const reloadFeatures = useCallback(() => {
+    api.listFeatures().then(setFeatureRows).catch(() => {});
+    api.listDeals().then(setDeals).catch(() => {});
+  }, [api]);
+
+  // London time, ticking each minute, so happy-hour prices start and stop on time.
+  useEffect(() => {
+    const timer = window.setInterval(() => setClock(londonNow()), 60000);
+    return () => window.clearInterval(timer);
+  }, []);
+
   // Pubs, plus live updates whenever anyone reports a price
   useEffect(() => {
     reloadPubs();
+    reloadFeatures();
     const unsubscribe = api.subscribeToChanges(event => {
       if (event.status) {
         setLiveStatus(event.status === "SUBSCRIBED" ? "live" : event.status === "CLOSED" ? "offline" : "connecting");
+        return;
+      }
+      if (event.table === "app_features" || event.table === "deals") {
+        reloadFeatures();
         return;
       }
       setChangeVersion(v => v + 1);
@@ -87,7 +110,7 @@ export function AppProvider({ api, children }) {
       window.clearTimeout(reloadTimer.current);
       unsubscribe();
     };
-  }, [api, reloadPubs]);
+  }, [api, reloadPubs, reloadFeatures]);
 
   const toggleFavourite = useCallback(async pubId => {
     if (!userId) {
@@ -112,12 +135,57 @@ export function AppProvider({ api, children }) {
     }
   }, [api, userId, favourites, toast]);
 
+  const isAdmin = Boolean(profile?.is_admin);
+  const liveKeys = useMemo(() => new Set(featureRows.filter(f => f.is_live).map(f => f.key)), [featureRows]);
+  // feature(key): on for everyone once launched; admins can always use it to try it out.
+  const feature = useCallback(key => liveKeys.has(key) || isAdmin, [liveKeys, isAdmin]);
+  const featureLive = useCallback(key => liveKeys.has(key), [liveKeys]);
+  // Trusted reporters, "busy now" and Guinness scores: only loaded for features that are on.
+  const wantTrusted = feature("trusted_reporters");
+  const wantBusy = feature("check_ins");
+  const wantPour = feature("guinness_score");
+  useEffect(() => {
+    let active = true;
+    Promise.all([
+      wantTrusted ? api.trustedUsernames() : [],
+      wantBusy ? api.pubBusy() : [],
+      wantPour ? api.pourScores() : []
+    ]).then(([trusted, busy, pour]) => {
+      if (!active) return;
+      setExtras({
+        trusted: new Set(trusted),
+        busy: new Map(busy.map(b => [b.pub_id, b.people])),
+        pour: new Map(pour.map(p => [p.pub_id, { score: Number(p.score), ratings: p.ratings }]))
+      });
+    }).catch(() => {});
+    return () => { active = false; };
+  }, [api, wantTrusted, wantBusy, wantPour, changeVersion]);
+
+  const wantWatches = feature("price_watch") && Boolean(userId);
+  const reloadWatches = useCallback(() => {
+    if (!wantWatches) { setPriceWatches([]); return; }
+    api.listPriceWatches(userId).then(setPriceWatches).catch(() => setPriceWatches([]));
+  }, [api, userId, wantWatches]);
+  useEffect(() => { reloadWatches(); }, [reloadWatches]);
+
+  // Prices as they are right now, with any happy hour applied (when that feature is on).
+  const livePubs = useMemo(() => (feature("happy_hours") ? applyDeals(pubs, deals, clock) : pubs), [feature, pubs, deals, clock]);
+
   const value = useMemo(() => ({
     api,
     session,
     userId,
     profile,
-    isAdmin: Boolean(profile?.is_admin),
+    isAdmin,
+    feature,
+    featureLive,
+    reloadFeatures,
+    deals,
+    livePubs,
+    clock,
+    extras,
+    priceWatches,
+    reloadWatches,
     authReady,
     pubs,
     pubsById: Object.fromEntries(pubs.map(pub => [pub.id, pub])),
@@ -131,7 +199,7 @@ export function AppProvider({ api, children }) {
     notifyChange: () => { setChangeVersion(v => v + 1); reloadPubs({ quiet: true }); },
     toast,
     toasts
-  }), [api, session, userId, profile, authReady, pubs, pubsStatus, pubsError, reloadPubs, favourites, toggleFavourite, liveStatus, changeVersion, toast, toasts]);
+  }), [api, session, userId, profile, isAdmin, feature, featureLive, reloadFeatures, deals, livePubs, clock, extras, priceWatches, reloadWatches, authReady, pubs, pubsStatus, pubsError, reloadPubs, favourites, toggleFavourite, liveStatus, changeVersion, toast, toasts]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }

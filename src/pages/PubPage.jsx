@@ -12,10 +12,14 @@ import ReportPriceForm from "../components/pub/ReportPriceForm.jsx";
 import DrinkHistory from "../components/pub/DrinkHistory.jsx";
 import PhotoSection from "../components/pub/PhotoSection.jsx";
 import PubWhatsOn from "../components/events/PubWhatsOn.jsx";
+import StillRightButton from "../components/features/StillRightButton.jsx";
+import DealNote from "../components/features/DealNote.jsx";
+import { CheckIn, PourScore, PubDeals, PubHours } from "../components/features/PubExtras.jsx";
+import { applyDeals } from "../lib/core/deals.js";
 
 export default function PubPage() {
   const { pubId } = useParams();
-  const { api, changeVersion, isAdmin } = useApp();
+  const { api, changeVersion, isAdmin, feature, deals, clock } = useApp();
   const [pub, setPub] = useState(null);
   const [status, setStatus] = useState("loading");
   const [error, setError] = useState("");
@@ -53,11 +57,13 @@ export default function PubPage() {
     }
   }, [status, hash]);
 
-  const drinks = useMemo(() => [...(pub?.drinks || [])].sort((a, b) =>
+  // Happy-hour prices apply here too while a deal is on.
+  const livePub = useMemo(() => (pub && feature("happy_hours") ? applyDeals([pub], deals, clock)[0] : pub), [pub, feature, deals, clock]);
+  const drinks = useMemo(() => [...(livePub?.drinks || [])].sort((a, b) =>
     CATEGORIES.indexOf(a.category) - CATEGORIES.indexOf(b.category)
     || Number(isDraught(b.measure)) - Number(isDraught(a.measure))
     || Number(a.current_price) - Number(b.current_price)
-  ), [pub]);
+  ), [livePub]);
 
   function startReport(drinkId) {
     setReportDrinkId(drinkId ?? "");
@@ -94,6 +100,7 @@ export default function PubPage() {
           <h2 className="pub-name">{pub.name}</h2>
           {pub.address && <p>{Number.isFinite(pub.lat) ? <a href={mapLink} target="_blank" rel="noreferrer">{pub.address}</a> : pub.address}</p>}
           {pub.website && <p><a href={pub.website} target="_blank" rel="noreferrer">Pub website ↗</a></p>}
+          <PubHours pub={pub} />
           <ul className="tag-list" aria-label="Tags">
             {(pub.tags || []).map(tag => <li key={tag} className="tag">{tag}</li>)}
           </ul>
@@ -102,10 +109,12 @@ export default function PubPage() {
             <FavouriteButton pub={pub} />
             <button type="button" className="secondary-button" onClick={() => startReport(drinks[0]?.id)}>Report a price</button>
             <Link className="secondary-button" to={`/suggestions?menu=${encodeURIComponent(pub.id)}`}>📄 Send us the menu</Link>
+            <CheckIn pub={pub} />
           </div>
         </div>
       </section>
 
+      <PubDeals pub={pub} />
       <PubWhatsOn pub={pub} />
 
       <section className="card" aria-labelledby="drinks-heading">
@@ -128,10 +137,12 @@ export default function PubPage() {
                       <span className="category-pill">{drink.category}</span>
                       <SourceBadge source={drink.source} url={drink.source_url} />
                       <UpdatedAgo value={drink.last_updated_at} />
+                      <DealNote drink={drink} />
                     </span>
                   </div>
                   <PriceTag price={drink.current_price} measure={drink.measure} volumeMl={drink.volume_ml} pintPrice={pintPrice(drink.current_price, drink.measure, drink.volume_ml)} />
                   <div className="drink-actions">
+                    <StillRightButton drink={drink} />
                     <button type="button" className="secondary-button small" onClick={() => startReport(drink.id)}>Update price</button>
                     <button
                       type="button"
@@ -149,6 +160,8 @@ export default function PubPage() {
           </ul>
         )}
       </section>
+
+      <PourScore pub={pub} />
 
       <section className="card" id="report" ref={reportRef} aria-labelledby="report-heading">
         <h2 id="report-heading" className="section-title">Report a price</h2>

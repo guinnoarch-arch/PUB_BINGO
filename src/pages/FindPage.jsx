@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useApp } from "../lib/AppContext.jsx";
 import { CATEGORIES } from "../data/seedPubs.js";
@@ -9,11 +9,42 @@ import FavouriteButton from "../components/ui/FavouriteButton.jsx";
 import { PriceTag, SourceBadge, UpdatedAgo } from "../components/ui/Badges.jsx";
 import { EmptyState, ErrorState, Loading } from "../components/ui/States.jsx";
 import LiveFeed from "../components/LiveFeed.jsx";
+import DealNote from "../components/features/DealNote.jsx";
+import { PourScore } from "../components/features/PubExtras.jsx";
+import NotLaunched from "../components/ui/NotLaunched.jsx";
+import { isOpenAt } from "../lib/core/hours.js";
+import { upcoming } from "../lib/core/events.js";
+
+// Extra filters (the "pub_filters" feature). Each is a test on a pub.
+const PUB_FILTERS = [
+  { key: "open", label: "🕒 Open now" },
+  { key: "sport", label: "⚽ Sport on tonight" },
+  { key: "outside", label: "☀️ Outside seating" }
+];
 
 const SUGGESTIONS = ["Guinness", "IPA", "Camden Hells", "London Pride", "Cider"];
 
 export default function FindPage() {
-  const { pubs, pubsStatus, pubsError, reloadPubs, toast } = useApp();
+  const { livePubs, pubsStatus, pubsError, reloadPubs, toast, feature, clock, api, extras } = useApp();
+  const [filters, setFilters] = useState(() => new Set());
+  const [sportPubIds, setSportPubIds] = useState(null);
+  const filtersOn = feature("pub_filters");
+
+  // "Sport on tonight" uses What's on events.
+  useEffect(() => {
+    if (!filtersOn || !filters.has("sport") || sportPubIds) return;
+    api.listEvents().then(events => setSportPubIds(new Set(upcoming(events, { when: "tonight", categories: ["sports"], now: clock }).map(o => o.event.pub_id))))
+      .catch(() => setSportPubIds(new Set()));
+  }, [api, filtersOn, filters, sportPubIds, clock]);
+
+  const pubs = useMemo(() => {
+    if (!filtersOn || !filters.size) return livePubs;
+    return livePubs.filter(pub =>
+      (!filters.has("open") || isOpenAt(pub.opening_hours, clock) === true)
+      && (!filters.has("sport") || Boolean(sportPubIds?.has(pub.id)))
+      && (!filters.has("outside") || (pub.tags || []).some(t => t === "beer-garden" || t === "outdoor-drinking")));
+  }, [livePubs, filtersOn, filters, clock, sportPubIds]);
+  const toggleFilter = key => setFilters(prev => { const next = new Set(prev); if (next.has(key)) next.delete(key); else next.add(key); return next; });
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const query = params.get("q") || "";
@@ -33,11 +64,11 @@ export default function FindPage() {
     () => searchDrinks(pubs, { query, category, origin, sortBy, realOnly: true }),
     [pubs, query, category, origin, sortBy]
   );
-  const filtering = Boolean(query.trim() || category);
+  const filtering = Boolean(query.trim() || category || (filtersOn && filters.size));
   const unconfirmed = useMemo(() => (filtering ? unconfirmedPubs(pubs, { query, category }) : []), [pubs, query, category, filtering]);
   const unconfirmedIds = useMemo(() => new Set(unconfirmed.map(u => u.pub.id)), [unconfirmed]);
   const pricesByPub = useMemo(() => (filtering ? cheapestPerPub(results) : null), [filtering, results]);
-  const cheapestNow = useMemo(() => cheapestPints(pubs, { limit: 5, realOnly: true }), [pubs]);
+  const cheapestNow = useMemo(() => cheapestPints(livePubs, { limit: 5, realOnly: true }), [livePubs]);
 
   function pickOrigin(point) {
     setOrigin(point);
@@ -89,6 +120,21 @@ export default function FindPage() {
             <button key={c} type="button" className={`chip ${category === c ? "active" : ""}`} aria-pressed={category === c} onClick={() => updateParam("cat", category === c ? "" : c)}>{c}</button>
           ))}
         </div>
+        {filtersOn && (
+          <div className="chip-row" role="group" aria-label="Filter pubs">
+            {PUB_FILTERS.map(f => (
+              <button key={f.key} type="button" className={`chip ${filters.has(f.key) ? "active" : ""}`} aria-pressed={filters.has(f.key)} onClick={() => toggleFilter(f.key)}>{f.label}</button>
+            ))}
+            <NotLaunched feature="pub_filters" />
+          </div>
+        )}
+        {filtersOn && filters.has("open") && <p className="muted small-text">“Open now” only includes pubs whose opening hours we have.</p>}
+        {(feature("crawl_planner") || feature("round_calculator")) && (
+          <div className="row-actions wrap tool-links">
+            {feature("crawl_planner") && <span><Link className="secondary-button small" to="/crawl">🗺️ Plan a crawl</Link> <NotLaunched feature="crawl_planner" /></span>}
+            {feature("round_calculator") && <span><Link className="secondary-button small" to="/round">🍻 Price a round</Link> <NotLaunched feature="round_calculator" /></span>}
+          </div>
+        )}
       </section>
 
       <div className="find-layout">
@@ -142,10 +188,10 @@ export default function FindPage() {
             </EmptyState>
           )}
           {pubsStatus === "ready" && results.length === 0 && filtering && unconfirmed.length > 0 && (
-            <p className="status-message">No confirmed prices for “{query || category}” yet. These pubs stock it. Know the price? Report it!</p>
+            <p className="status-message">No confirmed prices for “{query || category || "these filters"}” yet. These pubs stock it. Know the price? Report it!</p>
           )}
           {pubsStatus === "ready" && results.length === 0 && filtering && unconfirmed.length === 0 && (
-            <EmptyState title={`No pubs found for “${query || category}”`}>
+            <EmptyState title={`No pubs found for “${query || category || "these filters"}”`}>
               <p>Try one of these, or add the drink from a pub's page if you've seen it.</p>
               <div className="chip-row">
                 {SUGGESTIONS.map(s => <button key={s} type="button" className="chip" onClick={() => { updateParam("q", s); }}>{s}</button>)}
@@ -165,6 +211,9 @@ export default function FindPage() {
                       <span className="category-pill">{row.drink.category}</span>
                       <SourceBadge source={row.drink.source} url={row.drink.source_url} />
                       <UpdatedAgo value={row.drink.last_updated_at} />
+                      <DealNote drink={row.drink} />
+                      {/guinness/i.test(row.drink.name) && <PourScore pub={row.pub} compact />}
+                      {extras.busy.get(row.pub.id) > 0 && <span className="busy-note">🔥 busy now</span>}
                     </span>
                     {row.distance != null && <span className="distance">{formatDistance(row.distance)}</span>}
                   </div>

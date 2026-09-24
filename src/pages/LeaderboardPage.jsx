@@ -5,9 +5,14 @@ import { CATEGORIES } from "../data/seedPubs.js";
 import { cheapestPints } from "../lib/core/search.js";
 import { PriceTag, SourceBadge, UpdatedAgo } from "../components/ui/Badges.jsx";
 import { EmptyState, ErrorState, Loading } from "../components/ui/States.jsx";
+import DealNote from "../components/features/DealNote.jsx";
+import TopReporters from "../components/features/TopReporters.jsx";
+import AreaAverages from "../components/features/AreaAverages.jsx";
+import NotLaunched from "../components/ui/NotLaunched.jsx";
 
 export default function LeaderboardPage() {
-  const { pubs, pubsStatus, pubsError, reloadPubs, liveStatus } = useApp();
+  const { livePubs: pubs, pubsStatus, pubsError, reloadPubs, liveStatus, feature } = useApp();
+  const [tab, setTab] = useState("pints");
   const [category, setCategory] = useState(null);
   const [onePerPub, setOnePerPub] = useState(true);
   // Confirmed prices only: starting estimates never appear on the leaderboard.
@@ -18,10 +23,18 @@ export default function LeaderboardPage() {
       <div className="page-title-row">
         <div>
           <p className="eyebrow">Across all {pubs.length || ""} pubs</p>
-          <h2>Cheapest pint right now</h2>
+          <h2>{tab === "people" ? "Top reporters" : "Cheapest pint right now"}</h2>
         </div>
         <span className={`live-pill ${liveStatus}`}>{liveStatus === "live" ? "● Live" : liveStatus === "offline" ? "Offline" : "Connecting…"}</span>
       </div>
+      {feature("top_reporters") && (
+        <div className="segmented" role="tablist" aria-label="Leaderboards">
+          <button type="button" role="tab" aria-selected={tab === "pints"} className={tab === "pints" ? "active" : ""} onClick={() => setTab("pints")}>Cheapest pints</button>
+          <button type="button" role="tab" aria-selected={tab === "people"} className={tab === "people" ? "active" : ""} onClick={() => setTab("people")}>Top reporters</button>
+          <NotLaunched feature="top_reporters" />
+        </div>
+      )}
+      {tab === "people" && feature("top_reporters") ? <section className="card"><TopReporters /></section> : (<>
 
       <section className="card">
         <div className="chip-row" role="group" aria-label="Filter by category">
@@ -34,7 +47,7 @@ export default function LeaderboardPage() {
           <input type="checkbox" checked={onePerPub} onChange={e => setOnePerPub(e.target.checked)} />
           One drink per pub
         </label>
-        <p className="muted small-text">Only confirmed prices count (reported by visitors, taken from a pub's website, or checked by us). Halves are ranked by their price per pint.</p>
+        <p className="muted small-text">Only confirmed prices count (reported by visitors, taken from a pub's website, or checked by us). Halves are ranked by their price per pint.{feature("happy_hours") ? " Happy-hour prices count while they're on." : ""}</p>
       </section>
 
       <section className="card">
@@ -56,6 +69,7 @@ export default function LeaderboardPage() {
                     <span className="category-pill">{row.drink.category}</span>
                     <SourceBadge source={row.drink.source} url={row.drink.source_url} />
                     <UpdatedAgo value={row.drink.last_updated_at} />
+                    <DealNote drink={row.drink} />
                   </span>
                 </div>
                 <PriceTag price={row.price} measure={row.measure} volumeMl={row.volumeMl} pintPrice={row.pintPrice} large />
@@ -64,6 +78,16 @@ export default function LeaderboardPage() {
           </ol>
         )}
       </section>
+      {feature("price_trends") && (
+        <section className="card" aria-labelledby="areas-heading">
+          <div className="section-header">
+            <h2 id="areas-heading" className="section-title">Average pint by area</h2>
+            <NotLaunched feature="price_trends" />
+          </div>
+          <AreaAverages pubs={pubs} />
+        </section>
+      )}
+      </>)}
     </>
   );
 }

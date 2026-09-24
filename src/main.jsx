@@ -14,6 +14,10 @@ import FavouritesPage from "./pages/FavouritesPage.jsx";
 import BingoPage from "./pages/BingoPage.jsx";
 import AccountPage from "./pages/AccountPage.jsx";
 import SuggestionsPage from "./pages/SuggestionsPage.jsx";
+import NeedsCheckingPage from "./pages/NeedsCheckingPage.jsx";
+import RoundPage from "./pages/RoundPage.jsx";
+// The crawl planner has its own map; load it when opened.
+const CrawlPage = lazy(() => import("./pages/CrawlPage.jsx"));
 // Admin screens (and the PDF reader they use) load only when an admin opens them.
 const AdminPage = lazy(() => import("./pages/AdminPage.jsx"));
 const AdminPubPage = lazy(() => import("./pages/AdminPubPage.jsx"));
@@ -88,6 +92,9 @@ function App() {
           <Route path="/bingo" element={<BingoPage />} />
           <Route path="/account" element={<AccountPage />} />
           <Route path="/suggestions" element={<SuggestionsPage />} />
+          <Route path="/needs-checking" element={<NeedsCheckingPage />} />
+          <Route path="/crawl" element={<Suspense fallback={<Loading />}><CrawlPage /></Suspense>} />
+          <Route path="/round" element={<RoundPage />} />
           <Route path="/admin" element={<Suspense fallback={<Loading />}><AdminPage /></Suspense>} />
           <Route path="/admin/pubs/:pubId" element={<Suspense fallback={<Loading />}><AdminPubPage /></Suspense>} />
           <Route path="*" element={<NotFoundPage />} />

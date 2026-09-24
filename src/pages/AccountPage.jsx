@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useApp } from "../lib/AppContext.jsx";
 import { friendlyError } from "../lib/api/errors.js";
 import { Loading } from "../components/ui/States.jsx";
+import AccountExtras from "../components/features/AccountExtras.jsx";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const USERNAME_RE = /^[A-Za-z0-9_]{3,24}$/;
@@ -28,6 +29,7 @@ export default function AccountPage() {
 
   if (session) {
     return (
+      <>
       <section className="card account-card">
         <p className="eyebrow">Signed in</p>
         <h2>{profile ? `@${profile.username}` : "Your account"}</h2>
@@ -39,6 +41,8 @@ export default function AccountPage() {
           <button type="button" className="danger-button" onClick={async () => { await api.auth.signOut(); toast("Signed out."); }}>Sign out</button>
         </div>
       </section>
+      <AccountExtras />
+      </>
     );
   }
 

@@ -66,6 +66,7 @@ beforeAll(async () => {
   await db.query(read("supabase/migrations/0005_bottles.sql"));
   await db.query(read("supabase/migrations/0006_suggestions.sql"));
   await db.query(read("supabase/migrations/0007_menu_submissions.sql"));
+  await db.query(read("supabase/migrations/0008_features.sql"));
   // Migrations must be safe to run twice.
   await db.query(read("supabase/migrations/0002_pub_admin.sql"));
   await db.query(read("supabase/migrations/0003_events.sql"));
@@ -73,6 +74,7 @@ beforeAll(async () => {
   await db.query(read("supabase/migrations/0005_bottles.sql"));
   await db.query(read("supabase/migrations/0006_suggestions.sql"));
   await db.query(read("supabase/migrations/0007_menu_submissions.sql"));
+  await db.query(read("supabase/migrations/0008_features.sql"));
   await db.query(read("supabase/seed.sql"));
 
   users.alice = await createUser("Alice_1");
@@ -747,5 +749,157 @@ describe("0007: menus sent in", () => {
     const { rows } = await db.query("select count(*)::int as n from pg_proc where proname = 'admin_set_drink_price'");
     expect(rows[0].n).toBe(1);
     await db.query(read("supabase/migrations/0007_menu_submissions.sql"));
+  await db.query(read("supabase/migrations/0008_features.sql"));
+  });
+});
+
+describe("0008: feature switches and new features", () => {
+  const q = (who, sql, params = []) => as(who, () => db.query(sql, params).then(r => r.rows));
+  const setFeature = (key, live) => q(users.admin, "select public.admin_set_feature($1, $2)", [key, live]);
+
+  it("starts every feature switched off; only admins can switch them", async () => {
+    const rows = await asAnon(() => db.query("select key, is_live from public.app_features").then(r => r.rows));
+    expect(rows.length).toBe(18);
+    expect(rows.every(r => r.is_live === false)).toBe(true);
+    await expect(q(users.alice, "select public.admin_set_feature('still_right', true)")).rejects.toThrow(/Admins only/);
+    await expect(setFeature("email_digest", true)).rejects.toThrow(/needs setting up/);
+    await expect(setFeature("nope", true)).rejects.toThrow(/Unknown feature/);
+    await expect(q(users.alice, "update public.app_features set is_live = true")).rejects.toThrow(/permission denied/);
+  });
+
+  it("lets admins try a feature before launch, and users once it's live", async () => {
+    const id = await drinkId("the-harp", "Westons Old Rosie");
+    await expect(q(users.alice, "select public.confirm_price($1)", [id])).rejects.toThrow(/isn't available yet/);
+    const [adminTry] = await q(users.admin, "select * from public.confirm_price($1)", [id]);
+    expect(adminTry).toMatchObject({ kind: "confirm", source: "community" });
+    await setFeature("still_right", true);
+    const before = (await db.query("select current_price::float as p from public.drinks where id = $1", [id])).rows[0].p;
+    const [row] = await q(users.alice, "select * from public.confirm_price($1)", [id]);
+    expect(row).toMatchObject({ kind: "confirm", note: "Still right" });
+    expect(Number(row.price)).toBe(before);
+    const drink = (await db.query("select source, last_updated_at from public.drinks where id = $1", [id])).rows[0];
+    expect(drink.source).toBe("community");
+    expect(Date.now() - drink.last_updated_at.getTime()).toBeLessThan(60000);
+    await expect(q(users.alice, "select public.confirm_price($1)", [id])).rejects.toThrow(/already checked this price today/);
+    await expect(asAnon(() => db.query("select public.confirm_price($1)", [id]))).rejects.toThrow(/permission denied/);
+  });
+
+  it("holds a big price jump from an untrusted reporter for review (only when switched on)", async () => {
+    const id = await drinkId("the-harp", "Dark Star Hophead");
+    await db.query("update public.drinks set source = 'community', current_price = 6 where id = $1", [id]);
+    await db.query("delete from public.price_reports where reporter in ($1, $2) and drink_id = $3", [users.bob, users.alice, id]);
+    const off = await report(users.bob, { pub: "the-harp", drinkId: id, price: 9.5 });
+    expect(off.held).toBe(false);
+    await db.query("update public.drinks set current_price = 6 where id = $1", [id]);
+    await setFeature("trusted_reporters", true);
+    await db.query("delete from public.price_reports where reporter = $1 and drink_id = $2", [users.bob, id]);
+    const held = await report(users.bob, { pub: "the-harp", drinkId: id, price: 9.5 });
+    expect(held).toMatchObject({ held: true, is_hidden: true });
+    expect((await db.query("select current_price::float as p from public.drinks where id = $1", [id])).rows[0].p).toBe(6);
+    // Bob can see his own held report; others can't.
+    expect((await q(users.bob, "select id from public.price_reports where id = $1", [held.id])).length).toBe(1);
+    expect((await q(users.alice, "select id from public.price_reports where id = $1", [held.id])).length).toBe(0);
+    // A normal change goes straight through.
+    await db.query("delete from public.price_reports where reporter = $1 and drink_id = $2", [users.alice, id]);
+    const small = await report(users.alice, { pub: "the-harp", drinkId: id, price: 6.2 });
+    expect(small.held).toBe(false);
+    await expect(q(users.alice, "select public.admin_review_held_report($1, true)", [held.id])).rejects.toThrow(/Admins only/);
+    await q(users.admin, "select public.admin_review_held_report($1, true)", [held.id]);
+    const after = (await db.query("select current_price::float as p from public.drinks where id = $1", [id])).rows[0].p;
+    expect(after).toBe(6.2); // Alice's report is newer, so it stays current
+    const approved = (await db.query("select held, is_hidden from public.price_reports where id = $1", [held.id])).rows[0];
+    expect(approved).toEqual({ held: false, is_hidden: false });
+    await expect(q(users.admin, "select public.admin_review_held_report($1, true)", [held.id])).rejects.toThrow(/isn't waiting/);
+  });
+
+  it("makes reporters trusted once 5 of their prices are matched", async () => {
+    const [before] = await q(null, "select public.is_trusted_reporter($1) as t", [users.alice]);
+    expect(before.t).toBe(false);
+    const drinks = (await db.query("select id, pub_id, current_price from public.drinks where pub_id = 'the-toucan' limit 5")).rows;
+    for (const d of drinks) {
+      await db.query("insert into public.price_reports (pub_id, drink_id, drink_name, category, price, reporter, source) values ($1, $2, 'x', 'Lager', 6, $3, 'community'), ($1, $2, 'x', 'Lager', 6.05, $4, 'community')", [d.pub_id, d.id, users.alice, users.admin]);
+    }
+    const [after] = await q(null, "select public.is_trusted_reporter($1) as t", [users.alice]);
+    expect(after.t).toBe(true);
+    const names = (await asAnon(() => db.query("select * from public.trusted_usernames() as u").then(r => r.rows.map(x => x.u))));
+    expect(names).toContain("Alice_1");
+    const stats = await asAnon(() => db.query("select * from public.community_stats(null)").then(r => r.rows));
+    expect(stats.find(s => s.username === "Alice_1")).toMatchObject({ trusted: true });
+    expect(stats.find(s => s.username === "Alice_1").confirms).toBeGreaterThanOrEqual(1);
+  });
+
+  it("attaches a private receipt to your own recent report", async () => {
+    const id = await drinkId("the-harp", "Guinness");
+    const own = await report(users.bob, { pub: "the-harp", drinkId: id, price: 6.3 });
+    const path = `${users.bob}/1-r.jpg`;
+    await expect(q(users.bob, "select public.attach_receipt($1, $2)", [own.id, path])).rejects.toThrow(/isn't available yet/);
+    await setFeature("receipts", true);
+    await expect(q(users.alice, "select public.attach_receipt($1, $2)", [own.id, `${users.alice}/1-r.jpg`])).rejects.toThrow(/own report/);
+    await expect(q(users.bob, "select public.attach_receipt($1, $2)", [own.id, `${users.alice}/1-r.jpg`])).rejects.toThrow(/Upload the receipt first/);
+    await q(users.bob, "select public.attach_receipt($1, $2)", [own.id, path]);
+    expect((await db.query("select receipt_path from public.price_reports where id = $1", [own.id])).rows[0].receipt_path).toBe(path);
+    await expect(as(users.alice, () => db.query("insert into storage.objects (bucket_id, name) values ('receipts', $1)", [`${users.bob}/2.jpg`]))).rejects.toThrow(/row-level security/);
+  });
+
+  it("saves, checks and hides deals until published", async () => {
+    const deal = { pub_id: "the-harp", title: "£5 pints", days: [1, 2, 3, 4, 5], start_time: "16:00", end_time: "19:00", deal_price: "5.00" };
+    await expect(q(users.alice, "select public.admin_save_deal($1)", [deal])).rejects.toThrow(/Admins only/);
+    await expect(q(users.admin, "select public.admin_save_deal($1)", [{ ...deal, deal_price: "", discount_pct: "" }])).rejects.toThrow(/Check the deal/);
+    await expect(q(users.admin, "select public.admin_save_deal($1)", [{ ...deal, days: [] }])).rejects.toThrow(/Check the deal/);
+    await expect(q(users.admin, "select public.admin_save_deal($1)", [{ ...deal, start_time: "banana" }])).rejects.toThrow(/Check the times/);
+    const [saved] = await q(users.admin, "select * from public.admin_save_deal($1)", [deal]);
+    expect(saved).toMatchObject({ title: "£5 pints", is_published: false, days: [1, 2, 3, 4, 5] });
+    expect((await asAnon(() => db.query("select id from public.deals").then(r => r.rows))).length).toBe(0);
+    await q(users.admin, "select public.admin_save_deal($1)", [{ ...deal, id: saved.id, is_published: true }]);
+    expect((await asAnon(() => db.query("select id from public.deals").then(r => r.rows))).length).toBe(1);
+    await q(users.admin, "select public.admin_delete_deal($1)", [saved.id]);
+    expect((await db.query("select count(*)::int as n from public.deals")).rows[0].n).toBe(0);
+  });
+
+  it("validates opening hours", async () => {
+    await q(users.admin, "select public.admin_set_opening_hours('the-harp', $1)", [{ 1: [["11:00", "23:00"]], 5: [["11:00", "01:00"]], 0: [] }]);
+    expect((await db.query("select opening_hours from public.pubs where id = 'the-harp'")).rows[0].opening_hours).toMatchObject({ 1: [["11:00", "23:00"]] });
+    await expect(q(users.admin, "select public.admin_set_opening_hours('the-harp', $1)", [{ 9: [] }])).rejects.toThrow(/Invalid opening hours/);
+    await expect(q(users.admin, "select public.admin_set_opening_hours('the-harp', $1)", [{ 1: [["25:00", "23:00"]] }])).rejects.toThrow(/Times must look like/);
+    await expect(q(users.alice, "select public.admin_set_opening_hours('the-harp', null)")).rejects.toThrow(/Admins only/);
+  });
+
+  it("checks you in only when you're at the pub", async () => {
+    const { lat, lng } = (await db.query("select lat, lng from public.pubs where id = 'the-harp'")).rows[0];
+    await expect(q(users.bob, "select public.check_in('the-harp', $1, $2)", [lat, lng])).rejects.toThrow(/isn't available yet/);
+    await setFeature("check_ins", true);
+    await expect(q(users.bob, "select public.check_in('the-harp', $1, $2)", [lat + 0.01, lng])).rejects.toThrow(/need to be at the pub/);
+    await q(users.bob, "select public.check_in('the-harp', $1, $2)", [lat + 0.0005, lng]);
+    await expect(q(users.bob, "select public.check_in('the-harp', $1, $2)", [lat, lng])).rejects.toThrow(/already checked in/);
+    const busy = await asAnon(() => db.query("select * from public.pub_busy()").then(r => r.rows));
+    expect(busy).toEqual([{ pub_id: "the-harp", people: 1 }]);
+    expect((await q(users.alice, "select * from public.checkins")).length).toBe(0);
+    expect((await q(users.bob, "select * from public.checkins")).length).toBe(1);
+  });
+
+  it("rates the Guinness pour once a day per pub", async () => {
+    await setFeature("guinness_score", true);
+    await q(users.bob, "select public.rate_pour('the-harp', 4)");
+    await q(users.bob, "select public.rate_pour('the-harp', 5)");
+    await q(users.alice, "select public.rate_pour('the-harp', 3)");
+    const scores = await asAnon(() => db.query("select pub_id, score::float, ratings from public.pour_scores()").then(r => r.rows));
+    expect(scores).toEqual([{ pub_id: "the-harp", score: 4, ratings: 2 }]);
+    await expect(q(users.bob, "select public.rate_pour('the-harp', 6)")).rejects.toThrow(/1 to 5/);
+    const noGuinness = (await db.query("select id from public.pubs p where not exists (select 1 from public.drinks d where d.pub_id = p.id and d.name_normalized like '%guinness%') and is_published limit 1")).rows[0];
+    if (noGuinness) await expect(q(users.bob, "select public.rate_pour($1, 4)", [noGuinness.id])).rejects.toThrow(/doesn't list Guinness/);
+  });
+
+  it("keeps price watches private and limited", async () => {
+    await setFeature("price_watch", true);
+    const [w] = await q(users.bob, "select * from public.add_price_watch('Guinness', 6, 'Soho')");
+    expect(w).toMatchObject({ query: "Guinness", area: "Soho" });
+    await expect(q(users.bob, "select public.add_price_watch('G', 6, null)")).rejects.toThrow(/Type a drink/);
+    expect((await q(users.alice, "select * from public.price_watches")).length).toBe(0);
+    await q(users.alice, "delete from public.price_watches where id = $1", [w.id]);
+    expect((await q(users.bob, "select * from public.price_watches")).length).toBe(1);
+    await q(users.bob, "delete from public.price_watches where id = $1", [w.id]);
+    expect((await q(users.bob, "select * from public.price_watches")).length).toBe(0);
+    for (let i = 0; i < 10; i += 1) await q(users.bob, "select public.add_price_watch($1, 6, null)", [`Beer ${i}`]);
+    await expect(q(users.bob, "select public.add_price_watch('One more', 6, null)")).rejects.toThrow(/up to 10/);
   });
 });

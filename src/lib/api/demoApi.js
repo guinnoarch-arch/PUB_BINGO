@@ -9,6 +9,8 @@ import { validatePriceReport } from "../core/prices.js";
 import { normaliseText } from "../core/search.js";
 import { preparePhoto } from "./photos.js";
 import { londonToday, prepareMenuFile, validateSeenOn } from "./menuFiles.js";
+import { FEATURE_KEYS, FEATURES } from "../featureList.js";
+import { distanceMetres } from "../core/geo.js";
 
 const uid = () => (crypto.randomUUID ? crypto.randomUUID() : `id-${Math.random().toString(36).slice(2)}`);
 const clone = value => JSON.parse(JSON.stringify(value));
@@ -48,6 +50,12 @@ export function createDemoApi() {
   const suggestions = [];
   const suggestionVotes = new Map(); // `${id}:${userId}` -> 1 | -1
   const menuSubmissions = [];
+  const featureSwitches = new Map(FEATURE_KEYS.map(key => [key, false]));
+  const deals = [];
+  const checkins = [];
+  const pourRatings = [];
+  const priceWatches = [];
+  const receiptFiles = new Map();
   const submissionFiles = new Map(); // storage_path -> File (demo only: lives in this tab)
   const authListeners = new Set();
   const changeListeners = new Set();
@@ -70,6 +78,23 @@ export function createDemoApi() {
   const visible = pubId => pubs.some(p => p.id === pubId && (p.is_published || isAdmin()));
   const fail = message => { throw new Error(message); };
   const withReporter = r => ({ ...r, reporter_profile: r.reporter ? { username: profileOf(r.reporter)?.username } : null });
+  const featureOn = key => featureSwitches.get(key) || isAdmin();
+  const requireFeature = key => { if (!featureOn(key)) fail("This feature isn't available yet"); };
+  // Same rule as the database: 5 reports matched by someone else (within 10p, 14 days), none hidden lately.
+  const isTrusted = userId => {
+    if (profileOf(userId)?.is_admin) return true;
+    const mine = reports.filter(r => r.reporter === userId && r.source === "community");
+    const matched = mine.filter(r => !r.is_hidden && reports.some(o => o.drink_id === r.drink_id && o.id !== r.id && !o.is_hidden
+      && o.source !== "seed" && o.reporter !== userId && Math.abs(o.price - r.price) <= 0.1
+      && Math.abs(Date.parse(o.reported_at) - Date.parse(r.reported_at)) <= 14 * 86400000)).length;
+    const hiddenLately = mine.some(r => r.is_hidden && !r.held && Date.parse(r.reported_at) > Date.now() - 90 * 86400000);
+    return matched >= 5 && !hiddenLately;
+  };
+  const recomputeDrink = drinkId => {
+    const latest = reports.filter(r => r.drink_id === drinkId && !r.is_hidden).sort((a, b) => b.reported_at.localeCompare(a.reported_at))[0];
+    const drink = drinks.find(d => d.id === drinkId);
+    if (latest && drink) Object.assign(drink, { current_price: latest.price, last_updated_at: latest.reported_at, source: latest.source, source_url: latest.source_url || null });
+  };
 
   return {
     mode: "demo",
@@ -191,13 +216,14 @@ export function createDemoApi() {
 
     async getDrinkHistory(drinkId) {
       await wait(60);
-      return clone(reports.filter(r => r.drink_id === drinkId && !r.is_hidden).map(withReporter).sort((a, b) => b.reported_at.localeCompare(a.reported_at)));
+      const me = session?.user?.id;
+      return clone(reports.filter(r => r.drink_id === drinkId && (!r.is_hidden || isAdmin() || (r.held && r.reporter === me))).map(withReporter).sort((a, b) => b.reported_at.localeCompare(a.reported_at)));
     },
 
     async listRecentReports(limit = 30) {
       await wait(60);
       return clone(reports
-        .filter(r => r.source === "community" && !r.is_hidden)
+        .filter(r => r.source === "community" && (!r.is_hidden || isAdmin()))
         .sort((a, b) => b.reported_at.localeCompare(a.reported_at))
         .slice(0, limit)
         .map(r => ({ ...withReporter(r), pub: pubs.find(p => p.id === r.pub_id) })));
@@ -217,6 +243,7 @@ export function createDemoApi() {
         ? drinks.find(d => d.id === value.drinkId && d.pub_id === value.pubId)
         : drinks.find(d => d.pub_id === value.pubId && normaliseText(d.name) === normaliseText(value.drinkName) && d.measure === value.measure);
       if (value.drinkId && !drink) throw new Error("That drink is not listed at this pub");
+      const existing = Boolean(drink);
       if (!drink) {
         drink = { id: uid(), pub_id: value.pubId, name: value.drinkName, category: value.category, measure: value.measure, current_price: value.price, source: "community", last_updated_at: new Date().toISOString() };
         drinks.push(drink);
@@ -224,9 +251,11 @@ export function createDemoApi() {
       if (reports.some(r => r.reporter === userId && r.drink_id === drink.id && Date.parse(r.reported_at) > Date.now() - 600000)) {
         throw new Error("You reported this drink a few minutes ago");
       }
-      const report = { id: uid(), pub_id: value.pubId, drink_id: drink.id, drink_name: drink.name, category: drink.category, measure: drink.measure, price: value.price, note: value.note, reported_at: new Date().toISOString(), reporter: userId, source: "community", is_hidden: false };
+      const hold = existing && featureSwitches.get("trusted_reporters") && drink.source !== "seed"
+        && Math.abs(value.price - drink.current_price) / drink.current_price > 0.4 && !isTrusted(userId);
+      const report = { id: uid(), pub_id: value.pubId, drink_id: drink.id, drink_name: drink.name, category: drink.category, measure: drink.measure, price: value.price, note: value.note, reported_at: new Date().toISOString(), reporter: userId, source: "community", is_hidden: hold, held: hold, kind: "report", receipt_path: null };
       reports.push(report);
-      Object.assign(drink, { current_price: value.price, last_updated_at: report.reported_at, source: "community", source_url: null });
+      if (!hold) Object.assign(drink, { current_price: value.price, last_updated_at: report.reported_at, source: "community", source_url: null });
       emit({ table: "price_reports", payload: { eventType: "INSERT", new: report } });
       return clone(report);
     },
@@ -254,10 +283,119 @@ export function createDemoApi() {
     },
 
     async getMyActivity(userId) {
-      return {
-        reports: clone(reports.filter(r => r.reporter === userId)),
-        photoCount: photos.filter(p => p.uploaded_by === userId).length
-      };
+      const menus = menuSubmissions.filter(m => m.submitted_by === userId);
+      return clone({
+        reports: reports.filter(r => r.reporter === userId && !r.is_hidden),
+        photoCount: photos.filter(p => p.uploaded_by === userId).length,
+        checkins: checkins.filter(c => c.user_id === userId),
+        menus,
+        menusUsed: menus.filter(m => m.status === "used").length,
+        pourRatings: pourRatings.filter(r => r.user_id === userId),
+        trusted: isTrusted(userId)
+      });
+    },
+
+    async listFeatures() {
+      return [...featureSwitches.entries()].map(([key, is_live]) => ({ key, is_live }));
+    },
+    async confirmPrice(drinkId) {
+      await wait();
+      const me = requireUser();
+      requireFeature("still_right");
+      const drink = drinks.find(d => d.id === drinkId);
+      if (!drink || !visible(drink.pub_id)) fail("Drink not found");
+      if (reports.filter(r => r.reporter === me && Date.parse(r.reported_at) > Date.now() - 3600000).length >= 20) fail("You have reported a lot of prices in the last hour. Try again later");
+      if (reports.some(r => r.reporter === me && r.drink_id === drinkId && Date.parse(r.reported_at) > Date.now() - 12 * 3600000)) fail("You've already checked this price today. Thanks!");
+      const report = { id: uid(), pub_id: drink.pub_id, drink_id: drink.id, drink_name: drink.name, category: drink.category, measure: drink.measure, price: drink.current_price, note: "Still right", reported_at: new Date().toISOString(), reporter: me, source: "community", is_hidden: false, held: false, kind: "confirm", receipt_path: null };
+      reports.push(report);
+      Object.assign(drink, { last_updated_at: report.reported_at, source: "community", source_url: null });
+      emit({ table: "price_reports", payload: { eventType: "INSERT", new: report } });
+      return clone(report);
+    },
+    async uploadReceipt(userId, reportId, file) {
+      requireUser();
+      requireFeature("receipts");
+      const prepared = await preparePhoto(file);
+      const report = reports.find(r => r.id === reportId && r.reporter === userId && Date.parse(r.reported_at) > Date.now() - 3600000);
+      if (!report) fail("You can only add a receipt to your own report, within an hour");
+      const path = `${userId}/${Date.now()}.jpg`;
+      receiptFiles.set(path, prepared);
+      report.receipt_path = path;
+      emit({ table: "price_reports", payload: {} });
+    },
+    async trustedUsernames() {
+      return users.filter(u => reports.some(r => r.reporter === u.id && r.source === "community") && isTrusted(u.id)).map(u => u.username);
+    },
+    async communityStats(since = null) {
+      const from = since ? Date.parse(since) : 0;
+      return users.map(u => {
+        const mine = reports.filter(r => r.reporter === u.id && r.source === "community" && !r.is_hidden && Date.parse(r.reported_at) >= from);
+        const menusUsed = menuSubmissions.filter(m => m.submitted_by === u.id && m.status === "used" && Date.parse(m.created_at) >= from).length;
+        return {
+          username: u.username, reports: mine.filter(r => r.kind !== "confirm").length, confirms: mine.filter(r => r.kind === "confirm").length,
+          receipts: mine.filter(r => r.receipt_path).length, menus_used: menusUsed, trusted: isTrusted(u.id)
+        };
+      }).filter(r => r.reports + r.confirms + r.menus_used > 0)
+        .sort((a, b) => (b.reports + b.confirms + 3 * b.menus_used) - (a.reports + a.confirms + 3 * a.menus_used) || a.username.localeCompare(b.username));
+    },
+    async listDeals() {
+      return clone(deals.filter(d => d.is_published && visible(d.pub_id)));
+    },
+    async checkIn(pubId, lat, lng) {
+      await wait();
+      const me = requireUser();
+      requireFeature("check_ins");
+      const pub = pubs.find(p => p.id === pubId);
+      if (!pub || !visible(pubId)) fail("Unknown pub");
+      if (lat == null || lng == null) fail("Share your location to check in");
+      const metres = distanceMetres({ lat, lng }, { lat: pub.lat, lng: pub.lng });
+      if (metres > 200) fail(`You need to be at the pub to check in (you look about ${Math.round(metres)} m away)`);
+      if (checkins.some(c => c.user_id === me && c.pub_id === pubId && Date.parse(c.created_at) > Date.now() - 3 * 3600000)) fail("You're already checked in here");
+      const row = { id: uid(), user_id: me, pub_id: pubId, created_at: new Date().toISOString() };
+      checkins.push(row);
+      return clone(row);
+    },
+    async pubBusy() {
+      const recent = checkins.filter(c => Date.parse(c.created_at) > Date.now() - 90 * 60000);
+      const by = new Map();
+      recent.forEach(c => { if (!by.has(c.pub_id)) by.set(c.pub_id, new Set()); by.get(c.pub_id).add(c.user_id); });
+      return [...by.entries()].map(([pub_id, set]) => ({ pub_id, people: set.size }));
+    },
+    async ratePour(pubId, rating) {
+      await wait();
+      const me = requireUser();
+      requireFeature("guinness_score");
+      if (!(rating >= 1 && rating <= 5)) fail("Pick 1 to 5");
+      if (!drinks.some(d => d.pub_id === pubId && /guinness/i.test(d.name))) fail("This pub doesn't list Guinness");
+      const today = londonToday();
+      const existing = pourRatings.find(r => r.user_id === me && r.pub_id === pubId && r.rated_on === today);
+      if (existing) Object.assign(existing, { rating, created_at: new Date().toISOString() });
+      else pourRatings.push({ user_id: me, pub_id: pubId, rated_on: today, rating, created_at: new Date().toISOString() });
+    },
+    async pourScores() {
+      const by = new Map();
+      pourRatings.forEach(r => { if (!by.has(r.pub_id)) by.set(r.pub_id, []); by.get(r.pub_id).push(r.rating); });
+      return [...by.entries()].map(([pub_id, list]) => ({ pub_id, score: Math.round((list.reduce((a, b) => a + b, 0) / list.length) * 10) / 10, ratings: list.length }));
+    },
+    async listPriceWatches(userId) {
+      return clone(priceWatches.filter(w => w.user_id === userId));
+    },
+    async addPriceWatch({ query, maxPrice, area }) {
+      await wait();
+      const me = requireUser();
+      requireFeature("price_watch");
+      const q = String(query || "").replace(/\s+/g, " ").trim();
+      if (q.length < 2 || q.length > 60) fail("Type a drink, like Guinness or IPA");
+      if (!(maxPrice >= 1 && maxPrice <= 25)) fail("Price must be between £1.00 and £25.00");
+      if (priceWatches.filter(w => w.user_id === me).length >= 10) fail("You can watch up to 10 prices. Remove one first");
+      const row = { id: uid(), user_id: me, query: q, max_price: Math.round(maxPrice * 100) / 100, area: area || null, created_at: new Date().toISOString() };
+      priceWatches.push(row);
+      return clone(row);
+    },
+    async deletePriceWatch(id) {
+      const me = requireUser();
+      const i = priceWatches.findIndex(w => w.id === id && w.user_id === me);
+      if (i !== -1) priceWatches.splice(i, 1);
     },
 
     photoUrl(path) { return photoUrls.get(path) || ""; },
@@ -497,6 +635,75 @@ export function createDemoApi() {
         requireAdmin();
         const i = menuSubmissions.findIndex(m => m.id === id);
         if (i !== -1) submissionFiles.delete(menuSubmissions.splice(i, 1)[0].storage_path);
+      },
+      async setFeature(key, live) {
+        requireAdmin();
+        const info = FEATURES.find(f => f.key === key) || fail("Unknown feature");
+        if (info.status === "needs_setup" && live) fail("This feature needs setting up before it can be launched");
+        featureSwitches.set(key, Boolean(live));
+        emit({ table: "app_features", payload: {} });
+        return { key, is_live: Boolean(live) };
+      },
+      async listDeals(pubId) {
+        requireAdmin();
+        return clone(deals.filter(d => d.pub_id === pubId));
+      },
+      async saveDeal(input) {
+        requireAdmin();
+        await wait();
+        const days = [...new Set((input.days || []).map(Number))].sort();
+        const title = String(input.title || "").trim();
+        const price = input.deal_price === "" || input.deal_price == null ? null : Number(input.deal_price);
+        const pct = input.discount_pct === "" || input.discount_pct == null ? null : Number(input.discount_pct);
+        const bad = title.length < 3 || title.length > 80 || !days.length || !input.start_time || !input.end_time || input.start_time === input.end_time
+          || (price == null) === (pct == null) || (price != null && !(price >= 1 && price <= 25)) || (pct != null && !(pct >= 5 && pct <= 75));
+        if (bad) fail("Check the deal: a title (3-80 characters), at least one day, different start and end times, and either a price (£1-£25) or a discount (5-75%)");
+        const row = {
+          pub_id: input.pub_id, title, days, start_time: input.start_time, end_time: input.end_time, drink_id: input.drink_id || null,
+          category: input.category || null, deal_price: price, discount_pct: pct, source: input.source || "admin",
+          source_url: input.source_url || null, is_published: Boolean(input.is_published), updated_at: new Date().toISOString()
+        };
+        let saved;
+        if (input.id) {
+          saved = deals.find(d => d.id === input.id) || fail("Deal not found");
+          Object.assign(saved, row);
+        } else {
+          saved = { id: uid(), created_at: new Date().toISOString(), ...row };
+          deals.push(saved);
+        }
+        emit({ table: "deals", payload: {} });
+        return clone(saved);
+      },
+      async deleteDeal(id) {
+        requireAdmin();
+        const i = deals.findIndex(d => d.id === id);
+        if (i !== -1) deals.splice(i, 1);
+        emit({ table: "deals", payload: {} });
+      },
+      async setOpeningHours(pubId, hours) {
+        requireAdmin();
+        const pub = pubs.find(p => p.id === pubId) || fail("Unknown pub");
+        for (const ranges of Object.values(hours || {})) {
+          for (const [o, c] of ranges) if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(o) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(c)) fail("Times must look like 11:00 or 23:30");
+        }
+        pub.opening_hours = hours && Object.keys(hours).length ? hours : null;
+        emit({ table: "pubs", payload: {} });
+      },
+      async listHeldReports() {
+        requireAdmin();
+        return clone(reports.filter(r => r.held).map(r => ({ ...withReporter(r), pub: pubs.find(p => p.id === r.pub_id), drink: { current_price: drinks.find(d => d.id === r.drink_id)?.current_price } })));
+      },
+      async reviewHeldReport(id, approve) {
+        requireAdmin();
+        const report = reports.find(r => r.id === id && r.held) || fail("That report isn't waiting for review");
+        Object.assign(report, { held: false, is_hidden: !approve });
+        recomputeDrink(report.drink_id);
+        emit({ table: "price_reports", payload: {} });
+      },
+      async receiptUrl(path) {
+        requireAdmin();
+        const file = receiptFiles.get(path);
+        return file ? URL.createObjectURL(file) : "";
       },
       async setUploadsPaused(pubId, paused) {
         requireAdmin();

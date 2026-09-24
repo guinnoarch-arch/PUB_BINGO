@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useApp } from "../lib/AppContext.jsx";
 import InlineQrCode from "./common/InlineQrCode.jsx";
+import { useWatchMatches } from "./features/PriceWatches.jsx";
 
 function IconButton({ label, active = false, onClick, children }) {
   return (
@@ -31,6 +32,7 @@ export default function AppShell({ children, theme, onToggleTheme, phoneMode, on
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [showShare, setShowShare] = useState(false);
+  const watchHits = useWatchMatches().filter(r => r.matches.length).length;
   const url = shareUrl();
   const isLocal = ["localhost", "127.0.0.1"].includes(window.location.hostname);
 
@@ -93,6 +95,7 @@ export default function AppShell({ children, theme, onToggleTheme, phoneMode, on
           {nav.map(([to, label, short]) => (
             <NavLink key={to} to={to} end={to === "/"} className={({ isActive }) => `nav-item ${isActive ? "active" : ""} ${to === "/admin" ? "nav-item-admin" : ""}`}>
               {phoneMode && short !== label ? <><span aria-hidden="true">{short}</span><span className="sr-only">{label}</span></> : label}
+              {to === "/favourites" && watchHits > 0 && <span className="tab-count" aria-label={`${watchHits} price watch${watchHits === 1 ? "" : "es"} matched`}>{watchHits}</span>}
             </NavLink>
           ))}
         </nav>

@@ -6,6 +6,7 @@ import { PriceTag } from "../components/ui/Badges.jsx";
 import { EmptyState, Loading } from "../components/ui/States.jsx";
 import PubImage from "../components/pub/PubImage.jsx";
 import SignInPrompt from "../components/SignInPrompt.jsx";
+import PriceWatches from "../components/features/PriceWatches.jsx";
 
 export default function FavouritesPage() {
   const { userId, authReady, pubs, pubsStatus, favourites } = useApp();
@@ -25,6 +26,7 @@ export default function FavouritesPage() {
           <h2>Favourites</h2>
         </div>
       </div>
+      <PriceWatches />
       {list.length === 0 ? (
         <section className="card">
           <EmptyState title="No favourites yet">Tap the heart on any pub to save it here. <Link to="/">Find a pub</Link></EmptyState>

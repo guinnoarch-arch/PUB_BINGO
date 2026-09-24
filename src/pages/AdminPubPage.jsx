@@ -11,6 +11,9 @@ import { EmptyState, ErrorState, Loading } from "../components/ui/States.jsx";
 import DrinkHistory from "../components/pub/DrinkHistory.jsx";
 import AdminEvents from "../components/events/AdminEvents.jsx";
 import MenuImport from "../components/pub/MenuImport.jsx";
+import AdminDeals from "../components/admin/AdminDeals.jsx";
+import AdminHours from "../components/admin/AdminHours.jsx";
+import NotLaunched from "../components/ui/NotLaunched.jsx";
 import { SubmissionDetails, SubmissionFile, SubmissionReview, formatSeenOn } from "../components/suggestions/AdminMenus.jsx";
 import { londonToday, validateSeenOn } from "../lib/api/menuFiles.js";
 
@@ -611,6 +614,23 @@ export default function AdminPubPage() {
           <section className="card" aria-labelledby="menu-import-heading">
             <h2 id="menu-import-heading" className="section-title">Import prices from a PDF menu</h2>
             <MenuImport pub={pub} submission={submission?.file_kind === "pdf" ? submission : null} onImported={() => { reload(); setSubmissionKey(k => k + 1); }} />
+          </section>
+
+          <section className="card" aria-labelledby="deals-admin-heading">
+            <div className="section-header">
+              <h2 id="deals-admin-heading" className="section-title">🍻 Happy hours</h2>
+              <NotLaunched feature="happy_hours" />
+            </div>
+            <p className="muted small-text">While a published deal is on, search, the map and the leaderboard show the deal price and when it ends (once “Happy hours” is live in Admin → Features).</p>
+            <AdminDeals pub={pub} />
+          </section>
+
+          <section className="card" aria-labelledby="hours-admin-heading">
+            <div className="section-header">
+              <h2 id="hours-admin-heading" className="section-title">🕒 Opening hours</h2>
+              <NotLaunched feature="pub_filters" />
+            </div>
+            <AdminHours key={pub.id} pub={pub} onSaved={reload} />
           </section>
 
           <section className="card" aria-labelledby="events-admin-heading">

@@ -23,6 +23,20 @@ Built with the same stack and look as Guinness & Holley Budgeting: **React + Vit
 | **PDF menu import** | Admin → pub → "Import prices from a PDF menu": upload the pub's menu, the app reads the prices, matches them to the pub's drinks (or suggests new ones), and you tick which to save. Saved prices get a "Pub website" badge linking to the stored PDF. Scanned or photo menus have no text to read, so enter those by hand (or send them to Claude). |
 | **Suggestions** | 💡 button in the header (next to dark mode and your profile). Signed-in users send ideas, pubs to add or problems, and vote them up or down; everyone can read them. Admins set a status (New, Seen, Planned, In progress, Done, Not doing), reply publicly, or delete. |
 | **Send a menu** | Suggestions → 📄 **Menu or price** (or “Send us the menu” on a pub page): signed-in users send a PDF menu or a photo of a menu, price board or single drink, and say which pub and the date they saw it. **Only admins see it** (private storage). Admin → **Menus** lists them with a “new” count; **Update prices** opens the pub with the menu beside its drinks. PDFs can be read automatically; prices are saved as **Verified** with the menu's date, and an older price goes into the history without replacing a newer one. Senders see whether their menu was used, and any reply. Up to 10 a day per person. |
+| **Feature switches** | Admin → **Features**: every feature below starts **off**. While off, only admins see it (marked “Not launched”) so it can be tried first; switch it on to launch it for everyone, and off again at any time. Enforced in the database as well as the app. |
+| **Still right?** *(switch)* | One tap on a pub page confirms a price is still correct and refreshes its date. |
+| **Needs checking** *(switch)* | Feed → Needs checking: estimates and prices not confirmed for 60+ days, stalest first, by area. |
+| **Price trends** *(switch)* | A chart of each drink's price history, and the average confirmed pint by area on the Leaderboard. |
+| **Happy hours** *(switch)* | Admins add deals per pub (days, times, fixed price or % off, one drink or all draught). While a deal is on, search, the map, the leaderboard and pub pages show the deal price and when it ends. |
+| **Open now & filters** *(switch)* | Opening hours per pub (admin), “Open now”, “Sport on tonight” and “Outside seating” filters on Find. |
+| **Crawl planner** *(switch)* | Cheapest crawl from where you are, or pick your own pubs; shortest walking order, times, total cost, share link. |
+| **Round calculator** *(switch)* | What a group's round costs at every pub, cheapest first. |
+| **Trusted reporters** *(switch)* | ✓ for people whose reports keep matching others'. A price 40%+ away from the current one, from someone not yet trusted, waits in Admin → Reports for approval. |
+| **Receipts** *(switch)* | Optional receipt photo on a report (private to admins), shown as a 🧾 badge. |
+| **Weekly bingo, badges, top reporters** *(switches)* | A new card every Monday with a streak; 16 badges on your account; this month's top reporters on the Leaderboard. |
+| **Check-ins & Guinness score** *(switches)* | Check in when you're within 200 m of a pub (pub passport, “busy now”); rate the Guinness pour 1–5. |
+| **Price watches** *(switch)* | “Guinness under £6 in Soho”: matches on the Saved page, with a count on the menu. |
+| **Needs setup** | Phone notifications, a weekly admin email and automatic chain-menu reading are listed in Features but need an outside service first (Admin → Week shows the digest in the app meanwhile). |
 | **Hidden pubs** | Admins can add a pub with only a name and area. It stays hidden from the public (enforced in the database) until it has an address and map position and is set Live. |
 
 ## Where data lives
@@ -33,8 +47,8 @@ Built with the same stack and look as Guinness & Holley Budgeting: **React + Vit
 ## Setup (one-off, about 10 minutes)
 
 1. **Create a Supabase project** (free) at supabase.com.
-2. In **SQL Editor**, run the migrations in order (`supabase/migrations/0001_init.sql`, `0002_pub_admin.sql`, `0003_events.sql`, `0004_menu_uploads.sql`, `0005_bottles.sql`, `0006_suggestions.sql`, `0007_menu_submissions.sql`), then `supabase/seed.sql`.
-   - **Already set up?** Run any migrations you haven't run yet, in order, then run `seed.sql` again. It only adds missing things (websites, notes, researched events) and never overwrites your prices or edits.
+2. In **SQL Editor**, run the migrations in order (`supabase/migrations/0001_init.sql`, `0002_pub_admin.sql`, `0003_events.sql`, `0004_menu_uploads.sql`, `0005_bottles.sql`, `0006_suggestions.sql`, `0007_menu_submissions.sql`, `0008_features.sql`), then `supabase/seed.sql`.
+   - **Already set up?** Run any migrations you haven't run yet, in order, then run `seed.sql` again. If you ever re-run an older migration, run `0008_features.sql` again afterwards. It only adds missing things (websites, notes, researched events) and never overwrites your prices or edits.
 3. In **Authentication → Providers**, make sure Email is enabled. Leave "Confirm email" on (recommended).
 4. In **Authentication → URL Configuration**, set the Site URL to your Vercel URL.
 5. In **Vercel**, import this repo and add environment variables from **Project Settings → API** in Supabase:
@@ -103,7 +117,7 @@ src/
   lib/AppContext.jsx          session, pubs, favourites, live updates
   components/                 shell, map, pub illustration, forms, feed
   pages/                      Find, Pub, Leaderboard, Feed, Favourites, Bingo, Account, Admin
-supabase/migrations/          0001 schema, RLS, functions, storage; 0002 hidden pubs, websites, admin tools; 0003 events; 0004 PDF menu uploads; 0005 bottles/cans; 0006 suggestions; 0007 menus sent in, dated admin prices
+supabase/migrations/          0001 schema, RLS, functions, storage; 0002 hidden pubs, websites, admin tools; 0003 events; 0004 PDF menu uploads; 0005 bottles/cans; 0006 suggestions; 0007 menus sent in, dated admin prices; 0008 feature switches and the features behind them
 docs/price-accuracy.md        price research and plan
 supabase/seed.sql             generated seed
 tests/unit, tests/db          Vitest suites

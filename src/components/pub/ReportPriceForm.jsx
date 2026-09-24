@@ -1,4 +1,4 @@
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useApp } from "../../lib/AppContext.jsx";
 import { friendlyError } from "../../lib/api/errors.js";
@@ -8,7 +8,8 @@ import { LIMITS, MEASURES, formatPrice, measureLabel, validatePriceReport } from
 const NEW_DRINK = "__new__";
 
 export default function ReportPriceForm({ pub, drinks, initialDrinkId = "", onDone, onCancel }) {
-  const { api, userId, toast, notifyChange } = useApp();
+  const { api, userId, feature, toast, notifyChange } = useApp();
+  const receiptRef = useRef(null);
   const location = useLocation();
   const formId = useId();
   const [drinkChoice, setDrinkChoice] = useState(initialDrinkId || (drinks.length ? drinks[0].id : NEW_DRINK));
@@ -52,15 +53,27 @@ export default function ReportPriceForm({ pub, drinks, initialDrinkId = "", onDo
     if (!result.ok) return;
 
     // Double-check big jumps, which are usually typos (e.g. 65 instead of 6.50).
-    if (selected && Math.abs(result.value.price - selected.current_price) / selected.current_price > 0.5) {
-      const ok = window.confirm(`${formatPrice(result.value.price)} is very different from the current ${formatPrice(selected.current_price)}. Submit anyway?`);
+    const usual = selected ? Number(selected.regular_price ?? selected.current_price) : null;
+    if (selected && Math.abs(result.value.price - usual) / usual > 0.5) {
+      const ok = window.confirm(`${formatPrice(result.value.price)} is very different from the current ${formatPrice(usual)}. Submit anyway?`);
       if (!ok) return;
     }
 
     setSubmitting(true);
     try {
-      await api.submitPriceReport(result.value);
-      toast(`Thanks! ${isNew ? result.value.drinkName : selected.name} at ${pub.name} is now ${formatPrice(result.value.price)}.`, "success");
+      const report = await api.submitPriceReport(result.value);
+      const name = isNew ? result.value.drinkName : selected.name;
+      const receipt = receiptRef.current?.files?.[0];
+      if (receipt && report?.id) {
+        try {
+          await api.uploadReceipt(userId, report.id, receipt);
+        } catch (err) {
+          toast(friendlyError(err, "Your price was saved, but the receipt couldn't be added."), "error");
+        }
+      }
+      toast(report?.held
+        ? `Thanks! ${formatPrice(result.value.price)} is quite different from the current price, so an admin will check it before it goes live.`
+        : `Thanks! ${name} at ${pub.name} is now ${formatPrice(result.value.price)}.`, "success");
       notifyChange();
       onDone?.();
     } catch (error) {
@@ -76,7 +89,7 @@ export default function ReportPriceForm({ pub, drinks, initialDrinkId = "", onDo
       <select id={fieldId("drink")} value={drinkChoice} onChange={event => setDrinkChoice(event.target.value)}>
         {drinks.map(drink => (
           <option key={drink.id} value={drink.id}>
-            {drink.name}{drink.measure !== "pint" ? ` (${measureLabel(drink.measure, drink.volume_ml)})` : ""}: now {formatPrice(drink.current_price)}
+            {drink.name}{drink.measure !== "pint" ? ` (${measureLabel(drink.measure, drink.volume_ml)})` : ""}: now {formatPrice(drink.regular_price ?? drink.current_price)}
           </option>
         ))}
         <option value={NEW_DRINK}>+ A drink that isn't listed</option>
@@ -121,6 +134,14 @@ export default function ReportPriceForm({ pub, drinks, initialDrinkId = "", onDo
           <FieldError name="note" />
         </div>
       </div>
+
+      {feature("receipts") && (
+        <div className="field">
+          <label htmlFor={fieldId("receipt")}>🧾 Receipt photo <span className="muted">(optional, only admins see it)</span></label>
+          <input id={fieldId("receipt")} ref={receiptRef} type="file" accept="image/*" />
+          <span className="muted small-text">Adds a “Receipt” badge to your report. Cover any card numbers first.</span>
+        </div>
+      )}
 
       {submitError && <p className="form-error" role="alert">{submitError}</p>}
       <div className="row-actions">
