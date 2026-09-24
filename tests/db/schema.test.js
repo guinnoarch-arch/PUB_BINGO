@@ -64,11 +64,13 @@ beforeAll(async () => {
   await db.query(read("supabase/migrations/0003_events.sql"));
   await db.query(read("supabase/migrations/0004_menu_uploads.sql"));
   await db.query(read("supabase/migrations/0005_bottles.sql"));
+  await db.query(read("supabase/migrations/0006_suggestions.sql"));
   // Migrations must be safe to run twice.
   await db.query(read("supabase/migrations/0002_pub_admin.sql"));
   await db.query(read("supabase/migrations/0003_events.sql"));
   await db.query(read("supabase/migrations/0004_menu_uploads.sql"));
   await db.query(read("supabase/migrations/0005_bottles.sql"));
+  await db.query(read("supabase/migrations/0006_suggestions.sql"));
   await db.query(read("supabase/seed.sql"));
 
   users.alice = await createUser("Alice_1");
@@ -554,5 +556,74 @@ describe("0005: bottles and cans", () => {
     expect(pint.volume_ml).toBeNull();
     await expect(as(users.admin, () => db.query("select public.admin_update_drink($1, 'San Miguel', 'Lager', 'bottle', 5000)", [saved.drink_id]))).rejects.toThrow(/100-2000 ml/);
     await expect(as(users.alice, () => db.query("select public.admin_update_drink($1, 'Mine', 'Lager', 'bottle', 330)", [saved.drink_id]))).rejects.toThrow(/Admins only/);
+  });
+});
+
+describe("0006: suggestions", () => {
+  const submit = (userId, category, message) => as(userId, () => db.query("select * from public.submit_suggestion($1, $2)", [category, message]).then(r => r.rows[0]));
+  const list = userId => (userId
+    ? as(userId, () => db.query("select * from public.list_suggestions()"))
+    : asAnon(() => db.query("select * from public.list_suggestions()"))).then(r => r.rows);
+  const vote = (userId, id, v) => as(userId, () => db.query("select public.vote_suggestion($1, $2)", [id, v]));
+  let ideaId;
+
+  it("lets signed-in users send suggestions, with validation", async () => {
+    const row = await submit(users.alice, "idea", "  Add   a map filter for beer gardens ");
+    expect(row).toMatchObject({ category: "idea", status: "new", message: "Add a map filter for beer gardens", submitted_by: users.alice });
+    ideaId = row.id;
+    await submit(users.bob, "pub", "Please add The Lyric on Great Windmill Street");
+    await expect(submit(users.alice, "idea", "no")).rejects.toThrow(/bit more/);
+    await expect(submit(users.alice, "rant", "Something here")).rejects.toThrow(/Pick a type/);
+    await expect(submit(users.alice, "idea", "x".repeat(1001))).rejects.toThrow(/1000/);
+    await expect(asAnon(() => db.query("select public.submit_suggestion('idea', 'Anonymous idea')"))).rejects.toThrow(/permission denied/);
+  });
+
+  it("rate-limits to 5 an hour", async () => {
+    const chatty = await createUser("chatty");
+    for (let i = 1; i <= 5; i += 1) await submit(chatty, "other", `Suggestion number ${i}`);
+    await expect(submit(chatty, "other", "Suggestion number 6")).rejects.toThrow(/Try again later/);
+  });
+
+  it("shows the list to everyone with usernames but never emails, and blocks direct table access", async () => {
+    const rows = await list(null);
+    expect(rows.length).toBeGreaterThanOrEqual(7);
+    const mine = rows.find(r => r.id === ideaId);
+    expect(mine).toMatchObject({ username: "Alice_1", my_vote: 0, is_mine: false });
+    expect(Object.keys(mine)).not.toContain("email");
+    await expect(asAnon(() => db.query("select * from public.suggestions"))).rejects.toThrow(/permission denied/);
+    await expect(as(users.alice, () => db.query("update public.suggestions set status = 'done'"))).rejects.toThrow(/permission denied/);
+    expect((await list(users.alice)).find(r => r.id === ideaId).is_mine).toBe(true);
+  });
+
+  it("counts votes, allows changing and removing a vote, one per person", async () => {
+    await vote(users.bob, ideaId, 1);
+    await vote(users.admin, ideaId, 1);
+    await vote(users.bob, ideaId, 1);
+    let row = (await list(users.bob)).find(r => r.id === ideaId);
+    expect(row).toMatchObject({ up_votes: 2, down_votes: 0, my_vote: 1 });
+    await vote(users.bob, ideaId, -1);
+    row = (await list(users.bob)).find(r => r.id === ideaId);
+    expect(row).toMatchObject({ up_votes: 1, down_votes: 1, my_vote: -1 });
+    await vote(users.bob, ideaId, 0);
+    row = (await list(users.bob)).find(r => r.id === ideaId);
+    expect(row).toMatchObject({ up_votes: 1, down_votes: 0, my_vote: 0 });
+    await expect(vote(users.bob, ideaId, 5)).rejects.toThrow(/Invalid vote/);
+    await expect(asAnon(() => db.query("select public.vote_suggestion($1, 1)", [ideaId]))).rejects.toThrow(/permission denied/);
+  });
+
+  it("puts the most-voted first", async () => {
+    const rows = await list(null);
+    expect(rows[0].id).toBe(ideaId);
+  });
+
+  it("only admins can set status, reply and delete", async () => {
+    await expect(as(users.alice, () => db.query("select public.admin_update_suggestion($1, 'done', 'hi')", [ideaId]))).rejects.toThrow(/Admins only/);
+    await as(users.admin, () => db.query("select public.admin_update_suggestion($1, 'planned', ' Good idea, coming soon ')", [ideaId]));
+    const row = (await list(null)).find(r => r.id === ideaId);
+    expect(row).toMatchObject({ status: "planned", admin_note: "Good idea, coming soon" });
+    await expect(as(users.admin, () => db.query("select public.admin_update_suggestion($1, 'maybe', null)", [ideaId]))).rejects.toThrow(/valid status/);
+    await expect(as(users.alice, () => db.query("select public.admin_delete_suggestion($1)", [ideaId]))).rejects.toThrow(/Admins only/);
+    await as(users.admin, () => db.query("select public.admin_delete_suggestion($1)", [ideaId]));
+    expect((await list(null)).some(r => r.id === ideaId)).toBe(false);
   });
 });

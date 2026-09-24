@@ -73,6 +73,16 @@ export function createSupabaseApi(url, anonKey) {
       return unwrap(await query, "Couldn't load what's on.");
     },
 
+    async listSuggestions() {
+      return unwrap(await supabase.rpc("list_suggestions"), "Couldn't load suggestions.");
+    },
+    async submitSuggestion(category, message) {
+      return unwrap(await supabase.rpc("submit_suggestion", { p_category: category, p_message: message }), "Couldn't send your suggestion.");
+    },
+    async voteSuggestion(id, vote) {
+      unwrap(await supabase.rpc("vote_suggestion", { p_suggestion_id: id, p_vote: vote }), "Couldn't save your vote.");
+    },
+
     async getDrinkHistory(drinkId, limit = 50) {
       return unwrap(await supabase
         .from("price_reports")
@@ -237,6 +247,12 @@ export function createSupabaseApi(url, anonKey) {
       },
       async deleteDrink(drinkId) {
         unwrap(await supabase.rpc("admin_delete_drink", { p_drink_id: drinkId }), "Couldn't delete the drink.");
+      },
+      async updateSuggestion(id, status, note) {
+        unwrap(await supabase.rpc("admin_update_suggestion", { p_suggestion_id: id, p_status: status, p_admin_note: note }), "Couldn't update the suggestion.");
+      },
+      async deleteSuggestion(id) {
+        unwrap(await supabase.rpc("admin_delete_suggestion", { p_suggestion_id: id }), "Couldn't delete the suggestion.");
       },
       async setUploadsPaused(pubId, paused) {
         unwrap(await supabase.rpc("admin_set_uploads_paused", { p_pub_id: pubId, p_paused: paused }));

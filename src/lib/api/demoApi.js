@@ -44,6 +44,8 @@ export function createDemoApi() {
   const photos = [];
   const photoUrls = new Map();
   const menus = [];
+  const suggestions = [];
+  const suggestionVotes = new Map(); // `${id}:${userId}` -> 1 | -1
   const authListeners = new Set();
   const changeListeners = new Set();
   let session = null;
@@ -117,6 +119,41 @@ export function createDemoApi() {
     async listEvents({ pubId } = {}) {
       await wait(60);
       return clone(events.filter(e => e.is_published && visible(e.pub_id) && (!pubId || e.pub_id === pubId)));
+    },
+
+    async listSuggestions() {
+      await wait(60);
+      const me = session?.user?.id;
+      const rows = suggestions.map(s => {
+        const votes = [...suggestionVotes.entries()].filter(([k]) => k.startsWith(`${s.id}:`)).map(([, v]) => v);
+        return {
+          ...s, username: profileOf(s.submitted_by)?.username || null,
+          up_votes: votes.filter(v => v === 1).length, down_votes: votes.filter(v => v === -1).length,
+          my_vote: (me && suggestionVotes.get(`${s.id}:${me}`)) || 0, is_mine: Boolean(me && s.submitted_by === me)
+        };
+      });
+      rows.sort((a, b) => (b.up_votes - b.down_votes) - (a.up_votes - a.down_votes) || b.created_at.localeCompare(a.created_at));
+      return clone(rows.map(({ submitted_by, ...r }) => r));
+    },
+    async submitSuggestion(category, message) {
+      await wait();
+      const me = requireUser();
+      const text = String(message || "").replace(/[ \t]+/g, " ").trim();
+      if (text.length < 3) fail("Write a bit more first");
+      if (text.length > 1000) fail("Keep it under 1000 characters");
+      if (!["idea", "pub", "problem", "other"].includes(category)) fail("Pick a type");
+      if (suggestions.filter(s => s.submitted_by === me && Date.parse(s.created_at) > Date.now() - 3600000).length >= 5) {
+        fail("You've sent a lot of suggestions in the last hour. Try again later");
+      }
+      const now = new Date().toISOString();
+      const row = { id: uid(), submitted_by: me, category, message: text, status: "new", admin_note: null, created_at: now, updated_at: now };
+      suggestions.push(row);
+      return clone(row);
+    },
+    async voteSuggestion(id, vote) {
+      const me = requireUser();
+      if (![-1, 0, 1].includes(vote)) fail("Invalid vote");
+      if (vote === 0) suggestionVotes.delete(`${id}:${me}`); else suggestionVotes.set(`${id}:${me}`, vote);
     },
 
     async getDrinkHistory(drinkId) {
@@ -371,6 +408,17 @@ export function createDemoApi() {
         const index = drinks.findIndex(d => d.id === drinkId);
         if (index !== -1) drinks.splice(index, 1);
         emit({ table: "drinks", payload: {} });
+      },
+      async updateSuggestion(id, status, note) {
+        requireAdmin();
+        const row = suggestions.find(s => s.id === id) || fail("Suggestion not found");
+        if (!["new", "reviewed", "planned", "in_progress", "done", "rejected"].includes(status)) fail("Pick a valid status");
+        Object.assign(row, { status, admin_note: String(note || "").trim() || null, updated_at: new Date().toISOString() });
+      },
+      async deleteSuggestion(id) {
+        requireAdmin();
+        const i = suggestions.findIndex(s => s.id === id);
+        if (i !== -1) suggestions.splice(i, 1);
       },
       async setUploadsPaused(pubId, paused) {
         requireAdmin();

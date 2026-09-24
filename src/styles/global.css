@@ -502,3 +502,33 @@ textarea { width: 100%; padding: 10px 12px; border-radius: 12px; border: 1px sol
 .menu-history li { padding: 4px 0; }
 .pub-cover { width: 100%; height: 100%; object-fit: cover; display: block; }
 .pub-card img.pub-cover { grid-column: 1 / -1; border-radius: 12px; aspect-ratio: 16 / 10; height: auto; }
+
+/* ---------- Suggestions ---------- */
+.suggestion-form { display: grid; gap: 10px; }
+.suggestion-form-footer { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.suggestion-list { list-style: none; padding: 0; margin: 12px 0 0; }
+.suggestion { display: flex; gap: 14px; padding: 14px 2px; border-bottom: 1px solid var(--line); }
+.suggestion:last-child { border-bottom: 0; }
+.vote-box { display: grid; justify-items: center; align-content: start; gap: 2px; min-width: 40px; }
+.vote-button { width: 34px; height: 30px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); color: var(--muted); font-size: 0.8rem; padding: 0; }
+.vote-button.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+.vote-button.active.down { background: var(--red); border-color: var(--red); }
+.suggestion-body { display: grid; gap: 6px; min-width: 0; flex: 1; }
+.suggestion-meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.suggestion-message { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.suggestion-status { font-size: 0.72rem; font-weight: 800; padding: 2px 8px; border-radius: 999px; background: rgba(100, 100, 100, 0.12); color: var(--muted); }
+.suggestion-status.new { background: rgba(29, 78, 216, 0.1); color: var(--blue); }
+.suggestion-status.planned { background: rgba(183, 128, 42, 0.16); color: #6b4410; }
+.suggestion-status.done { background: rgba(21, 128, 61, 0.12); color: #14532d; }
+[data-theme="dark"] .suggestion-status.planned { color: #fcd34d; }
+[data-theme="dark"] .suggestion-status.done { color: #86efac; }
+.suggestion-reply { padding: 8px 12px; border-left: 3px solid var(--accent); background: var(--accent-soft); border-radius: 8px; font-size: 0.9rem; }
+.suggestion-admin { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding-top: 4px; }
+.suggestion-admin select { width: auto; min-height: 36px; padding: 6px 8px; }
+.suggestion-admin input { flex: 1 1 200px; min-height: 36px; padding: 6px 10px; }
+.pill.warn { background: rgba(217, 119, 6, 0.14); color: var(--orange); }
+.brand-title { white-space: nowrap; }
+.app-shell.phone-mode .header-actions { gap: 4px; }
+.app-shell.phone-mode .header-icon-button, .app-shell.phone-mode .account-chip { width: 34px; height: 34px; }
+.app-shell.phone-mode .account-chip { justify-content: center; padding: 0; }
+.app-shell.phone-mode .brand { gap: 8px; }

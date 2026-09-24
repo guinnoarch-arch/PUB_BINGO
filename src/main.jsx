@@ -13,6 +13,7 @@ import FeedPage from "./pages/FeedPage.jsx";
 import FavouritesPage from "./pages/FavouritesPage.jsx";
 import BingoPage from "./pages/BingoPage.jsx";
 import AccountPage from "./pages/AccountPage.jsx";
+import SuggestionsPage from "./pages/SuggestionsPage.jsx";
 // Admin screens (and the PDF reader they use) load only when an admin opens them.
 const AdminPage = lazy(() => import("./pages/AdminPage.jsx"));
 const AdminPubPage = lazy(() => import("./pages/AdminPubPage.jsx"));
@@ -86,6 +87,7 @@ function App() {
           <Route path="/favourites" element={<FavouritesPage />} />
           <Route path="/bingo" element={<BingoPage />} />
           <Route path="/account" element={<AccountPage />} />
+          <Route path="/suggestions" element={<SuggestionsPage />} />
           <Route path="/admin" element={<Suspense fallback={<Loading />}><AdminPage /></Suspense>} />
           <Route path="/admin/pubs/:pubId" element={<Suspense fallback={<Loading />}><AdminPubPage /></Suspense>} />
           <Route path="*" element={<NotFoundPage />} />
