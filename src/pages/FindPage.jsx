@@ -169,7 +169,7 @@ export default function FindPage() {
                     {row.distance != null && <span className="distance">{formatDistance(row.distance)}</span>}
                   </div>
                   <div className="result-side">
-                    <PriceTag price={row.price} measure={row.measure} pintPrice={row.pintPrice} />
+                    <PriceTag price={row.price} measure={row.measure} volumeMl={row.volumeMl} pintPrice={row.pintPrice} />
                     <FavouriteButton pub={row.pub} compact />
                   </div>
                 </li>
@@ -205,7 +205,7 @@ export default function FindPage() {
               <li key={row.drink.id}>
                 <span className="rank">{index + 1}</span>
                 <Link to={`/pubs/${row.pub.id}`}>{row.drink.name} <span className="muted">at {row.pub.name}</span></Link>
-                <PriceTag price={row.price} measure={row.measure} pintPrice={row.pintPrice} />
+                <PriceTag price={row.price} measure={row.measure} volumeMl={row.volumeMl} pintPrice={row.pintPrice} />
               </li>
             ))}
           </ol>

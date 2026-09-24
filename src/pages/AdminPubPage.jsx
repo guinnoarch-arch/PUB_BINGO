@@ -4,7 +4,7 @@ import { useApp } from "../lib/AppContext.jsx";
 import { friendlyError } from "../lib/api/errors.js";
 import { AREAS, CATEGORIES, TAGS } from "../data/seedPubs.js";
 import { PRICES_ONLINE_LABELS, canPublish, missingInfo, one, slugify } from "../lib/core/adminPubs.js";
-import { MEASURES, formatPrice, parsePrice, pintPrice } from "../lib/core/prices.js";
+import { MEASURES, formatPrice, isDraught, measureLabel, parsePrice, pintPrice } from "../lib/core/prices.js";
 import { timeAgo } from "../lib/core/time.js";
 import { SourceBadge } from "../components/ui/Badges.jsx";
 import { EmptyState, ErrorState, Loading } from "../components/ui/States.jsx";
@@ -304,7 +304,7 @@ function SetPriceForm({ pub, drink, onDone, onCancel }) {
       )}
       <div className="form-grid">
         <div className="field">
-          <label htmlFor={`price-${drink?.id || "new"}`}>Price{drink && drink.measure !== "pint" ? ` per ${drink.measure}` : ""}</label>
+          <label htmlFor={`price-${drink?.id || "new"}`}>Price{drink && drink.measure !== "pint" ? ` per ${measureLabel(drink.measure, drink.volume_ml)}` : ""}</label>
           <div className="price-input"><span aria-hidden="true">£</span><input id={`price-${drink?.id || "new"}`} inputMode="decimal" value={price} onChange={e => setPrice(e.target.value)} /></div>
         </div>
         <div className="field">
@@ -337,12 +337,15 @@ function EditDrinkForm({ drink, onDone, onCancel }) {
   const [name, setName] = useState(drink.name);
   const [category, setCategory] = useState(drink.category);
   const [measure, setMeasure] = useState(drink.measure);
+  const [volume, setVolume] = useState(drink.volume_ml ? String(drink.volume_ml) : "");
   const [error, setError] = useState("");
 
   async function save(event) {
     event.preventDefault();
     try {
-      await api.admin.updateDrink(drink.id, { name, category, measure });
+      const volumeMl = !isDraught(measure) && volume.trim() ? Number(volume) : null;
+      if (volumeMl !== null && !(volumeMl >= 100 && volumeMl <= 2000)) { setError("Size must be 100-2000 ml"); return; }
+      await api.admin.updateDrink(drink.id, { name, category, measure, volumeMl });
       toast("Drink updated.", "success");
       notifyChange();
       onDone();
@@ -370,6 +373,12 @@ function EditDrinkForm({ drink, onDone, onCancel }) {
             {MEASURES.map(m => <option key={m} value={m}>{m}</option>)}
           </select>
         </div>
+        {!isDraught(measure) && (
+          <div className="field">
+            <label htmlFor={`edit-volume-${drink.id}`}>Size (ml)</label>
+            <input id={`edit-volume-${drink.id}`} inputMode="numeric" value={volume} onChange={e => setVolume(e.target.value)} placeholder="e.g. 330" />
+          </div>
+        )}
       </div>
       {error && <p className="form-error" role="alert">{error}</p>}
       <div className="row-actions">
@@ -441,11 +450,13 @@ function DrinkRow({ pub, drink, open, setOpen, onDone, onRemove }) {
   return (
     <>
       <tr>
-        <th scope="row">{drink.name}{drink.measure !== "pint" ? <span className="muted"> ({drink.measure})</span> : null}</th>
+        <th scope="row">{drink.name}{drink.measure !== "pint" ? <span className="muted"> ({measureLabel(drink.measure, drink.volume_ml)})</span> : null}</th>
         <td>{drink.category}</td>
         <td className="num">
           {formatPrice(drink.current_price)}
-          {drink.measure !== "pint" && <span className="muted small-text"> ≈ {formatPrice(pintPrice(drink.current_price, drink.measure))}/pint</span>}
+          {drink.measure !== "pint" && pintPrice(drink.current_price, drink.measure, drink.volume_ml) != null && (
+            <span className="muted small-text"> ≈ {formatPrice(pintPrice(drink.current_price, drink.measure, drink.volume_ml))}/pint</span>
+          )}
         </td>
         <td><SourceBadge source={drink.source} url={drink.source_url} /></td>
         <td>{timeAgo(drink.last_updated_at)}</td>

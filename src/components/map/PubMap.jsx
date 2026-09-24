@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { AREA_CENTRE } from "../../lib/core/geo.js";
-import { formatPrice } from "../../lib/core/prices.js";
+import { formatPrice, measureLabel } from "../../lib/core/prices.js";
 
 // Leaflet map of all pubs. Pins show the cheapest matching price. Clicking the map sets the
 // "search from here" point. Built with plain Leaflet; pin/popup content is built with DOM
@@ -47,7 +47,8 @@ export default function PubMap({ pubs, pricesByPub, unconfirmedIds, origin, onPi
       const dimmed = pricesByPub && !row && !unconfirmed;
       const pin = document.createElement("div");
       pin.className = `pub-pin${dimmed ? " dimmed" : ""}${unconfirmed ? " unconfirmed" : ""}${pub.id === selectedPubId ? " selected" : ""}`;
-      pin.textContent = row ? formatPrice(row.pintPrice) : unconfirmed ? "£?" : "🍺";
+      // Draught shows the price per pint; a pub with only bottles shows the bottle price, marked "btl".
+      pin.textContent = row ? (row.draught ? formatPrice(row.pintPrice) : `${formatPrice(row.price)} btl`) : unconfirmed ? "£?" : "🍺";
       const marker = L.marker([pub.lat, pub.lng], {
         icon: L.divIcon({ html: pin, className: "pub-pin-wrap", iconSize: null }),
         title: row ? `${pub.name}: ${row.drink.name} ${formatPrice(row.price)}` : unconfirmed ? `${pub.name}: price not confirmed yet` : pub.name,
@@ -62,7 +63,7 @@ export default function PubMap({ pubs, pricesByPub, unconfirmedIds, origin, onPi
       title.textContent = pub.name;
       const detail = document.createElement("span");
       detail.textContent = row
-        ? `${row.drink.name} · ${formatPrice(row.price)}${row.measure !== "pint" ? ` / ${row.measure}` : ""}`
+        ? `${row.drink.name} · ${formatPrice(row.price)}${row.measure !== "pint" ? ` / ${measureLabel(row.measure, row.volumeMl)}` : ""}`
         : unconfirmed ? "Stocks it, but the price isn't confirmed yet" : pub.area;
       const link = document.createElement("button");
       link.type = "button";

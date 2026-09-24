@@ -199,8 +199,10 @@ export function createSupabaseApi(url, anonKey) {
           p_note: value.note || null
         }), "Couldn't save the price.");
       },
-      async updateDrink(drinkId, { name, category, measure }) {
-        return unwrap(await supabase.rpc("admin_update_drink", { p_drink_id: drinkId, p_name: name, p_category: category, p_measure: measure }), "Couldn't update the drink.");
+      async updateDrink(drinkId, { name, category, measure, volumeMl = null }) {
+        return unwrap(await supabase.rpc("admin_update_drink", {
+          p_drink_id: drinkId, p_name: name, p_category: category, p_measure: measure, p_volume_ml: volumeMl
+        }), "Couldn't update the drink.");
       },
       async uploadMenu(userId, pubId, file) {
         const safe = String(file.name || "menu.pdf").replace(/[^A-Za-z0-9._-]+/g, "-").slice(-80);

@@ -105,7 +105,7 @@ export const PUB_RESEARCH = {
     website: "https://www.therocketeustonroad.co.uk/",
     drinks_menu_url: "https://www.therocketeustonroad.co.uk/drinks",
     operator: "Mitchells & Butlers",
-    prices_online: "no",
-    notes: "[Sep 2026 research] Added at Archie's request. Drinks page lists Peroni, BrewDog Punk IPA, Guinness, Magners, Bulmers, Rekorderlig, plus 3 regular cask ales (names not found), but NO PRICES, so seed prices are estimates. Deals: meal + drink from £9.50 Mon-Fri 12-6pm (+£1 for alcohol). Monday quiz night (CAMRA). Sky Sports, food, child and dog friendly, regular live entertainment; inapub mentions a garden: check. CHECK MAP PIN: coordinates are approximate (south side of Euston Road). Formerly The Rising Sun / Friar and Firkin; owners per Wikipedia: Mitchells & Butlers."
+    prices_online: "yes",
+    notes: "[Sep 2026 research] Added at Archie's request. Drinks page lists Peroni, BrewDog Punk IPA, Guinness, Magners, Bulmers, Rekorderlig, plus 3 regular cask ales (names not found), but NO PRICES in search results. UPDATE 24 Sep 2026: Archie sent screenshots of the Beer & Cider tab: 15 BOTTLED beers/ciders now have real prices (source: website). Draught (Guinness, cask ales) not captured yet: likely on another tab; screenshot it too. Check whether Magners Original and Thatchers Haze are bottles or draught (no size shown). Deals: meal + drink from £9.50 Mon-Fri 12-6pm (+£1 for alcohol). Monday quiz night (CAMRA). Sky Sports, food, child and dog friendly, regular live entertainment; inapub mentions a garden: check. CHECK MAP PIN: coordinates are approximate (south side of Euston Road). Formerly The Rising Sun / Friar and Firkin; owners per Wikipedia: Mitchells & Butlers."
   }
 };

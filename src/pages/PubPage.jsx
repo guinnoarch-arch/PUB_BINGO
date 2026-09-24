@@ -3,7 +3,7 @@ import { Link, useLocation, useParams } from "react-router-dom";
 import { useApp } from "../lib/AppContext.jsx";
 import { friendlyError } from "../lib/api/errors.js";
 import { CATEGORIES } from "../data/seedPubs.js";
-import { pintPrice } from "../lib/core/prices.js";
+import { isDraught, pintPrice } from "../lib/core/prices.js";
 import FavouriteButton from "../components/ui/FavouriteButton.jsx";
 import { PriceTag, SourceBadge, UpdatedAgo } from "../components/ui/Badges.jsx";
 import { EmptyState, ErrorState, Loading } from "../components/ui/States.jsx";
@@ -54,7 +54,9 @@ export default function PubPage() {
   }, [status, hash]);
 
   const drinks = useMemo(() => [...(pub?.drinks || [])].sort((a, b) =>
-    CATEGORIES.indexOf(a.category) - CATEGORIES.indexOf(b.category) || pintPrice(a.current_price, a.measure) - pintPrice(b.current_price, b.measure)
+    CATEGORIES.indexOf(a.category) - CATEGORIES.indexOf(b.category)
+    || Number(isDraught(b.measure)) - Number(isDraught(a.measure))
+    || Number(a.current_price) - Number(b.current_price)
   ), [pub]);
 
   function startReport(drinkId) {
@@ -127,7 +129,7 @@ export default function PubPage() {
                       <UpdatedAgo value={drink.last_updated_at} />
                     </span>
                   </div>
-                  <PriceTag price={drink.current_price} measure={drink.measure} pintPrice={pintPrice(drink.current_price, drink.measure)} />
+                  <PriceTag price={drink.current_price} measure={drink.measure} volumeMl={drink.volume_ml} pintPrice={pintPrice(drink.current_price, drink.measure, drink.volume_ml)} />
                   <div className="drink-actions">
                     <button type="button" className="secondary-button small" onClick={() => startReport(drink.id)}>Update price</button>
                     <button

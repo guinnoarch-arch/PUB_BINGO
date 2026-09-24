@@ -169,7 +169,7 @@ describe("real prices only", () => {
   it("lists pubs that stock a drink but only have an estimate", async () => {
     const { unconfirmedPubs } = await import("../../src/lib/core/search.js");
     const list = unconfirmedPubs(withSources(), { query: "guinness" });
-    expect(list).toHaveLength(11);
+    expect(list).toHaveLength(10);
     expect(list.map(x => x.pub.id)).not.toContain("the-harp");
     expect(list.map(x => x.pub.id)).not.toContain("the-toucan");
     expect(list[0].drinks).toEqual(["Guinness"]);
@@ -180,5 +180,37 @@ describe("real prices only", () => {
     expect(board.map(r => [r.pub.id, r.drink.name])).toEqual([
       ["the-toucan", "Guinness"], ["the-harp", "Guinness"], ["the-salisbury", "Timothy Taylor Landlord"]
     ]);
+  });
+});
+
+describe("bottles and cans", () => {
+  const bottlePub = pub("bottles", 51.528, -0.13, [
+    { name: "Peroni", measure: "bottle", volume_ml: 330, current_price: 6.05, source: "website" },
+    { name: "Magners", measure: "bottle", volume_ml: null, current_price: 6.25, source: "website", category: "Cider" },
+    { name: "Peroni", measure: "pint", current_price: 7.2, source: "community" }
+  ]);
+
+  it("prices bottles per pint of beer when the size is known", async () => {
+    const { pintPrice, measureLabel, isDraught } = await import("../../src/lib/core/prices.js");
+    expect(pintPrice(6.05, "bottle", 330)).toBe(10.41);
+    expect(pintPrice(6.25, "bottle", null)).toBeNull();
+    expect(measureLabel("bottle", 330)).toBe("330ml bottle");
+    expect(measureLabel("can")).toBe("can");
+    expect(isDraught("bottle")).toBe(false);
+    expect(isDraught(undefined)).toBe(true);
+  });
+
+  it("sorts bottles fairly (per pint), unknown sizes last", () => {
+    const rows = searchDrinks([bottlePub], { query: "" });
+    expect(rows.map(r => `${r.drink.name} ${r.measure}`)).toEqual(["Peroni pint", "Peroni bottle", "Magners bottle"]);
+  });
+
+  it("keeps bottles off the cheapest-pint leaderboard and prefers draught for map pins", () => {
+    expect(cheapestPints([bottlePub], { onePerPub: false }).map(r => r.measure)).toEqual(["pint"]);
+    const onlyBottles = pub("b2", 51.5, -0.1, [{ name: "Corona", measure: "bottle", volume_ml: 330, current_price: 5, source: "website" }]);
+    expect(cheapestPints([onlyBottles])).toEqual([]);
+    const best = cheapestPerPub(searchDrinks([bottlePub], { query: "peroni" }));
+    expect(best.get("bottles").measure).toBe("pint");
+    expect(cheapestPerPub(searchDrinks([onlyBottles])).get("b2").measure).toBe("bottle");
   });
 });

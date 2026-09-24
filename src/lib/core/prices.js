@@ -3,8 +3,15 @@ import { CATEGORIES } from "../../data/seedPubs.js";
 // Sensible bounds for a central-London pint (or half). Anything outside is almost certainly a typo.
 export const MIN_PRICE = 1;
 export const MAX_PRICE = 25;
-export const MEASURES = ["pint", "half", "two-thirds", "schooner"];
+export const MEASURES = ["pint", "half", "two-thirds", "schooner", "bottle", "can"];
+// Draught measures (poured at the bar). Bottles and cans are packaged and never count as "a pint".
+export const DRAUGHT_MEASURES = ["pint", "half", "two-thirds", "schooner"];
 const MEASURE_TO_PINT = { pint: 1, half: 2, "two-thirds": 1.5, schooner: 1.5 };
+const PINT_ML = 568;
+
+export function isDraught(measure = "pint") {
+  return DRAUGHT_MEASURES.includes(measure || "pint");
+}
 
 export const LIMITS = { drinkName: { min: 2, max: 60 }, note: { max: 200 } };
 
@@ -22,9 +29,20 @@ export function parsePrice(input) {
 }
 
 // Price for a full pint, so halves (e.g. The French House) compare fairly with pints.
-export function pintPrice(price, measure = "pint") {
-  const factor = MEASURE_TO_PINT[measure] ?? 1;
+// Bottles/cans: price per pint of beer when the size is known (e.g. £6.05 for 330ml ≈ £10.41), else null.
+export function pintPrice(price, measure = "pint", volumeMl = null) {
+  if (!isDraught(measure)) {
+    const ml = Number(volumeMl);
+    return ml > 0 ? Math.round(((Number(price) * PINT_ML) / ml) * 100) / 100 : null;
+  }
+  const factor = MEASURE_TO_PINT[measure || "pint"] ?? 1;
   return Math.round(Number(price) * factor * 100) / 100;
+}
+
+// "330ml bottle", "can", "half"
+export function measureLabel(measure = "pint", volumeMl = null) {
+  if (!isDraught(measure) && Number(volumeMl) > 0) return `${volumeMl}ml ${measure}`;
+  return measure || "pint";
 }
 
 export function formatPrice(value) {

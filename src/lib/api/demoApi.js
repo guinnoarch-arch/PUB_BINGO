@@ -26,9 +26,11 @@ export function createDemoApi() {
   const reports = [];
   SEED_PUBS.forEach((pub, pubIndex) => pub.drinks.forEach((d, drinkIndex) => {
     const updated = new Date(now - (3 + ((pubIndex * 5 + drinkIndex * 3) % 35)) * 86400000).toISOString();
-    const drink = { id: uid(), pub_id: pub.id, name: d.name, category: d.category, measure: d.measure || "pint", current_price: d.price, source: "seed", last_updated_at: updated };
+    const source = d.source || "seed";
+    const when = d.updated ? new Date(d.updated).toISOString() : updated;
+    const drink = { id: uid(), pub_id: pub.id, name: d.name, category: d.category, measure: d.measure || "pint", volume_ml: d.volume_ml ?? null, current_price: d.price, source, source_url: d.source_url || null, last_updated_at: when };
     drinks.push(drink);
-    reports.push({ id: uid(), pub_id: pub.id, drink_id: drink.id, drink_name: d.name, category: d.category, measure: drink.measure, price: d.price, note: null, reported_at: updated, reporter: null, source: "seed", is_hidden: false });
+    reports.push({ id: uid(), pub_id: pub.id, drink_id: drink.id, drink_name: d.name, category: d.category, measure: drink.measure, price: d.price, note: null, reported_at: when, reporter: null, source, source_url: drink.source_url, is_hidden: false });
   }));
 
   const events = SEED_EVENTS.map(e => ({
@@ -292,7 +294,7 @@ export function createDemoApi() {
         emit({ table: "price_reports", payload: { eventType: "INSERT", new: report } });
         return clone(report);
       },
-      async updateDrink(drinkId, { name, category, measure }) {
+      async updateDrink(drinkId, { name, category, measure, volumeMl = null }) {
         requireAdmin();
         const drink = drinks.find(d => d.id === drinkId) || fail("Drink not found");
         const clean = String(name || "").replace(/\s+/g, " ").trim();
@@ -300,7 +302,7 @@ export function createDemoApi() {
         if (drinks.some(d => d.id !== drinkId && d.pub_id === drink.pub_id && normaliseText(d.name) === normaliseText(clean) && d.measure === measure)) {
           fail("This pub already lists a drink with that name and measure");
         }
-        Object.assign(drink, { name: clean, category, measure });
+        Object.assign(drink, { name: clean, category, measure, volume_ml: ["bottle", "can"].includes(measure) ? volumeMl : null });
         return clone(drink);
       },
       async uploadMenu(userId, pubId, file) {

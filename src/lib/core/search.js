@@ -1,5 +1,5 @@
 import { distanceMetres } from "./geo.js";
-import { pintPrice } from "./prices.js";
+import { isDraught, pintPrice } from "./prices.js";
 
 export function normaliseText(value) {
   return String(value ?? "")
@@ -46,13 +46,18 @@ export function enrichDrink(pub, drink, origin) {
     drink,
     price,
     measure,
-    pintPrice: pintPrice(price, measure),
+    volumeMl: drink.volume_ml ?? null,
+    draught: isDraught(measure),
+    pintPrice: pintPrice(price, measure, drink.volume_ml),
     distance: origin ? distanceMetres(origin, { lat: pub.lat, lng: pub.lng }) : null
   };
 }
 
-const byPrice = (a, b) => a.pintPrice - b.pintPrice || (a.distance ?? 0) - (b.distance ?? 0) || a.pub.name.localeCompare(b.pub.name);
-const byDistance = (a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity) || a.pintPrice - b.pintPrice || a.pub.name.localeCompare(b.pub.name);
+// Compare by price per pint; bottles of unknown size (no pint price) go last, by their own price.
+const pintKey = row => (row.pintPrice == null ? Infinity : row.pintPrice);
+const comparePint = (a, b) => (pintKey(a) - pintKey(b)) || (pintKey(a) === Infinity ? a.price - b.price : 0);
+const byPrice = (a, b) => comparePint(a, b) || (a.distance ?? 0) - (b.distance ?? 0) || a.pub.name.localeCompare(b.pub.name);
+const byDistance = (a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity) || comparePint(a, b) || a.pub.name.localeCompare(b.pub.name);
 
 export function sortResults(rows, sortBy = "price") {
   const sorted = [...rows];
@@ -68,12 +73,14 @@ export function isRealPrice(drink) {
 }
 
 // realOnly: leave out starting estimates (used for public search, map pins and the leaderboard).
-export function searchDrinks(pubs, { query = "", origin = null, sortBy = "price", category = null, realOnly = false } = {}) {
+// draughtOnly: leave out bottles and cans (used for "cheapest pint" rankings).
+export function searchDrinks(pubs, { query = "", origin = null, sortBy = "price", category = null, realOnly = false, draughtOnly = false } = {}) {
   const rows = [];
   for (const pub of pubs || []) {
     for (const drink of pub.drinks || []) {
       if (!(Number(drink.current_price) > 0)) continue;
       if (realOnly && !isRealPrice(drink)) continue;
+      if (draughtOnly && !isDraught(drink.measure)) continue;
       if (category && drink.category !== category) continue;
       if (!drinkMatches(drink, query)) continue;
       rows.push(enrichDrink(pub, drink, origin));
@@ -87,7 +94,11 @@ export function cheapestPerPub(rows) {
   const best = new Map();
   for (const row of rows) {
     const current = best.get(row.pub.id);
-    if (!current || row.pintPrice < current.pintPrice) best.set(row.pub.id, row);
+    // Prefer draught; among the same kind, the lowest price per pint.
+    const better = !current
+      || (row.draught && !current.draught)
+      || (row.draught === current.draught && comparePint(row, current) < 0);
+    if (better) best.set(row.pub.id, row);
   }
   return best;
 }
@@ -105,8 +116,9 @@ export function unconfirmedPubs(pubs, { query = "", category = null } = {}) {
   return [...result.values()].sort((a, b) => a.pub.name.localeCompare(b.pub.name));
 }
 
+// Draught only: a bottle is not "a pint".
 export function cheapestPints(pubs, { limit = 10, category = null, onePerPub = true, realOnly = false } = {}) {
-  let rows = searchDrinks(pubs, { category, realOnly });
+  let rows = searchDrinks(pubs, { category, realOnly, draughtOnly: true });
   if (onePerPub) {
     const seen = new Set();
     rows = rows.filter(row => (seen.has(row.pub.id) ? false : seen.add(row.pub.id)));

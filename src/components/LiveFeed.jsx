@@ -47,7 +47,7 @@ export default function LiveFeed({ limit = 30, compact = false }) {
               <strong>{report.reporter_profile?.username ? `@${report.reporter_profile.username}` : "Someone"}</strong>
               {" paid "}
               <strong>{formatPrice(report.price)}</strong>
-              {report.measure !== "pint" ? ` a ${report.measure}` : ""}
+              {report.measure !== "pint" ? ` for a ${report.measure}` : ""}
               {" for "}{report.drink_name}{" at "}
               <Link to={`/pubs/${report.pub_id}`}>{report.pub?.name || "a pub"}</Link>
             </span>

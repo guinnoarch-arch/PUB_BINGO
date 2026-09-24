@@ -58,7 +58,7 @@ export default function LeaderboardPage() {
                     <UpdatedAgo value={row.drink.last_updated_at} />
                   </span>
                 </div>
-                <PriceTag price={row.price} measure={row.measure} pintPrice={row.pintPrice} large />
+                <PriceTag price={row.price} measure={row.measure} volumeMl={row.volumeMl} pintPrice={row.pintPrice} large />
               </li>
             ))}
           </ol>

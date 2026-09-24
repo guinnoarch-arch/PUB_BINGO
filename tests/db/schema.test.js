@@ -63,10 +63,12 @@ beforeAll(async () => {
   await db.query(read("supabase/migrations/0002_pub_admin.sql"));
   await db.query(read("supabase/migrations/0003_events.sql"));
   await db.query(read("supabase/migrations/0004_menu_uploads.sql"));
+  await db.query(read("supabase/migrations/0005_bottles.sql"));
   // Migrations must be safe to run twice.
   await db.query(read("supabase/migrations/0002_pub_admin.sql"));
   await db.query(read("supabase/migrations/0003_events.sql"));
   await db.query(read("supabase/migrations/0004_menu_uploads.sql"));
+  await db.query(read("supabase/migrations/0005_bottles.sql"));
   await db.query(read("supabase/seed.sql"));
 
   users.alice = await createUser("Alice_1");
@@ -80,18 +82,18 @@ afterAll(async () => {
 });
 
 describe("seed data", () => {
-  it("loads 15 pubs, their drinks, and one seed history entry per drink", async () => {
+  it("loads 15 pubs, their drinks, and one history entry per drink", async () => {
     const counts = await db.query(`select
       (select count(*) from public.pubs)::int as pubs,
       (select count(*) from public.drinks)::int as drinks,
-      (select count(*) from public.price_reports where source = 'seed')::int as reports`);
-    expect(counts.rows[0]).toEqual({ pubs: 15, drinks: 75, reports: 75 });
+      (select count(*) from public.price_reports)::int as reports`);
+    expect(counts.rows[0]).toEqual({ pubs: 15, drinks: 85, reports: 85 });
   });
 
   it("is safe to run twice", async () => {
     await db.query(read("supabase/seed.sql"));
     const { rows } = await db.query("select count(*)::int as n from public.price_reports");
-    expect(rows[0].n).toBe(75);
+    expect(rows[0].n).toBe(85);
   });
 });
 
@@ -123,7 +125,7 @@ describe("accounts", () => {
 describe("public reads and blocked direct writes", () => {
   it("lets anonymous visitors read pubs, drinks and reports", async () => {
     const { rows } = await asAnon(() => db.query("select count(*)::int as n from public.drinks"));
-    expect(rows[0].n).toBe(75);
+    expect(rows[0].n).toBe(85);
   });
 
   it("does not let anyone write prices directly", async () => {
@@ -496,5 +498,51 @@ describe("0004: menu uploads", () => {
     await as(users.admin, () => db.query("update public.menu_uploads set prices_imported = 4 where storage_path = 'the-porterhouse/spring.pdf'"));
     const { rows } = await db.query("select prices_imported from public.menu_uploads where storage_path = 'the-porterhouse/spring.pdf'");
     expect(rows[0].prices_imported).toBe(4);
+  });
+});
+
+describe("0005: bottles and cans", () => {
+  it("seeds The Rocket's real bottle prices from its website, with history and no estimates", async () => {
+    const { rows } = await db.query(
+      "select count(*)::int as n, count(*) filter (where source = 'website')::int as website, count(*) filter (where measure = 'bottle')::int as bottles, count(*) filter (where source = 'seed')::int as estimates from public.drinks where pub_id = 'the-rocket'"
+    );
+    expect(rows[0]).toEqual({ n: 15, website: 15, bottles: 15, estimates: 0 });
+    const peroni = await db.query("select volume_ml, current_price, source_url from public.drinks where pub_id = 'the-rocket' and name = 'Peroni'");
+    expect(peroni.rows[0]).toEqual({ volume_ml: 330, current_price: "6.05", source_url: "https://www.therocketeustonroad.co.uk/drinks" });
+    const history = await db.query("select count(*)::int as n from public.price_reports where pub_id = 'the-rocket' and source = 'website' and source_url is not null");
+    expect(history.rows[0].n).toBe(15);
+  });
+
+  it("removes only The Rocket's estimates when re-run", async () => {
+    await db.query("insert into public.drinks (pub_id, name, category, measure, current_price, source) values ('the-rocket', 'Old Estimate', 'Lager', 'pint', 7, 'seed')");
+    await db.query(read("supabase/migrations/0005_bottles.sql"));
+    const { rows } = await db.query("select count(*)::int as n, count(*) filter (where source = 'seed')::int as estimates from public.drinks where pub_id = 'the-rocket'");
+    expect(rows[0]).toEqual({ n: 15, estimates: 0 });
+    const others = await db.query("select count(*)::int as n from public.drinks where pub_id = 'the-harp' and source = 'seed'");
+    expect(others.rows[0].n).toBeGreaterThan(0);
+  });
+
+  it("checks bottle sizes", async () => {
+    await expect(db.query("insert into public.drinks (pub_id, name, category, measure, volume_ml, current_price) values ('the-rocket', 'Tiny', 'Lager', 'bottle', 20, 5)"))
+      .rejects.toThrow(/drinks_volume_ml_check/);
+    await expect(db.query("insert into public.drinks (pub_id, name, category, measure, current_price) values ('the-rocket', 'Yard', 'Lager', 'yard', 5)"))
+      .rejects.toThrow(/drinks_measure_check/);
+  });
+
+  it("lets the community report a new bottled drink", async () => {
+    const row = await report(users.bob, { pub: "the-rocket", name: "Brooklyn Lager", category: "Lager", measure: "can", price: 6.4 });
+    expect(row).toMatchObject({ measure: "can", source: "community" });
+  });
+
+  it("lets admins set a bottle price and edit a drink's size", async () => {
+    const saved = await as(users.admin, () => db.query(
+      "select * from public.admin_set_drink_price('the-rocket', null, 'San Miguel', 'Lager', 'bottle', 5.95, 'website', 'https://www.therocketeustonroad.co.uk/drinks', null)"
+    ).then(r => r.rows[0]));
+    const edited = await as(users.admin, () => db.query("select * from public.admin_update_drink($1, 'San Miguel', 'Lager', 'bottle', 330)", [saved.drink_id]).then(r => r.rows[0]));
+    expect(edited).toMatchObject({ measure: "bottle", volume_ml: 330 });
+    const pint = await as(users.admin, () => db.query("select * from public.admin_update_drink($1, 'San Miguel', 'Lager', 'pint', 330)", [saved.drink_id]).then(r => r.rows[0]));
+    expect(pint.volume_ml).toBeNull();
+    await expect(as(users.admin, () => db.query("select public.admin_update_drink($1, 'San Miguel', 'Lager', 'bottle', 5000)", [saved.drink_id]))).rejects.toThrow(/100-2000 ml/);
+    await expect(as(users.alice, () => db.query("select public.admin_update_drink($1, 'Mine', 'Lager', 'bottle', 330)", [saved.drink_id]))).rejects.toThrow(/Admins only/);
   });
 });

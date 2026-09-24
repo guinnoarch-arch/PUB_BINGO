@@ -1,5 +1,5 @@
 import { isStale, timeAgo } from "../../lib/core/time.js";
-import { formatPrice } from "../../lib/core/prices.js";
+import { formatPrice, isDraught, measureLabel } from "../../lib/core/prices.js";
 
 const SOURCES = {
   seed: { label: "Estimate", className: "badge-seed", title: "Starting estimate, not yet confirmed. Report the real price if you know it." },
@@ -30,13 +30,14 @@ export function UpdatedAgo({ value }) {
   );
 }
 
-// Shows the pint price, or a half/other measure with its pint equivalent.
-export function PriceTag({ price, measure = "pint", pintPrice, large = false }) {
+// Shows the pint price, or another measure (half, 330ml bottle…) with its price per pint.
+export function PriceTag({ price, measure = "pint", pintPrice, volumeMl = null, large = false }) {
+  const label = measureLabel(measure || "pint", volumeMl);
   return (
     <span className={`price-tag ${large ? "large" : ""}`}>
       <strong>{formatPrice(price)}</strong>
-      {measure !== "pint" && (
-        <small> / {measure}{pintPrice ? ` (≈ ${formatPrice(pintPrice)} a pint)` : ""}</small>
+      {(measure || "pint") !== "pint" && (
+        <small> / {label}{pintPrice ? ` (≈ ${formatPrice(pintPrice)} a pint${isDraught(measure) ? "" : " of beer"})` : ""}</small>
       )}
     </span>
   );

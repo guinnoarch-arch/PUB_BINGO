@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useApp } from "../../lib/AppContext.jsx";
 import { friendlyError } from "../../lib/api/errors.js";
 import { CATEGORIES } from "../../data/seedPubs.js";
-import { LIMITS, MEASURES, formatPrice, validatePriceReport } from "../../lib/core/prices.js";
+import { LIMITS, MEASURES, formatPrice, measureLabel, validatePriceReport } from "../../lib/core/prices.js";
 
 const NEW_DRINK = "__new__";
 
@@ -76,7 +76,7 @@ export default function ReportPriceForm({ pub, drinks, initialDrinkId = "", onDo
       <select id={fieldId("drink")} value={drinkChoice} onChange={event => setDrinkChoice(event.target.value)}>
         {drinks.map(drink => (
           <option key={drink.id} value={drink.id}>
-            {drink.name}{drink.measure !== "pint" ? ` (${drink.measure})` : ""}: now {formatPrice(drink.current_price)}
+            {drink.name}{drink.measure !== "pint" ? ` (${measureLabel(drink.measure, drink.volume_ml)})` : ""}: now {formatPrice(drink.current_price)}
           </option>
         ))}
         <option value={NEW_DRINK}>+ A drink that isn't listed</option>
@@ -108,7 +108,7 @@ export default function ReportPriceForm({ pub, drinks, initialDrinkId = "", onDo
 
       <div className="form-grid">
         <div className="field">
-          <label htmlFor={fieldId("price")}>Price paid{selected && selected.measure !== "pint" ? ` (per ${selected.measure})` : ""}</label>
+          <label htmlFor={fieldId("price")}>Price paid{selected && selected.measure !== "pint" ? ` (per ${measureLabel(selected.measure, selected.volume_ml)})` : ""}</label>
           <div className="price-input">
             <span aria-hidden="true">£</span>
             <input id={fieldId("price")} inputMode="decimal" value={price} onChange={e => setPrice(e.target.value)} placeholder="6.20" autoComplete="off" {...errorProps("price")} />

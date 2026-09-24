@@ -40,7 +40,7 @@ export default function FavouritesPage() {
                   <Link to={`/pubs/${pub.id}`} className="result-link"><strong>{pub.name}</strong></Link>
                   <span className="muted">{pub.area}</span>
                   {cheapest && (
-                    <span className="small-text">Cheapest: {cheapest.drink.name} <PriceTag price={cheapest.price} measure={cheapest.measure} pintPrice={cheapest.pintPrice} /></span>
+                    <span className="small-text">Cheapest: {cheapest.drink.name} <PriceTag price={cheapest.price} measure={cheapest.measure} volumeMl={cheapest.volumeMl} pintPrice={cheapest.pintPrice} /></span>
                   )}
                 </div>
                 <FavouriteButton pub={pub} compact />
