@@ -500,3 +500,5 @@ textarea { width: 100%; padding: 10px 12px; border-radius: 12px; border: 1px sol
 .menu-text pre { white-space: pre-wrap; font-size: 0.8rem; max-height: 260px; overflow: auto; background: rgba(var(--primary-rgb), 0.05); padding: 10px; border-radius: 10px; }
 .menu-history ul { list-style: none; padding: 0; margin: 6px 0 0; }
 .menu-history li { padding: 4px 0; }
+.pub-cover { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pub-card img.pub-cover { grid-column: 1 / -1; border-radius: 12px; aspect-ratio: 16 / 10; height: auto; }

@@ -7,7 +7,7 @@ import { isDraught, pintPrice } from "../lib/core/prices.js";
 import FavouriteButton from "../components/ui/FavouriteButton.jsx";
 import { PriceTag, SourceBadge, UpdatedAgo } from "../components/ui/Badges.jsx";
 import { EmptyState, ErrorState, Loading } from "../components/ui/States.jsx";
-import PubIllustration from "../components/pub/PubIllustration.jsx";
+import PubImage from "../components/pub/PubImage.jsx";
 import ReportPriceForm from "../components/pub/ReportPriceForm.jsx";
 import DrinkHistory from "../components/pub/DrinkHistory.jsx";
 import PhotoSection from "../components/pub/PhotoSection.jsx";
@@ -87,7 +87,7 @@ export default function PubPage() {
         <div className="pub-hero-art">
           {pub.pub_photos?.find(p => !p.is_hidden)
             ? <img src={api.photoUrl(pub.pub_photos.find(p => !p.is_hidden).storage_path)} alt={`${pub.name}`} />
-            : <PubIllustration pub={pub} />}
+            : <PubImage pub={pub} />}
         </div>
         <div className="pub-hero-text">
           <p className="eyebrow">{pub.area}{pub.opened_year ? ` · Est. ${pub.opened_year}` : ""}{age ? ` (${age} years)` : ""}</p>

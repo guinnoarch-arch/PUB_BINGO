@@ -4,7 +4,8 @@ import { useApp } from "../../lib/AppContext.jsx";
 import { friendlyError } from "../../lib/api/errors.js";
 import { validatePhotoFile } from "../../lib/api/photos.js";
 import { cleanText } from "../../lib/core/prices.js";
-import PubIllustration from "./PubIllustration.jsx";
+import PubImage, { hasCover } from "./PubImage.jsx";
+import { PUB_COVERS } from "../../data/pubCovers.js";
 
 export default function PhotoSection({ pub, photos, onChanged }) {
   const { api, userId, isAdmin, toast } = useApp();
@@ -87,8 +88,10 @@ export default function PhotoSection({ pub, photos, onChanged }) {
         ))}
         {photos.length === 0 && (
           <figure className="illustration-figure">
-            <PubIllustration pub={pub} />
-            <figcaption className="muted">No photos yet. This is a placeholder illustration.</figcaption>
+            <PubImage pub={pub} />
+            <figcaption className="muted">
+              {hasCover(pub.id) ? PUB_COVERS[pub.id].credit : "No photos yet. This is a placeholder illustration."}
+            </figcaption>
           </figure>
         )}
       </div>
