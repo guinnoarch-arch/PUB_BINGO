@@ -101,6 +101,7 @@ export default function PubPage() {
           <div className="row-actions wrap">
             <FavouriteButton pub={pub} />
             <button type="button" className="secondary-button" onClick={() => startReport(drinks[0]?.id)}>Report a price</button>
+            <Link className="secondary-button" to={`/suggestions?menu=${encodeURIComponent(pub.id)}`}>📄 Send us the menu</Link>
           </div>
         </div>
       </section>

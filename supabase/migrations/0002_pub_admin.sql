@@ -452,3 +452,13 @@ revoke execute on function public.admin_update_drink(uuid, text, text, text) fro
 grant execute on function public.admin_update_drink(uuid, text, text, text) to authenticated;
 revoke execute on function public.admin_delete_drink(uuid) from public, anon;
 grant execute on function public.admin_delete_drink(uuid) to authenticated;
+
+-- If 0007 has been run, it replaced admin_set_drink_price with a version that also takes the date the
+-- price was seen. Re-running this file must not bring the old one back alongside it.
+do $$
+begin
+  if to_regprocedure('public.admin_set_drink_price(text, uuid, text, text, text, numeric, text, text, text, date)') is not null then
+    drop function if exists public.admin_set_drink_price(text, uuid, text, text, text, numeric, text, text, text);
+  end if;
+end;
+$$;

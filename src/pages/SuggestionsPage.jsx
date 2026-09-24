@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { useApp } from "../lib/AppContext.jsx";
 import { friendlyError } from "../lib/api/errors.js";
 import { timeAgo } from "../lib/core/time.js";
 import { EmptyState, ErrorState, Loading } from "../components/ui/States.jsx";
+import { MenuSubmitForm, MyMenus } from "../components/suggestions/MenuSubmit.jsx";
 
 export const SUGGESTION_TYPES = [
   { key: "idea", label: "Idea", icon: "💡", placeholder: "What would make Pub Bingo better?" },
@@ -28,13 +29,16 @@ const FILTERS = [
 ];
 const MAX = 1000;
 
-function SuggestionForm({ onSent }) {
+// Menus go privately to admins, so they're a separate form rather than a public suggestion.
+const MENU_TYPE = { key: "menu", label: "Menu or price", icon: "📄" };
+
+function SuggestionForm({ onSent, initialType = "idea", initialPubId = "" }) {
   const { api, toast } = useApp();
-  const [type, setType] = useState("idea");
+  const [type, setType] = useState(initialType);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [sending, setSending] = useState(false);
-  const current = SUGGESTION_TYPES.find(t => t.key === type);
+  const current = SUGGESTION_TYPES.find(t => t.key === type) || SUGGESTION_TYPES[0];
 
   async function send(event) {
     event.preventDefault();
@@ -53,15 +57,23 @@ function SuggestionForm({ onSent }) {
     }
   }
 
+  const chips = (
+    <div className="chip-row" role="radiogroup" aria-label="Type of suggestion">
+      {[...SUGGESTION_TYPES, MENU_TYPE].map(t => (
+        <button key={t.key} type="button" role="radio" aria-checked={type === t.key} className={`chip ${type === t.key ? "active" : ""}`} onClick={() => { setType(t.key); setError(""); }}>
+          <span aria-hidden="true">{t.icon}</span> {t.label}
+        </button>
+      ))}
+    </div>
+  );
+
+  if (type === MENU_TYPE.key) {
+    return <div className="suggestion-form">{chips}<MenuSubmitForm initialPubId={initialPubId} onSent={onSent} /></div>;
+  }
+
   return (
     <form className="suggestion-form" onSubmit={send} noValidate>
-      <div className="chip-row" role="radiogroup" aria-label="Type of suggestion">
-        {SUGGESTION_TYPES.map(t => (
-          <button key={t.key} type="button" role="radio" aria-checked={type === t.key} className={`chip ${type === t.key ? "active" : ""}`} onClick={() => setType(t.key)}>
-            <span aria-hidden="true">{t.icon}</span> {t.label}
-          </button>
-        ))}
-      </div>
+      {chips}
       <label htmlFor="suggestion-text" className="sr-only">Your suggestion</label>
       <textarea id="suggestion-text" rows={4} maxLength={MAX} value={message} onChange={e => setMessage(e.target.value)} placeholder={current.placeholder}
         aria-invalid={Boolean(error)} aria-describedby="suggestion-help" />
@@ -120,6 +132,8 @@ function AdminControls({ item, onChanged }) {
 export default function SuggestionsPage() {
   const { api, userId, isAdmin, authReady, toast } = useApp();
   const location = useLocation();
+  const [params] = useSearchParams();
+  const menuPubId = params.get("menu");
   const [items, setItems] = useState(null);
   const [error, setError] = useState("");
   const [filter, setFilter] = useState("all");
@@ -171,11 +185,14 @@ export default function SuggestionsPage() {
       <section className="card" aria-labelledby="suggest-heading">
         <h2 id="suggest-heading" className="section-title">Send a suggestion</h2>
         {!authReady ? <Loading /> : userId ? (
-          <SuggestionForm onSent={reload} />
+          <>
+            <SuggestionForm onSent={reload} initialType={menuPubId !== null ? "menu" : "idea"} initialPubId={menuPubId || ""} />
+            <MyMenus reloadKey={reloadKey} />
+          </>
         ) : (
           <div className="sign-in-prompt">
-            <p className="muted">Sign in to send suggestions and vote. Ideas, pubs to add, or anything that's wrong: it all helps.</p>
-            <Link className="primary-button" to={`/account?next=${encodeURIComponent(location.pathname)}`}>Sign in or create account</Link>
+            <p className="muted">Sign in to send suggestions, menus and price photos, and to vote. Ideas, pubs to add, or anything that's wrong: it all helps.</p>
+            <Link className="primary-button" to={`/account?next=${encodeURIComponent(location.pathname + location.search)}`}>Sign in or create account</Link>
           </div>
         )}
       </section>

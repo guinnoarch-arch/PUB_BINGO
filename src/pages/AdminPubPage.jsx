@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useApp } from "../lib/AppContext.jsx";
 import { friendlyError } from "../lib/api/errors.js";
 import { AREAS, CATEGORIES, TAGS } from "../data/seedPubs.js";
@@ -11,6 +11,8 @@ import { EmptyState, ErrorState, Loading } from "../components/ui/States.jsx";
 import DrinkHistory from "../components/pub/DrinkHistory.jsx";
 import AdminEvents from "../components/events/AdminEvents.jsx";
 import MenuImport from "../components/pub/MenuImport.jsx";
+import { SubmissionDetails, SubmissionFile, SubmissionReview, formatSeenOn } from "../components/suggestions/AdminMenus.jsx";
+import { londonToday, validateSeenOn } from "../lib/api/menuFiles.js";
 
 const EMPTY_PUB = {
   id: "", name: "", area: "Soho", address: "", lat: "", lng: "", opened_year: "", tags: [], description: "",
@@ -238,16 +240,19 @@ function ResearchNotes({ pub, onSaved }) {
   );
 }
 
-function SetPriceForm({ pub, drink, onDone, onCancel }) {
+// priceDefaults: set when working from a menu someone sent in (its date and a note saying so).
+function SetPriceForm({ pub, drink, priceDefaults, onDone, onCancel }) {
   const { api, toast, notifyChange } = useApp();
   const isNew = !drink;
+  const today = londonToday();
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
   const [measure, setMeasure] = useState(drink?.measure || "pint");
   const [price, setPrice] = useState(drink ? String(drink.current_price) : "");
-  const [source, setSource] = useState(pub.drinks_menu_url || pub.website ? "website" : "admin");
-  const [sourceUrl, setSourceUrl] = useState(pub.drinks_menu_url || pub.website || "");
-  const [note, setNote] = useState("");
+  const [source, setSource] = useState(priceDefaults ? "admin" : pub.drinks_menu_url || pub.website ? "website" : "admin");
+  const [sourceUrl, setSourceUrl] = useState(priceDefaults ? "" : pub.drinks_menu_url || pub.website || "");
+  const [note, setNote] = useState(priceDefaults?.note || "");
+  const [seenOn, setSeenOn] = useState(priceDefaults?.observedOn || today);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -256,9 +261,11 @@ function SetPriceForm({ pub, drink, onDone, onCancel }) {
     setError("");
     const value = parsePrice(price);
     if (value == null) { setError("Enter a price like 6.20"); return; }
+    const dateProblem = validateSeenOn(seenOn, today);
+    if (dateProblem) { setError(dateProblem.replace("the menu", "the price")); return; }
     setSaving(true);
     try {
-      await api.admin.setDrinkPrice({
+      const report = await api.admin.setDrinkPrice({
         pubId: pub.id,
         drinkId: drink?.id || null,
         drinkName: isNew ? name : null,
@@ -267,9 +274,13 @@ function SetPriceForm({ pub, drink, onDone, onCancel }) {
         price: value,
         source,
         sourceUrl: source === "website" ? sourceUrl.trim() : sourceUrl.trim() || null,
-        note: note.trim() || null
+        note: note.trim() || null,
+        observedOn: seenOn
       });
-      toast(`${isNew ? name : drink.name}: ${formatPrice(value)} saved.`, "success");
+      const olderThanCurrent = drink && drink.source !== "seed" && drink.last_updated_at && report?.reported_at < drink.last_updated_at;
+      toast(olderThanCurrent
+        ? `${drink.name}: ${formatPrice(value)} added to the history. The current price is newer, so it stays.`
+        : `${isNew ? name : drink.name}: ${formatPrice(value)} saved.`, "success");
       notifyChange();
       onDone();
     } catch (err) {
@@ -311,12 +322,16 @@ function SetPriceForm({ pub, drink, onDone, onCancel }) {
           <label htmlFor={`source-${drink?.id || "new"}`}>Where's it from?</label>
           <select id={`source-${drink?.id || "new"}`} value={source} onChange={e => setSource(e.target.value)}>
             <option value="website">The pub's website / menu</option>
-            <option value="admin">I checked it in person / by phone</option>
+            <option value="admin">I checked it (in person, by phone, or a dated menu/photo)</option>
           </select>
         </div>
         <div className="field grow">
           <label htmlFor={`url-${drink?.id || "new"}`}>{source === "website" ? "Link to the page" : "Link (optional)"}</label>
           <input id={`url-${drink?.id || "new"}`} type="url" value={sourceUrl} onChange={e => setSourceUrl(e.target.value)} placeholder="https://" />
+        </div>
+        <div className="field">
+          <label htmlFor={`seen-${drink?.id || "new"}`}>Date seen</label>
+          <input id={`seen-${drink?.id || "new"}`} type="date" value={seenOn} max={today} onChange={e => setSeenOn(e.target.value)} />
         </div>
       </div>
       <div className="field">
@@ -389,7 +404,7 @@ function EditDrinkForm({ drink, onDone, onCancel }) {
   );
 }
 
-function DrinksTable({ pub, onChanged }) {
+function DrinksTable({ pub, priceDefaults, onChanged }) {
   const { api, toast, notifyChange } = useApp();
   const [open, setOpen] = useState(null); // { id, mode: "price" | "edit" | "history" } or { id: "new" }
   const drinks = useMemo(() => [...(pub.drinks || [])].sort((a, b) =>
@@ -427,7 +442,7 @@ function DrinksTable({ pub, onChanged }) {
             </thead>
             <tbody>
               {drinks.map(drink => (
-                <DrinkRow key={drink.id} pub={pub} drink={drink} open={open?.id === drink.id ? open.mode : null}
+                <DrinkRow key={drink.id} pub={pub} drink={drink} priceDefaults={priceDefaults} open={open?.id === drink.id ? open.mode : null}
                   setOpen={mode => setOpen(mode ? { id: drink.id, mode } : null)} onDone={done} onRemove={() => remove(drink)} />
               ))}
             </tbody>
@@ -437,7 +452,7 @@ function DrinksTable({ pub, onChanged }) {
       {open?.id === "new" ? (
         <div className="inline-panel">
           <h3 className="section-title">Add a drink</h3>
-          <SetPriceForm pub={pub} onDone={done} onCancel={() => setOpen(null)} />
+          <SetPriceForm pub={pub} priceDefaults={priceDefaults} onDone={done} onCancel={() => setOpen(null)} />
         </div>
       ) : (
         <button type="button" className="secondary-button" onClick={() => setOpen({ id: "new" })}>+ Add a drink</button>
@@ -446,7 +461,7 @@ function DrinksTable({ pub, onChanged }) {
   );
 }
 
-function DrinkRow({ pub, drink, open, setOpen, onDone, onRemove }) {
+function DrinkRow({ pub, drink, priceDefaults, open, setOpen, onDone, onRemove }) {
   return (
     <>
       <tr>
@@ -470,7 +485,7 @@ function DrinkRow({ pub, drink, open, setOpen, onDone, onRemove }) {
       {open && (
         <tr className="expanded-row">
           <td colSpan={6}>
-            {open === "price" && <SetPriceForm pub={pub} drink={drink} onDone={onDone} onCancel={() => setOpen(null)} />}
+            {open === "price" && <SetPriceForm pub={pub} drink={drink} priceDefaults={priceDefaults} onDone={onDone} onCancel={() => setOpen(null)} />}
             {open === "edit" && <EditDrinkForm drink={drink} onDone={onDone} onCancel={() => setOpen(null)} />}
             {open === "history" && <DrinkHistory drink={drink} />}
           </td>
@@ -491,6 +506,24 @@ export default function AdminPubPage() {
   const [reloadKey, setReloadKey] = useState(0);
   const [pausedOverride, setPausedOverride] = useState(null);
   const reload = useCallback(() => setReloadKey(k => k + 1), []);
+  const [params, setParams] = useSearchParams();
+  const submissionId = params.get("submission");
+  const [submission, setSubmission] = useState(null);
+  const [submissionKey, setSubmissionKey] = useState(0);
+
+  // Opened from Admin → Menus sent in: show that menu beside the drinks.
+  useEffect(() => {
+    if (!submissionId || !isAdmin) { setSubmission(null); return undefined; }
+    let active = true;
+    api.admin.getMenuSubmission(submissionId)
+      .then(row => active && setSubmission(row && row.pub_id === pubId ? row : null))
+      .catch(() => active && setSubmission(null));
+    return () => { active = false; };
+  }, [api, submissionId, isAdmin, pubId, submissionKey]);
+  const priceDefaults = useMemo(() => (submission ? {
+    observedOn: submission.seen_on,
+    note: `From a menu sent in${submission.sender?.username ? ` by @${submission.sender.username}` : ""}, seen ${formatSeenOn(submission.seen_on)}`.slice(0, 200)
+  } : null), [submission]);
 
   useEffect(() => {
     if (isNew || !isAdmin) return undefined;
@@ -544,6 +577,27 @@ export default function AdminPubPage() {
 
       {!isNew && (
         <>
+          {submission && (
+            <section className="card submission-panel" aria-labelledby="submission-heading">
+              <div className="section-header">
+                <h2 id="submission-heading" className="section-title">📄 Menu sent in</h2>
+                <button type="button" className="text-button" onClick={() => setParams({}, { replace: true })}>Close</button>
+              </div>
+              <div className="submission">
+                <SubmissionFile item={submission} large />
+                <div className="submission-body">
+                  <SubmissionDetails item={submission} />
+                  <p className="muted small-text">
+                    Use <strong>Set price</strong> below: the date and a note are filled in from this menu, and it's saved as <strong>Verified</strong>. An older price is added to the history but won't replace a newer one.
+                    {submission.file_kind === "pdf" && " For a PDF, you can also read all the prices at once in “Import prices from a PDF menu”."}
+                    {" "}When you're done, set it to “Used to update prices” and save.
+                  </p>
+                  <SubmissionReview key={`${submission.id}-${submission.status}-${submission.admin_note}`} item={submission} compact onChanged={() => setSubmissionKey(k => k + 1)} />
+                </div>
+              </div>
+            </section>
+          )}
+
           <section className="card" aria-labelledby="drinks-heading">
             <div className="section-header">
               <h2 id="drinks-heading" className="section-title">Drinks and prices ({(pub.drinks || []).length})</h2>
@@ -551,12 +605,12 @@ export default function AdminPubPage() {
             <p className="muted small-text">
               Use “Set price” when you've read a price on the pub's own menu (add the link) or checked it in person. It's saved in the drink's history and shown with a “Pub website” or “Verified” badge.
             </p>
-            <DrinksTable pub={pub} onChanged={reload} />
+            <DrinksTable pub={pub} priceDefaults={priceDefaults} onChanged={reload} />
           </section>
 
           <section className="card" aria-labelledby="menu-import-heading">
             <h2 id="menu-import-heading" className="section-title">Import prices from a PDF menu</h2>
-            <MenuImport pub={pub} onImported={reload} />
+            <MenuImport pub={pub} submission={submission?.file_kind === "pdf" ? submission : null} onImported={() => { reload(); setSubmissionKey(k => k + 1); }} />
           </section>
 
           <section className="card" aria-labelledby="events-admin-heading">

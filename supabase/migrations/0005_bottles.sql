@@ -220,3 +220,13 @@ grant execute on function public.admin_update_drink(uuid, text, text, text, inte
 -- The Rocket's starting estimates are replaced by real prices from its own menu (seed.sql).
 -- Only estimates are removed; anything reported or checked is kept.
 delete from public.drinks where pub_id = 'the-rocket' and source = 'seed';
+
+-- If 0007 has been run, it replaced admin_set_drink_price with a version that also takes the date the
+-- price was seen. Re-running this file must not bring the old one back alongside it.
+do $$
+begin
+  if to_regprocedure('public.admin_set_drink_price(text, uuid, text, text, text, numeric, text, text, text, date)') is not null then
+    drop function if exists public.admin_set_drink_price(text, uuid, text, text, text, numeric, text, text, text);
+  end if;
+end;
+$$;

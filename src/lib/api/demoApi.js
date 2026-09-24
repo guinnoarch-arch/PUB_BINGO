@@ -8,6 +8,7 @@ import { EVENT_CATEGORIES } from "../../data/features.js";
 import { validatePriceReport } from "../core/prices.js";
 import { normaliseText } from "../core/search.js";
 import { preparePhoto } from "./photos.js";
+import { londonToday, prepareMenuFile, validateSeenOn } from "./menuFiles.js";
 
 const uid = () => (crypto.randomUUID ? crypto.randomUUID() : `id-${Math.random().toString(36).slice(2)}`);
 const clone = value => JSON.parse(JSON.stringify(value));
@@ -46,6 +47,8 @@ export function createDemoApi() {
   const menus = [];
   const suggestions = [];
   const suggestionVotes = new Map(); // `${id}:${userId}` -> 1 | -1
+  const menuSubmissions = [];
+  const submissionFiles = new Map(); // storage_path -> File (demo only: lives in this tab)
   const authListeners = new Set();
   const changeListeners = new Set();
   let session = null;
@@ -154,6 +157,36 @@ export function createDemoApi() {
       const me = requireUser();
       if (![-1, 0, 1].includes(vote)) fail("Invalid vote");
       if (vote === 0) suggestionVotes.delete(`${id}:${me}`); else suggestionVotes.set(`${id}:${me}`, vote);
+    },
+
+    async submitMenu(userId, { pubId, pubName, seenOn, note, file }) {
+      await wait();
+      const me = requireUser();
+      const prepared = await prepareMenuFile(file);
+      if (pubId && !pubs.some(p => p.id === pubId && p.is_published)) fail("Pick a pub from the list");
+      const name = String(pubName || "").replace(/\s+/g, " ").trim();
+      if (!pubId && (name.length < 2 || name.length > 100)) fail("Say which pub the menu is from");
+      const dateProblem = validateSeenOn(seenOn, londonToday());
+      if (dateProblem) fail(dateProblem.replace(/\.$/, ""));
+      if (String(note || "").trim().length > 500) fail("Keep the note under 500 characters");
+      if (menuSubmissions.filter(m => m.submitted_by === me && Date.parse(m.created_at) > Date.now() - 86400000).length >= 10) {
+        fail("You've sent 10 menus today. Thanks! Try again tomorrow");
+      }
+      const path = `${me}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${prepared.ext}`;
+      submissionFiles.set(path, prepared.file);
+      const row = {
+        id: uid(), submitted_by: me, pub_id: pubId || null, pub_name: pubId ? null : name, storage_path: path,
+        file_name: String(file.name || "menu").slice(0, 200), file_kind: prepared.ext === "pdf" ? "pdf" : "photo",
+        seen_on: seenOn, note: String(note || "").trim() || null, status: "new", admin_note: null, prices_imported: 0,
+        reviewed_at: null, created_at: new Date().toISOString()
+      };
+      menuSubmissions.unshift(row);
+      return clone(row);
+    },
+    async listMyMenus(userId) {
+      await wait(60);
+      const withPub = m => ({ ...m, pub: m.pub_id ? { id: m.pub_id, name: pubs.find(p => p.id === m.pub_id)?.name } : null });
+      return clone(menuSubmissions.filter(m => m.submitted_by === userId).map(withPub));
     },
 
     async getDrinkHistory(drinkId) {
@@ -310,6 +343,11 @@ export function createDemoApi() {
         if (value.source === "website" && !value.sourceUrl) fail("Add the link to the page the price came from");
         if (value.sourceUrl && !/^https?:\/\/\S+$/.test(value.sourceUrl)) fail("Source link must start with http:// or https://");
         if (!(value.price >= 1 && value.price <= 25)) fail("Price must be between £1.00 and £25.00");
+        const today = londonToday();
+        if (value.observedOn && value.observedOn > today) fail("The date seen can't be in the future");
+        const when = value.observedOn && value.observedOn < today
+          ? new Date(`${value.observedOn}T12:00:00Z`).toISOString()
+          : new Date().toISOString();
         const measure = value.measure || "pint";
         let drink = value.drinkId
           ? drinks.find(d => d.id === value.drinkId && d.pub_id === value.pubId)
@@ -318,16 +356,19 @@ export function createDemoApi() {
         if (!drink) {
           if (!value.drinkName || value.drinkName.trim().length < 2) fail("Drink names must be 2-60 characters");
           if (!value.category) fail("Pick a valid category");
-          drink = { id: uid(), pub_id: value.pubId, name: value.drinkName.trim(), category: value.category, measure };
+          drink = { id: uid(), pub_id: value.pubId, name: value.drinkName.trim(), category: value.category, measure, source: "seed", last_updated_at: null };
           drinks.push(drink);
         }
         const report = {
           id: uid(), pub_id: value.pubId, drink_id: drink.id, drink_name: drink.name, category: drink.category, measure: drink.measure,
-          price: value.price, note: value.note || null, reported_at: new Date().toISOString(), reporter: session.user.id,
+          price: value.price, note: value.note || null, reported_at: when, reporter: session.user.id,
           source: value.source, source_url: value.sourceUrl || null, is_hidden: false
         };
         reports.push(report);
-        Object.assign(drink, { current_price: value.price, last_updated_at: report.reported_at, source: value.source, source_url: value.sourceUrl || null });
+        // An older price goes into the history but doesn't replace a newer one.
+        if (drink.source === "seed" || !drink.last_updated_at || when >= drink.last_updated_at) {
+          Object.assign(drink, { current_price: value.price, last_updated_at: when, source: value.source, source_url: value.sourceUrl || null });
+        }
         emit({ table: "price_reports", payload: { eventType: "INSERT", new: report } });
         return clone(report);
       },
@@ -419,6 +460,43 @@ export function createDemoApi() {
         requireAdmin();
         const i = suggestions.findIndex(s => s.id === id);
         if (i !== -1) suggestions.splice(i, 1);
+      },
+      async listMenuSubmissions() {
+        requireAdmin();
+        await wait(60);
+        return clone(menuSubmissions.map(m => ({
+          ...m,
+          pub: m.pub_id ? (({ id, name, area }) => ({ id, name, area }))(pubs.find(p => p.id === m.pub_id) || { id: m.pub_id }) : null,
+          sender: { username: profileOf(m.submitted_by)?.username || null }
+        })));
+      },
+      async getMenuSubmission(id) {
+        const list = await this.listMenuSubmissions();
+        return list.find(m => m.id === id) || null;
+      },
+      async menuSubmissionUrl(path) {
+        requireAdmin();
+        const file = submissionFiles.get(path);
+        return file ? URL.createObjectURL(file) : "";
+      },
+      async menuSubmissionFile(submission) {
+        requireAdmin();
+        return submissionFiles.get(submission.storage_path) || fail("File not found");
+      },
+      async reviewMenuSubmission(id, { status, note = null, pricesImported = null }) {
+        requireAdmin();
+        if (!["new", "used", "not_used"].includes(status)) fail("Pick a valid status");
+        const row = menuSubmissions.find(m => m.id === id) || fail("Menu not found");
+        Object.assign(row, {
+          status, admin_note: String(note || "").trim() || null,
+          prices_imported: row.prices_imported + (pricesImported || 0), reviewed_at: new Date().toISOString()
+        });
+        return clone(row);
+      },
+      async deleteMenuSubmission(id) {
+        requireAdmin();
+        const i = menuSubmissions.findIndex(m => m.id === id);
+        if (i !== -1) submissionFiles.delete(menuSubmissions.splice(i, 1)[0].storage_path);
       },
       async setUploadsPaused(pubId, paused) {
         requireAdmin();

@@ -532,3 +532,30 @@ textarea { width: 100%; padding: 10px 12px; border-radius: 12px; border: 1px sol
 .app-shell.phone-mode .header-icon-button, .app-shell.phone-mode .account-chip { width: 34px; height: 34px; }
 .app-shell.phone-mode .account-chip { justify-content: center; padding: 0; }
 .app-shell.phone-mode .brand { gap: 8px; }
+
+/* Menus sent in (Suggestions → Menu or price; Admin → Menus) */
+.menu-submit-form { gap: 12px; }
+.menu-submit-form input[type="file"] { max-width: 100%; }
+.my-menus { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 12px; }
+.my-menu-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.my-menu-list li { line-height: 1.5; }
+.tab-count { display: inline-block; margin-left: 6px; min-width: 18px; padding: 0 5px; border-radius: 999px; background: var(--danger, #b91c1c); color: #fff; font-size: 0.72rem; font-weight: 800; line-height: 18px; text-align: center; }
+.submission-list { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 12px; }
+.submission { display: flex; gap: 14px; align-items: flex-start; }
+.submission-list .submission { border: 1px solid var(--line); border-radius: 14px; padding: 12px; }
+.submission-body { display: grid; gap: 8px; min-width: 0; flex: 1; }
+.submission-body p { margin: 0; }
+.submission-thumb { flex-shrink: 0; display: block; width: 96px; height: 96px; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); background: var(--bg); }
+.submission-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.submission-thumb.large { width: 220px; height: auto; max-height: 320px; }
+.submission-thumb.large img { object-fit: contain; height: auto; max-height: 320px; }
+.submission-note { font-style: italic; }
+.submission-panel { border: 2px solid var(--accent); }
+@media (max-width: 640px) {
+  .submission { flex-direction: column; }
+  .submission-thumb, .submission-thumb.large { width: 100%; height: auto; max-height: 260px; }
+  .submission-thumb img { height: auto; max-height: 260px; object-fit: contain; }
+}
+.app-shell.phone-mode .submission { flex-direction: column; }
+.app-shell.phone-mode .submission-thumb { width: 100%; height: auto; max-height: 260px; }
+.app-shell.phone-mode .submission-thumb img { height: auto; max-height: 260px; object-fit: contain; }

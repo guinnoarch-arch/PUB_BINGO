@@ -5,6 +5,7 @@ import { friendlyError } from "../lib/api/errors.js";
 import { PRICES_ONLINE_LABELS, adminTotals, filterRows, sortRows, summarisePub, toCsv } from "../lib/core/adminPubs.js";
 import { timeAgo } from "../lib/core/time.js";
 import LiveFeed from "../components/LiveFeed.jsx";
+import AdminMenus from "../components/suggestions/AdminMenus.jsx";
 import { EmptyState, ErrorState, Loading } from "../components/ui/States.jsx";
 
 const COLUMNS = [
@@ -148,11 +149,31 @@ function PubsTable() {
   );
 }
 
+const TABS = [
+  ["pubs", "Pubs", "Pubs"],
+  ["menus", "Menus sent in", "Menus"],
+  ["reports", "Price reports", "Reports"]
+];
+
 export default function AdminPage() {
-  const { authReady, isAdmin } = useApp();
+  const { api, authReady, isAdmin } = useApp();
   const [params, setParams] = useSearchParams();
-  const tab = params.get("tab") === "reports" ? "reports" : "pubs";
+  const tab = TABS.some(([key]) => key === params.get("tab")) ? params.get("tab") : "pubs";
   const setTab = useCallback(next => setParams(next === "pubs" ? {} : { tab: next }, { replace: true }), [setParams]);
+  const [menus, setMenus] = useState(null);
+  const [menusError, setMenusError] = useState("");
+  const [menusKey, setMenusKey] = useState(0);
+  const reloadMenus = useCallback(() => setMenusKey(k => k + 1), []);
+
+  useEffect(() => {
+    if (!isAdmin) return undefined;
+    let active = true;
+    api.admin.listMenuSubmissions()
+      .then(rows => { if (active) { setMenus(rows); setMenusError(""); } })
+      .catch(err => active && setMenusError(friendlyError(err, "Couldn't load menus sent in.")));
+    return () => { active = false; };
+  }, [api, isAdmin, menusKey]);
+  const newMenus = (menus || []).filter(m => m.status === "new").length;
 
   if (!authReady) return <Loading />;
   if (!isAdmin) {
@@ -164,17 +185,26 @@ export default function AdminPage() {
       <div className="page-title-row">
         <div>
           <p className="eyebrow">Admin</p>
-          <h2>{tab === "pubs" ? "Pubs" : "Price reports"}</h2>
+          <h2>{TABS.find(([key]) => key === tab)[1]}</h2>
         </div>
         <div className="segmented" role="tablist" aria-label="Admin sections">
-          <button type="button" role="tab" aria-selected={tab === "pubs"} className={tab === "pubs" ? "active" : ""} onClick={() => setTab("pubs")}>Pubs</button>
-          <button type="button" role="tab" aria-selected={tab === "reports"} className={tab === "reports" ? "active" : ""} onClick={() => setTab("reports")}>Reports</button>
+          {TABS.map(([key, , short]) => (
+            <button key={key} type="button" role="tab" aria-selected={tab === key} className={tab === key ? "active" : ""} onClick={() => setTab(key)}>
+              {short}{key === "menus" && newMenus > 0 && <span className="tab-count" aria-label={`${newMenus} new`}>{newMenus}</span>}
+            </button>
+          ))}
         </div>
       </div>
 
-      {tab === "pubs" ? (
-        <section className="card"><PubsTable /></section>
-      ) : (
+      {tab === "pubs" && <section className="card"><PubsTable /></section>}
+      {tab === "menus" && (
+        <section className="card" aria-label="Menus sent in">
+          {menusError ? <ErrorState message={menusError} onRetry={reloadMenus} />
+            : menus === null ? <Loading label="Loading menus…" />
+              : <AdminMenus items={menus} onChanged={reloadMenus} />}
+        </section>
+      )}
+      {tab === "reports" && (
         <section className="card" aria-labelledby="reports-heading">
           <h2 id="reports-heading" className="section-title">Recent price reports</h2>
           <p className="muted small-text">Hiding a report removes it from public view and puts the drink back to its previous price.</p>

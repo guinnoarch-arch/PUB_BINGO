@@ -55,6 +55,8 @@ Every price change is kept in the drink's history, so trends and mistakes can al
 - **Outlier check:** reports more than 30–50% away from recent ones get held for admin review instead of going live straight away. The form already warns about this.
 - **Trust levels:** users whose reports keep matching others get a "trusted reporter" badge, and their reports count for more.
 
+**Menus sent in (added Sep 2026).** Users can send a PDF menu or a photo of a menu, price board or a single drink from Suggestions → Menu or price, with the pub and the date it was seen. Only admins see these. Prices taken from them are saved as Verified with the menu's date, so a price is never newer than its evidence. An older menu can't overwrite a newer price.
+
 **4. Stop showing guesses (your call).** There are three options:
 - **(a)** Keep showing estimates with the badge everywhere.
 - **(b)** Show "Price not confirmed yet: report it", with no number, until a real price exists.

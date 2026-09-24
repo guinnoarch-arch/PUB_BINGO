@@ -1,8 +1,11 @@
 import { createClient } from "@supabase/supabase-js";
 import { ApiError } from "./errors.js";
 import { photoPath, preparePhoto } from "./photos.js";
+import { menuSubmissionPath, prepareMenuFile } from "./menuFiles.js";
 
 const BUCKET = "pub-photos";
+const SUBMISSIONS = "menu-submissions";
+const SUBMISSION_SELECT = "*, pub:pubs(id, name, area), sender:profiles!menu_submissions_submitted_by_fkey(username)";
 
 function unwrap({ data, error }, fallback) {
   if (error) throw new ApiError(error, fallback);
@@ -81,6 +84,30 @@ export function createSupabaseApi(url, anonKey) {
     },
     async voteSuggestion(id, vote) {
       unwrap(await supabase.rpc("vote_suggestion", { p_suggestion_id: id, p_vote: vote }), "Couldn't save your vote.");
+    },
+
+    // A menu or price photo, sent privately to admins.
+    async submitMenu(userId, { pubId, pubName, seenOn, note, file }) {
+      const prepared = await prepareMenuFile(file);
+      const path = menuSubmissionPath(userId, prepared.ext);
+      unwrap(await supabase.storage.from(SUBMISSIONS).upload(path, prepared.file, { contentType: prepared.contentType, upsert: false }), "Couldn't upload the file.");
+      const { data, error } = await supabase.rpc("submit_menu_submission", {
+        p_pub_id: pubId || null,
+        p_pub_name: pubId ? null : pubName,
+        p_storage_path: path,
+        p_file_name: String(file.name || "menu").slice(0, 200),
+        p_seen_on: seenOn,
+        p_note: note || null
+      });
+      if (error) {
+        await supabase.storage.from(SUBMISSIONS).remove([path]);
+        throw new ApiError(error, "Couldn't send the menu.");
+      }
+      return data;
+    },
+    async listMyMenus(userId) {
+      return unwrap(await supabase.from("menu_submissions").select("*, pub:pubs(id, name)").eq("submitted_by", userId)
+        .order("created_at", { ascending: false }).limit(50), "Couldn't load your menus.");
     },
 
     async getDrinkHistory(drinkId, limit = 50) {
@@ -206,7 +233,8 @@ export function createSupabaseApi(url, anonKey) {
           p_price: value.price,
           p_source: value.source,
           p_source_url: value.sourceUrl || null,
-          p_note: value.note || null
+          p_note: value.note || null,
+          p_observed_on: value.observedOn || null
         }), "Couldn't save the price.");
       },
       async updateDrink(drinkId, { name, category, measure, volumeMl = null }) {
@@ -253,6 +281,30 @@ export function createSupabaseApi(url, anonKey) {
       },
       async deleteSuggestion(id) {
         unwrap(await supabase.rpc("admin_delete_suggestion", { p_suggestion_id: id }), "Couldn't delete the suggestion.");
+      },
+      async listMenuSubmissions() {
+        return unwrap(await supabase.from("menu_submissions").select(SUBMISSION_SELECT)
+          .order("created_at", { ascending: false }).limit(200), "Couldn't load menus sent in.");
+      },
+      async getMenuSubmission(id) {
+        return unwrap(await supabase.from("menu_submissions").select(SUBMISSION_SELECT).eq("id", id).maybeSingle(), "Couldn't load that menu.");
+      },
+      // Files are private, so admins get a link that works for an hour.
+      async menuSubmissionUrl(path) {
+        return unwrap(await supabase.storage.from(SUBMISSIONS).createSignedUrl(path, 3600), "Couldn't open the file.").signedUrl;
+      },
+      async menuSubmissionFile(submission) {
+        const blob = unwrap(await supabase.storage.from(SUBMISSIONS).download(submission.storage_path), "Couldn't download the file.");
+        return new File([blob], submission.file_name || "menu.pdf", { type: blob.type || "application/pdf" });
+      },
+      async reviewMenuSubmission(id, { status, note = null, pricesImported = null }) {
+        return unwrap(await supabase.rpc("admin_review_menu_submission", {
+          p_submission_id: id, p_status: status, p_admin_note: note, p_prices_imported: pricesImported
+        }), "Couldn't update the menu.");
+      },
+      async deleteMenuSubmission(id) {
+        const path = unwrap(await supabase.rpc("admin_delete_menu_submission", { p_submission_id: id }), "Couldn't delete the menu.");
+        if (path) await supabase.storage.from(SUBMISSIONS).remove([path]);
       },
       async setUploadsPaused(pubId, paused) {
         unwrap(await supabase.rpc("admin_set_uploads_paused", { p_pub_id: pubId, p_paused: paused }));

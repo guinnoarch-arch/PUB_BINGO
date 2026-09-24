@@ -65,12 +65,14 @@ beforeAll(async () => {
   await db.query(read("supabase/migrations/0004_menu_uploads.sql"));
   await db.query(read("supabase/migrations/0005_bottles.sql"));
   await db.query(read("supabase/migrations/0006_suggestions.sql"));
+  await db.query(read("supabase/migrations/0007_menu_submissions.sql"));
   // Migrations must be safe to run twice.
   await db.query(read("supabase/migrations/0002_pub_admin.sql"));
   await db.query(read("supabase/migrations/0003_events.sql"));
   await db.query(read("supabase/migrations/0004_menu_uploads.sql"));
   await db.query(read("supabase/migrations/0005_bottles.sql"));
   await db.query(read("supabase/migrations/0006_suggestions.sql"));
+  await db.query(read("supabase/migrations/0007_menu_submissions.sql"));
   await db.query(read("supabase/seed.sql"));
 
   users.alice = await createUser("Alice_1");
@@ -625,5 +627,125 @@ describe("0006: suggestions", () => {
     await expect(as(users.alice, () => db.query("select public.admin_delete_suggestion($1)", [ideaId]))).rejects.toThrow(/Admins only/);
     await as(users.admin, () => db.query("select public.admin_delete_suggestion($1)", [ideaId]));
     expect((await list(null)).some(r => r.id === ideaId)).toBe(false);
+  });
+});
+
+describe("0007: menus sent in", () => {
+  const today = () => db.query("select (now() at time zone 'Europe/London')::date::text as d").then(r => r.rows[0].d);
+  const daysAgo = n => db.query(`select ((now() at time zone 'Europe/London')::date - ${Number(n)})::text as d`).then(r => r.rows[0].d);
+  const upload = (userId, name) => as(userId, () => db.query("insert into storage.objects (bucket_id, name) values ('menu-submissions', $1)", [name]));
+  const submit = (userId, { pub = "the-harp", pubName = null, path, file = "menu.pdf", seen, note = null }) => as(userId, () => db.query(
+    "select * from public.submit_menu_submission($1, $2, $3, $4, $5::date, $6)", [pub, pubName, path, file, seen, note]
+  ).then(r => r.rows[0]));
+  let aliceMenu;
+
+  it("only lets users upload into their own private folder", async () => {
+    await upload(users.alice, `${users.alice}/1-a.pdf`);
+    await expect(upload(users.alice, `${users.bob}/1-a.pdf`)).rejects.toThrow(/row-level security/);
+    await expect(asAnon(() => db.query("insert into storage.objects (bucket_id, name) values ('menu-submissions', 'x/1.pdf')"))).rejects.toThrow(/permission denied|row-level security/);
+    const bucket = await db.query("select public, allowed_mime_types from storage.buckets where id = 'menu-submissions'");
+    expect(bucket.rows[0]).toEqual({ public: false, allowed_mime_types: ["application/pdf", "image/jpeg", "image/png", "image/webp"] });
+  });
+
+  it("records a menu for a listed pub, or a pub that isn't listed", async () => {
+    aliceMenu = await submit(users.alice, { path: `${users.alice}/1-a.pdf`, seen: await daysAgo(3), note: " Guinness on the board " });
+    expect(aliceMenu).toMatchObject({ pub_id: "the-harp", pub_name: null, file_kind: "pdf", status: "new", note: "Guinness on the board" });
+    await upload(users.alice, `${users.alice}/2-b.jpg`);
+    const other = await submit(users.alice, { pub: null, pubName: "  The   Lamb, Holborn ", path: `${users.alice}/2-b.jpg`, file: "IMG_1.jpg", seen: await today() });
+    expect(other).toMatchObject({ pub_id: null, pub_name: "The Lamb, Holborn", file_kind: "photo" });
+  });
+
+  it("checks the pub, file and date", async () => {
+    const path = `${users.alice}/3-c.png`;
+    await expect(asAnon(() => db.query("select public.submit_menu_submission('the-harp', null, 'x/1.pdf', 'm', current_date, null)"))).rejects.toThrow(/permission denied/);
+    await expect(submit(users.alice, { path: `${users.bob}/3-c.png`, seen: await today() })).rejects.toThrow(/Upload the file first/);
+    await expect(submit(users.alice, { path: `${users.alice}/3-c.docx`, seen: await today() })).rejects.toThrow(/PDF or a photo/);
+    await expect(submit(users.alice, { path, seen: await daysAgo(-1) })).rejects.toThrow(/future/);
+    await expect(submit(users.alice, { path, seen: await daysAgo(366) })).rejects.toThrow(/over a year old/);
+    await expect(submit(users.alice, { path, seen: null })).rejects.toThrow(/date/);
+    await expect(submit(users.alice, { pub: "no-such-pub", path, seen: await today() })).rejects.toThrow(/Pick a pub/);
+    await expect(submit(users.alice, { pub: null, pubName: " ", path, seen: await today() })).rejects.toThrow(/which pub/);
+    await db.query("insert into public.pubs (id, name, area, is_published) values ('secret-pub', 'Secret Pub', 'Soho', false) on conflict (id) do nothing");
+    await expect(submit(users.alice, { pub: "secret-pub", path, seen: await today() })).rejects.toThrow(/Pick a pub/);
+  });
+
+  it("is only visible to the sender and admins", async () => {
+    const mine = await as(users.alice, () => db.query("select id from public.menu_submissions").then(r => r.rows));
+    expect(mine.length).toBe(2);
+    const bobs = await as(users.bob, () => db.query("select id from public.menu_submissions").then(r => r.rows));
+    expect(bobs).toEqual([]);
+    const all = await as(users.admin, () => db.query("select id from public.menu_submissions").then(r => r.rows));
+    expect(all.length).toBe(2);
+    await expect(asAnon(() => db.query("select id from public.menu_submissions"))).rejects.toThrow(/permission denied/);
+    await expect(as(users.alice, () => db.query("update public.menu_submissions set status = 'used'"))).rejects.toThrow(/permission denied/);
+    const files = who => as(who, () => db.query("select name from storage.objects where bucket_id = 'menu-submissions'").then(r => r.rows.length));
+    expect(await files(users.bob)).toBe(0);
+    expect(await files(users.alice)).toBe(2);
+    expect(await files(users.admin)).toBe(2);
+  });
+
+  it("lets admins mark menus used, reply, and delete", async () => {
+    await expect(as(users.alice, () => db.query("select public.admin_review_menu_submission($1, 'used', null, 3)", [aliceMenu.id]))).rejects.toThrow(/Admins only/);
+    await as(users.admin, () => db.query("select public.admin_review_menu_submission($1, 'used', ' Thanks! ', 3)", [aliceMenu.id]));
+    const row = await as(users.admin, () => db.query("select * from public.admin_review_menu_submission($1, 'used', 'Thanks!', 2)", [aliceMenu.id]).then(r => r.rows[0]));
+    expect(row).toMatchObject({ status: "used", admin_note: "Thanks!", prices_imported: 5 });
+    await expect(as(users.admin, () => db.query("select public.admin_review_menu_submission($1, 'maybe', null, null)", [aliceMenu.id]))).rejects.toThrow(/valid status/);
+    const seen = await as(users.alice, () => db.query("select status, admin_note from public.menu_submissions where id = $1", [aliceMenu.id]).then(r => r.rows[0]));
+    expect(seen).toEqual({ status: "used", admin_note: "Thanks!" });
+    await expect(as(users.alice, () => db.query("select public.admin_delete_menu_submission($1)", [aliceMenu.id]))).rejects.toThrow(/Admins only/);
+    const path = await as(users.admin, () => db.query("select public.admin_delete_menu_submission($1) as p", [aliceMenu.id]).then(r => r.rows[0].p));
+    expect(path).toBe(`${users.alice}/1-a.pdf`);
+  });
+
+  it("limits each user to 10 menus a day", async () => {
+    for (let i = 0; i < 9; i += 1) {
+      await upload(users.bob, `${users.bob}/${i}-m.pdf`);
+      await submit(users.bob, { path: `${users.bob}/${i}-m.pdf`, seen: await today() });
+    }
+    await upload(users.bob, `${users.bob}/9-m.pdf`);
+    await submit(users.bob, { path: `${users.bob}/9-m.pdf`, seen: await today() });
+    await expect(upload(users.bob, `${users.bob}/10-m.pdf`)).rejects.toThrow(/row-level security/);
+    await expect(submit(users.bob, { path: `${users.bob}/10-m.pdf`, seen: await today() })).rejects.toThrow(/10 menus today/);
+  });
+
+  it("saves admin prices with the date they were seen, without replacing a newer price", async () => {
+    const setPrice = (drink, price, seen) => as(users.admin, () => db.query(
+      "select * from public.admin_set_drink_price('the-harp', $1, null, null, null, $2, 'admin', null, 'from a menu sent in', $3::date)", [drink, price, seen]
+    ).then(r => r.rows[0]));
+    const id = await drinkId("the-harp", "Guinness");
+    const current = () => db.query("select current_price::float as price, source, last_updated_at from public.drinks where id = $1", [id]).then(r => r.rows[0]);
+
+    // An estimate is replaced even by an older menu, and the price keeps the menu's date.
+    await db.query("update public.drinks set source = 'seed' where id = $1", [id]);
+    const old = await setPrice(id, 6.1, await daysAgo(10));
+    let now = await current();
+    expect(now).toMatchObject({ price: 6.1, source: "admin" });
+    expect(now.last_updated_at.toISOString()).toBe(old.reported_at.toISOString());
+    expect(Date.now() - now.last_updated_at.getTime()).toBeGreaterThan(9 * 86400000);
+
+    // A newer price replaces it; an older one only goes into the history.
+    await setPrice(id, 6.3, await daysAgo(2));
+    await setPrice(id, 5.9, await daysAgo(5));
+    now = await current();
+    expect(now.price).toBe(6.3);
+    const history = await db.query("select price::float from public.price_reports where drink_id = $1 and source = 'admin' order by reported_at desc", [id]);
+    expect(history.rows.map(r => r.price)).toEqual([6.3, 5.9, 6.1]);
+
+    // Today (or no date) means now.
+    await setPrice(id, 6.4, await today());
+    expect((await current()).price).toBe(6.4);
+    await expect(setPrice(id, 6.4, await daysAgo(-1))).rejects.toThrow(/future/);
+    await expect(setPrice(id, 6.4, await daysAgo(400))).rejects.toThrow(/over a year/);
+    // The old 9-argument form still works (date defaults to now).
+    await as(users.admin, () => db.query("select public.admin_set_drink_price('the-harp', $1, null, null, null, 6.5, 'admin', null, null)", [id]));
+    expect((await current()).price).toBe(6.5);
+  });
+
+  it("stays a single set-price function if older migrations are re-run", async () => {
+    await db.query(read("supabase/migrations/0002_pub_admin.sql"));
+    await db.query(read("supabase/migrations/0005_bottles.sql"));
+    const { rows } = await db.query("select count(*)::int as n from pg_proc where proname = 'admin_set_drink_price'");
+    expect(rows[0].n).toBe(1);
+    await db.query(read("supabase/migrations/0007_menu_submissions.sql"));
   });
 });

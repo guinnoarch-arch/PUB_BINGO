@@ -9,7 +9,9 @@ import { timeAgo } from "../../lib/core/time.js";
 
 // Admin: upload a PDF drinks menu, read the prices from it, review, then save them as
 // "Pub website" prices that link back to the uploaded PDF.
-export default function MenuImport({ pub, onImported }) {
+// With a `submission` (a PDF a user sent in), it reads that file instead. Those stay private, so the
+// prices are saved as "Verified" with the date the menu was seen, and no public link.
+export default function MenuImport({ pub, submission = null, onImported }) {
   const { api, userId, toast, notifyChange } = useApp();
   const fileRef = useRef(null);
   const [stage, setStage] = useState("idle"); // idle | reading | review | saving
@@ -29,10 +31,27 @@ export default function MenuImport({ pub, onImported }) {
 
   async function read(event) {
     event.preventDefault();
-    setError("");
     const file = fileRef.current?.files?.[0];
     const problem = validateMenuFile(file);
     if (problem) { setError(problem); return; }
+    await process(file, () => api.admin.uploadMenu(userId, pub.id, file));
+  }
+
+  async function readSubmission() {
+    setError("");
+    setStage("reading");
+    try {
+      const file = await api.admin.menuSubmissionFile(submission);
+      const viewUrl = await api.admin.menuSubmissionUrl(submission.storage_path).catch(() => "");
+      await process(file, async () => ({ file_name: submission.file_name, viewUrl, submission }));
+    } catch (err) {
+      setError(friendlyError(err, "Couldn't open the menu that was sent in."));
+      setStage("idle");
+    }
+  }
+
+  async function process(file, store) {
+    setError("");
     setStage("reading");
     try {
       const { lines: found } = await extractPdfLines(file);
@@ -42,7 +61,7 @@ export default function MenuImport({ pub, onImported }) {
         return;
       }
       const candidates = parseMenuLines(found);
-      const uploaded = await api.admin.uploadMenu(userId, pub.id, file);
+      const uploaded = await store();
       setMenu(uploaded);
       setLines(found);
       setRows(buildImportRows(candidates, pub.drinks || []).map(r => ({ ...r, price: r.price.toFixed(2) })));
@@ -65,6 +84,7 @@ export default function MenuImport({ pub, onImported }) {
     for (const row of selected) {
       const price = parsePrice(String(row.price));
       if (price == null) { failures.push(`${row.name}: price isn't a number`); continue; }
+      const sent = menu.submission;
       try {
         await api.admin.setDrinkPrice({
           pubId: pub.id,
@@ -73,16 +93,21 @@ export default function MenuImport({ pub, onImported }) {
           category: row.drinkId ? null : row.category,
           measure: row.drinkId ? null : row.measure,
           price,
-          source: "website",
-          sourceUrl: menu.url,
-          note: `From menu: ${menu.file_name}`.slice(0, 200)
+          source: sent ? "admin" : "website",
+          sourceUrl: sent ? null : menu.url,
+          note: (sent ? `From a menu sent in${sent.sender?.username ? ` by @${sent.sender.username}` : ""}` : `From menu: ${menu.file_name}`).slice(0, 200),
+          observedOn: sent ? sent.seen_on : null
         });
         saved += 1;
       } catch (err) {
         failures.push(`${row.name}: ${friendlyError(err)}`);
       }
     }
-    await api.admin.markMenuImported(menu.id, saved).catch(() => {});
+    if (menu.submission) {
+      if (saved) await api.admin.reviewMenuSubmission(menu.submission.id, { status: "used", note: menu.submission.admin_note, pricesImported: saved }).catch(() => {});
+    } else {
+      await api.admin.markMenuImported(menu.id, saved).catch(() => {});
+    }
     notifyChange();
     onImported?.();
     setReloadKey(k => k + 1);
@@ -101,6 +126,13 @@ export default function MenuImport({ pub, onImported }) {
 
   return (
     <div className="menu-import">
+      {submission && stage !== "review" && stage !== "saving" && (
+        <div className="inline-panel">
+          <p><strong>📄 {submission.file_name}</strong> <span className="muted small-text">sent in, seen {submission.seen_on}</span></p>
+          <button type="button" className="primary-button" onClick={readSubmission} disabled={stage === "reading"}>{stage === "reading" ? "Reading menu…" : "Read prices from the menu sent in"}</button>
+          <p className="muted small-text">Prices are saved as “Verified” with the menu's date. The file stays private.</p>
+        </div>
+      )}
       {stage !== "review" && stage !== "saving" && (
         <form className="upload-form" onSubmit={read}>
           <label htmlFor={`menu-file-${pub.id}`}>PDF drinks menu</label>
