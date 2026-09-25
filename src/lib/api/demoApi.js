@@ -20,10 +20,10 @@ export function createDemoApi() {
   const now = Date.now();
   const pubs = SEED_PUBS.map(({ drinks, ...pub }) => {
     const r = PUB_RESEARCH[pub.id] || {};
-    return { ...pub, uploads_paused: false, is_published: true, website: r.website || null, drinks_menu_url: r.drinks_menu_url || null, operator: r.operator || null };
+    return { ...pub, uploads_paused: false, is_published: true, website: r.website || null, drinks_menu_url: r.drinks_menu_url || null, food_menu_url: r.food_menu_url || null, operator: r.operator || null };
   });
   const pubAdmin = new Map(SEED_PUBS.map(pub => [pub.id, {
-    pub_id: pub.id, prices_online: PUB_RESEARCH[pub.id]?.prices_online || "unknown", notes: PUB_RESEARCH[pub.id]?.notes || "", prices_checked_at: null
+    pub_id: pub.id, prices_online: PUB_RESEARCH[pub.id]?.prices_online || "unknown", notes: [PUB_RESEARCH[pub.id]?.notes, PUB_RESEARCH[pub.id]?.update].filter(Boolean).join("\n\n"), prices_checked_at: null
   }]));
   const drinks = [];
   const reports = [];
@@ -449,6 +449,7 @@ export function createDemoApi() {
           is_published: Boolean(input.is_published),
           website: String(input.website || "").trim() || null,
           drinks_menu_url: String(input.drinks_menu_url || "").trim() || null,
+          food_menu_url: String(input.food_menu_url || "").trim() || null,
           operator: String(input.operator || "").trim() || null
         };
         if ([row.lat, row.lng, row.opened_year].some(v => v !== null && !Number.isFinite(v))) fail("Latitude, longitude and opening year must be numbers");
@@ -456,6 +457,7 @@ export function createDemoApi() {
         if (row.area.length < 2) fail("Area must be 2-40 characters");
         if (row.website && !/^https?:\/\/\S+$/.test(row.website)) fail("Website must start with http:// or https://");
         if (row.drinks_menu_url && !/^https?:\/\/\S+$/.test(row.drinks_menu_url)) fail("Drinks menu link must start with http:// or https://");
+        if (row.food_menu_url && !/^https?:\/\/\S+$/.test(row.food_menu_url)) fail("Food menu link must start with http:// or https://");
         if (row.is_published && (!row.address || row.lat === null || row.lng === null)) {
           fail("To publish a pub it needs an address and a map position (lat/lng). Save it hidden until then.");
         }

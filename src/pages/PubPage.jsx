@@ -99,7 +99,15 @@ export default function PubPage() {
           <p className="eyebrow">{pub.area}{pub.opened_year ? ` · Est. ${pub.opened_year}` : ""}{age ? ` (${age} years)` : ""}</p>
           <h2 className="pub-name">{pub.name}</h2>
           {pub.address && <p>{Number.isFinite(pub.lat) ? <a href={mapLink} target="_blank" rel="noreferrer">{pub.address}</a> : pub.address}</p>}
-          {pub.website && <p><a href={pub.website} target="_blank" rel="noreferrer">Pub website ↗</a></p>}
+          {(pub.website || pub.drinks_menu_url || pub.food_menu_url) && (
+            <p className="pub-links">
+              {[
+                pub.website && <a key="site" href={pub.website} target="_blank" rel="noreferrer">Pub website ↗</a>,
+                pub.drinks_menu_url && <a key="drinks" href={pub.drinks_menu_url} target="_blank" rel="noreferrer">Drinks menu ↗</a>,
+                pub.food_menu_url && <a key="food" href={pub.food_menu_url} target="_blank" rel="noreferrer">Food menu ↗</a>
+              ].filter(Boolean).reduce((all, link) => (all.length ? [...all, " · ", link] : [link]), [])}
+            </p>
+          )}
           <PubHours pub={pub} />
           <ul className="tag-list" aria-label="Tags">
             {(pub.tags || []).map(tag => <li key={tag} className="tag">{tag}</li>)}

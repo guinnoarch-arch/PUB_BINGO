@@ -41,7 +41,7 @@ export const SEED_PUBS = [
     lat: 51.51323,
     lng: -0.13178,
     opened_year: 1891,
-    tags: ["historic", "no-music-no-tv"],
+    tags: ["historic", "no-music-no-tv", "food"],
     description:
       "A tiny Soho institution with a Free French wartime connection. It traditionally pours beer in halves only, and has no music, TVs or phones.",
     drinks: [
@@ -78,7 +78,7 @@ export const SEED_PUBS = [
     lat: 51.51286,
     lng: -0.13108,
     opened_year: 1847,
-    tags: ["historic", "real-ale-specialist", "sing-along"],
+    tags: ["historic", "real-ale-specialist", "sing-along", "food"],
     description:
       "A classic Soho boozer long linked with writers, artists and Private Eye lunches, once famous for its notoriously blunt landlord.",
     drinks: [
@@ -116,7 +116,7 @@ export const SEED_PUBS = [
     lat: 51.51527,
     lng: -0.13248,
     opened_year: null,
-    tags: ["irish-pub", "sports-tv"],
+    tags: ["irish-pub", "sports-tv", "live-music"],
     description:
       "A small, lively Irish bar off Soho Square with a big reputation for Guinness and Irish whiskey. It spills onto the pavement on busy nights.",
     drinks: [
@@ -134,7 +134,7 @@ export const SEED_PUBS = [
     lat: 51.51027,
     lng: -0.12093,
     opened_year: 1904,
-    tags: ["historic", "real-ale-specialist", "cellar-bar", "victorian-interior"],
+    tags: ["historic", "real-ale-specialist", "cellar-bar", "victorian-interior", "food"],
     description:
       "An Edwardian pub in the Savoy buildings on the Strand, with an Arts and Crafts interior and a cellar bar. Its name comes from the coal cellars once used by the Savoy.",
     drinks: [
@@ -174,7 +174,7 @@ export const SEED_PUBS = [
     lat: 51.51452,
     lng: -0.12507,
     opened_year: 1848,
-    tags: ["historic", "outdoor-drinking"],
+    tags: ["historic", "outdoor-drinking", "food"],
     description:
       "An ivy-clad Victorian pub packed with curios, brass and memorabilia. The outside is covered in hanging baskets in summer.",
     drinks: [
@@ -193,7 +193,7 @@ export const SEED_PUBS = [
     lat: 51.51712,
     lng: -0.11846,
     opened_year: 1549,
-    tags: ["historic", "food", "victorian-interior"],
+    tags: ["historic", "food", "victorian-interior", "live-music"],
     description:
       "A tavern said to date back to 1549, rebuilt in 1923. It's known for its wood-panelled rooms and stories of secret Catholic masses held here in Tudor times.",
     drinks: [
@@ -231,7 +231,7 @@ export const SEED_PUBS = [
     lat: 51.51155,
     lng: -0.12609,
     opened_year: 1772,
-    tags: ["historic", "outdoor-drinking"],
+    tags: ["historic", "outdoor-drinking", "food", "live-music"],
     description:
       "One of Covent Garden's oldest pubs, tucked down an alley off Garrick Street. It was once nicknamed the Bucket of Blood for the bare-knuckle fights held here.",
     drinks: [
@@ -250,7 +250,7 @@ export const SEED_PUBS = [
     lat: 51.51077,
     lng: -0.1231,
     opened_year: null,
-    tags: ["craft-beer", "irish-pub", "live-music", "sports-tv"],
+    tags: ["craft-beer", "irish-pub", "live-music", "sports-tv", "food"],
     description:
       "A sprawling multi-level Irish brewpub full of brass and copper pipework, pouring Porterhouse's own stouts and ales alongside a long bottle list.",
     drinks: [
@@ -269,7 +269,7 @@ export const SEED_PUBS = [
     lat: 51.51187,
     lng: -0.12319,
     opened_year: null,
-    tags: ["outdoor-drinking"],
+    tags: ["outdoor-drinking", "food", "sports-tv"],
     description:
       "A pub inside the old Covent Garden market building. Its balcony looks straight down on the Piazza's street performers.",
     drinks: [
@@ -288,7 +288,7 @@ export const SEED_PUBS = [
     lat: 51.51099,
     lng: -0.12736,
     opened_year: 1892,
-    tags: ["historic", "victorian-interior"],
+    tags: ["historic", "victorian-interior", "food"],
     description:
       "A theatreland pub with one of London's most spectacular late-Victorian interiors: etched glass, mahogany and bronze nymph lamps.",
     drinks: [
