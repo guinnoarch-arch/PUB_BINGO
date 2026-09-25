@@ -3,6 +3,7 @@ name: CI
 on:
   push:
   pull_request:
+  workflow_dispatch:
 
 jobs:
   test:
@@ -31,3 +32,28 @@ jobs:
       - run: npm run build
         env:
           VITE_DEMO_MODE: "true"
+
+  # Updates the live Supabase database after the tests pass, so nobody has to paste SQL into Supabase.
+  # Runs on pushes to the default branch, or by hand (Actions tab -> CI -> Run workflow). Every migration
+  # and seed.sql is safe to re-run, so it runs them all in order. Needs the SUPABASE_DB_URL repository
+  # secret; without it this job just says so and passes.
+  database:
+    needs: test
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref_name == github.event.repository.default_branch)
+    runs-on: ubuntu-latest
+    concurrency: supabase-database
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      PGOPTIONS: -c client_min_messages=warning # hide the harmless "already exists, skipping" notices
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply migrations and seed to Supabase
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ]; then
+            echo "::notice::SUPABASE_DB_URL secret not set, so the Supabase database was not updated. See README (Automatic database updates)."
+            exit 0
+          fi
+          for file in supabase/migrations/*.sql supabase/seed.sql; do
+            echo "Running $file"
+            psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -q -f "$file"
+          done

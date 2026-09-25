@@ -48,6 +48,7 @@ Built with the same stack and look as Guinness & Holley Budgeting: **React + Vit
 
 1. **Create a Supabase project** (free) at supabase.com.
 2. In **SQL Editor**, run the migrations in order (`supabase/migrations/0001_init.sql`, `0002_pub_admin.sql`, `0003_events.sql`, `0004_menu_uploads.sql`, `0005_bottles.sql`, `0006_suggestions.sql`, `0007_menu_submissions.sql`, `0008_features.sql`, `0009_food_menus.sql`), then `supabase/seed.sql`.
+   - **Or let GitHub do it:** see [Automatic database updates](#automatic-database-updates) below. Once set up, you never need to run these by hand.
    - **Already set up?** Run any migrations you haven't run yet, in order, then run `seed.sql` again. If you ever re-run an older migration, run `0008_features.sql` and `0009_food_menus.sql` again afterwards. It only adds missing things (websites, notes, researched events) and never overwrites your prices or edits.
 3. In **Authentication → Providers**, make sure Email is enabled. Leave "Confirm email" on (recommended).
 4. In **Authentication → URL Configuration**, set the Site URL to your Vercel URL.
@@ -61,6 +62,17 @@ Built with the same stack and look as Guinness & Holley Budgeting: **React + Vit
    ```
 
 Without the Supabase variables, the app shows a "not connected yet" screen instead of silently using local storage.
+
+
+### Automatic database updates
+
+GitHub updates the live Supabase database for you: after the tests pass on a push to the default branch, the `database` job in `.github/workflows/ci.yml` runs every file in `supabase/migrations/` in order, then `supabase/seed.sql`. They're all safe to re-run, and the seed never overwrites your prices or edits. One-off setup:
+
+1. In Supabase, click **Connect** (top of the project dashboard) and copy the **Session pooler** connection string (the direct connection doesn't work from GitHub, which has no IPv6). Put your database password in place of `[YOUR-PASSWORD]`.
+2. In GitHub, go to the repo's **Settings → Secrets and variables → Actions → New repository secret**. Name it `SUPABASE_DB_URL` and paste the connection string.
+3. To run it straight away: **Actions → CI → Run workflow**.
+
+Without the secret the job just prints a notice and does nothing. The connection string can change anything in the database, so keep it only in that secret.
 
 ## Running locally
 
