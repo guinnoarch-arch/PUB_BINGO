@@ -67,6 +67,7 @@ beforeAll(async () => {
   await db.query(read("supabase/migrations/0006_suggestions.sql"));
   await db.query(read("supabase/migrations/0007_menu_submissions.sql"));
   await db.query(read("supabase/migrations/0008_features.sql"));
+  await db.query(read("supabase/migrations/0009_food_menus.sql"));
   // Migrations must be safe to run twice.
   await db.query(read("supabase/migrations/0002_pub_admin.sql"));
   await db.query(read("supabase/migrations/0003_events.sql"));
@@ -75,6 +76,7 @@ beforeAll(async () => {
   await db.query(read("supabase/migrations/0006_suggestions.sql"));
   await db.query(read("supabase/migrations/0007_menu_submissions.sql"));
   await db.query(read("supabase/migrations/0008_features.sql"));
+  await db.query(read("supabase/migrations/0009_food_menus.sql"));
   await db.query(read("supabase/seed.sql"));
 
   users.alice = await createUser("Alice_1");
@@ -88,18 +90,18 @@ afterAll(async () => {
 });
 
 describe("seed data", () => {
-  it("loads 15 pubs, their drinks, and one history entry per drink", async () => {
+  it("loads 16 pubs, their drinks, and one history entry per drink", async () => {
     const counts = await db.query(`select
       (select count(*) from public.pubs)::int as pubs,
       (select count(*) from public.drinks)::int as drinks,
       (select count(*) from public.price_reports)::int as reports`);
-    expect(counts.rows[0]).toEqual({ pubs: 15, drinks: 99, reports: 99 });
+    expect(counts.rows[0]).toEqual({ pubs: 16, drinks: 112, reports: 112 });
   });
 
   it("is safe to run twice", async () => {
     await db.query(read("supabase/seed.sql"));
     const { rows } = await db.query("select count(*)::int as n from public.price_reports");
-    expect(rows[0].n).toBe(99);
+    expect(rows[0].n).toBe(112);
   });
 });
 
@@ -131,7 +133,7 @@ describe("accounts", () => {
 describe("public reads and blocked direct writes", () => {
   it("lets anonymous visitors read pubs, drinks and reports", async () => {
     const { rows } = await asAnon(() => db.query("select count(*)::int as n from public.drinks"));
-    expect(rows[0].n).toBe(99);
+    expect(rows[0].n).toBe(112);
   });
 
   it("does not let anyone write prices directly", async () => {
@@ -285,7 +287,7 @@ describe("0002: hidden pubs, websites and admin tools", () => {
     const { rows } = await db.query("select website, drinks_menu_url, operator from public.pubs where id = 'the-harp'");
     expect(rows[0]).toEqual({ website: "https://www.harpcoventgarden.com/", drinks_menu_url: "https://www.harpcoventgarden.com/drink", operator: "Fuller's" });
     const notes = await db.query("select count(*)::int as n from public.pub_admin");
-    expect(notes.rows[0].n).toBe(15);
+    expect(notes.rows[0].n).toBe(16);
   });
 
   it("keeps research notes admin-only", async () => {
@@ -293,7 +295,7 @@ describe("0002: hidden pubs, websites and admin tools", () => {
     const alice = await as(users.alice, () => db.query("select * from public.pub_admin"));
     expect(alice.rows).toHaveLength(0);
     const admin = await as(users.admin, () => db.query("select * from public.pub_admin"));
-    expect(admin.rows).toHaveLength(15);
+    expect(admin.rows).toHaveLength(16);
   });
 
   it("lets admins save a hidden pub with limited info", async () => {
@@ -393,8 +395,11 @@ describe("0002: hidden pubs, websites and admin tools", () => {
     await db.query(read("supabase/seed.sql"));
     const { rows } = await db.query("select website from public.pubs where id = 'the-harp'");
     expect(rows[0].website).toBe("https://example.com/harp");
+    // Admin notes are kept; newer research is appended after them once (see RESEARCH_UPDATE_MARKER).
+    await db.query(read("supabase/seed.sql"));
     const notes = await db.query("select notes from public.pub_admin where pub_id = 'the-toucan'");
-    expect(notes.rows[0].notes).toBe("Menu checked");
+    expect(notes.rows[0].notes).toMatch(/^Menu checked\n\n\[25 Sep 2026 research\] /);
+    expect(notes.rows[0].notes.split("[25 Sep 2026 research]").length).toBe(2);
   });
 });
 
@@ -403,7 +408,7 @@ describe("0003: events (What's on)", () => {
 
   it("seeds researched events unpublished, and adds feature tags", async () => {
     const { rows } = await db.query("select count(*)::int as n, bool_or(is_published) as any_published from public.events where source = 'research'");
-    expect(rows[0]).toEqual({ n: 8, any_published: false });
+    expect(rows[0]).toEqual({ n: 19, any_published: false });
     const tags = await db.query("select tags from public.pubs where id = 'the-porterhouse'");
     expect(tags.rows[0].tags).toContain("sports-tv");
   });
@@ -750,6 +755,7 @@ describe("0007: menus sent in", () => {
     expect(rows[0].n).toBe(1);
     await db.query(read("supabase/migrations/0007_menu_submissions.sql"));
   await db.query(read("supabase/migrations/0008_features.sql"));
+  await db.query(read("supabase/migrations/0009_food_menus.sql"));
   });
 });
 
@@ -901,5 +907,26 @@ describe("0008: feature switches and new features", () => {
     expect((await q(users.bob, "select * from public.price_watches")).length).toBe(0);
     for (let i = 0; i < 10; i += 1) await q(users.bob, "select public.add_price_watch($1, 6, null)", [`Beer ${i}`]);
     await expect(q(users.bob, "select public.add_price_watch('One more', 6, null)")).rejects.toThrow(/up to 10/);
+  });
+});
+
+describe("0009: food menu links and the 25 Sep 2026 research", () => {
+  const savePub = (userId, pub) => as(userId, () => db.query("select * from public.admin_save_pub($1)", [pub]).then(r => r.rows[0]));
+
+  it("seeds food menu links and lets admins edit them", async () => {
+    const { rows } = await db.query("select food_menu_url from public.pubs where id = 'the-ship-tavern'");
+    expect(rows[0].food_menu_url).toBe("https://theshiptavern.co.uk/menus/");
+    const saved = await savePub(users.admin, { id: "the-lyric-food", name: "The Lyric", area: "Soho", food_menu_url: "https://example.com/food" });
+    expect(saved.food_menu_url).toBe("https://example.com/food");
+    await expect(savePub(users.admin, { id: "the-lyric-food", name: "The Lyric", area: "Soho", food_menu_url: "example.com" })).rejects.toThrow(/Food menu link/);
+  });
+
+  it("appends the new research to notes once, and seeds one-off events unpublished", async () => {
+    await db.query(read("supabase/seed.sql"));
+    const { rows } = await db.query("select notes from public.pub_admin where pub_id = 'the-toucan'");
+    expect(rows[0].notes.split("[25 Sep 2026 research]").length).toBe(2);
+    const events = await db.query("select schedule, event_date::text, is_published from public.events where pub_id = 'lamb-and-flag' and schedule = 'one-off' order by event_date");
+    expect(events.rows.map(e => e.event_date)).toEqual(["2026-09-27", "2026-10-25", "2026-11-29"]);
+    expect(events.rows.every(e => !e.is_published)).toBe(true);
   });
 });

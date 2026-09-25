@@ -19,7 +19,7 @@ import { londonToday, validateSeenOn } from "../lib/api/menuFiles.js";
 
 const EMPTY_PUB = {
   id: "", name: "", area: "Soho", address: "", lat: "", lng: "", opened_year: "", tags: [], description: "",
-  website: "", drinks_menu_url: "", operator: "", is_published: false, uploads_paused: false
+  website: "", drinks_menu_url: "", food_menu_url: "", operator: "", is_published: false, uploads_paused: false
 };
 
 function toForm(pub) {
@@ -27,7 +27,7 @@ function toForm(pub) {
   return {
     ...EMPTY_PUB, ...pub,
     address: text(pub.address), lat: text(pub.lat), lng: text(pub.lng), opened_year: text(pub.opened_year),
-    website: text(pub.website), drinks_menu_url: text(pub.drinks_menu_url), operator: text(pub.operator),
+    website: text(pub.website), drinks_menu_url: text(pub.drinks_menu_url), food_menu_url: text(pub.food_menu_url), operator: text(pub.operator),
     description: text(pub.description), tags: pub.tags || []
   };
 }
@@ -78,6 +78,7 @@ function PubDetailsForm({ pub, isNew, onSaved }) {
         description: form.description,
         website: form.website,
         drinks_menu_url: form.drinks_menu_url,
+        food_menu_url: form.food_menu_url,
         operator: form.operator,
         is_published: form.is_published
       });
@@ -159,6 +160,10 @@ function PubDetailsForm({ pub, isNew, onSaved }) {
           <label htmlFor="pub-menu">Drinks menu link</label>
           <input id="pub-menu" type="url" value={form.drinks_menu_url} onChange={set("drinks_menu_url")} placeholder="https://" />
         </div>
+        <div className="field">
+          <label htmlFor="pub-food-menu">Food menu link</label>
+          <input id="pub-food-menu" type="url" value={form.food_menu_url} onChange={set("food_menu_url")} placeholder="https://" />
+        </div>
       </div>
 
       <div className="field">
@@ -216,6 +221,7 @@ function ResearchNotes({ pub, onSaved }) {
       <div className="row-actions wrap">
         {pub.website && <a className="secondary-button small" href={pub.website} target="_blank" rel="noreferrer">Open website ↗</a>}
         {pub.drinks_menu_url && <a className="secondary-button small" href={pub.drinks_menu_url} target="_blank" rel="noreferrer">Open drinks menu ↗</a>}
+        {pub.food_menu_url && <a className="secondary-button small" href={pub.food_menu_url} target="_blank" rel="noreferrer">Open food menu ↗</a>}
         <a className="secondary-button small" href={`https://www.google.com/search?q=${encodeURIComponent(`${pub.name} ${pub.address || "London"} drinks menu prices`)}`} target="_blank" rel="noreferrer">Search the web ↗</a>
       </div>
       <div className="form-grid">

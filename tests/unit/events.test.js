@@ -98,3 +98,31 @@ describe("pubsWithFeatures", () => {
     expect(pubsWithFeatures(pubs, [])).toEqual([]);
   });
 });
+
+describe("researched seed data", async () => {
+  const { SEED_EVENTS } = await import("../../src/data/seedEvents.js");
+  const { SEED_PUBS } = await import("../../src/data/seedPubs.js");
+  const { PUB_RESEARCH, RESEARCH_UPDATE_MARKER } = await import("../../src/data/pubResearch.js");
+  const { EVENT_CATEGORIES } = await import("../../src/data/features.js");
+  const pubIds = new Set(SEED_PUBS.map(p => p.id));
+
+  it("has valid events: known pub and category, days or a date, unique titles per pub", () => {
+    const keys = new Set();
+    for (const e of SEED_EVENTS) {
+      expect(pubIds.has(e.pub_id)).toBe(true);
+      expect(EVENT_CATEGORIES.some(c => c.key === e.category)).toBe(true);
+      if (e.schedule === "one-off") expect(e.event_date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      else expect(e.weekdays.length).toBeGreaterThan(0);
+      expect(keys.has(`${e.pub_id}|${e.title}`)).toBe(false);
+      keys.add(`${e.pub_id}|${e.title}`);
+    }
+  });
+
+  it("has well-formed menu links and research updates", () => {
+    for (const [id, r] of Object.entries(PUB_RESEARCH)) {
+      expect(pubIds.has(id)).toBe(true);
+      for (const url of [r.website, r.drinks_menu_url, r.food_menu_url].filter(Boolean)) expect(url).toMatch(/^https?:\/\/\S+$/);
+      if (r.update) expect(r.update.startsWith(RESEARCH_UPDATE_MARKER)).toBe(true);
+    }
+  });
+});

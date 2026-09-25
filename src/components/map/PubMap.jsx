@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { AREA_CENTRE } from "../../lib/core/geo.js";
+import { AREA_CENTRE, isInArea } from "../../lib/core/geo.js";
 import { formatPrice, measureLabel } from "../../lib/core/prices.js";
 
 // Leaflet map of all pubs. Pins show the cheapest matching price. Clicking the map sets the
@@ -75,11 +75,15 @@ export default function PubMap({ pubs, pricesByPub, unconfirmedIds, origin, onPi
       marker.on("click", () => marker.openPopup());
       layer.addLayer(marker);
     }
-    // On first load, zoom to show every pub (the area now reaches up to King's Cross).
-    const points = pubs.filter(p => Number.isFinite(p.lat) && Number.isFinite(p.lng)).map(p => [p.lat, p.lng]);
-    if (!fittedRef.current && points.length > 1 && mapRef.current) {
+    // On first load, zoom to show every central pub (Soho up to King's Cross). Pubs further out, like
+    // West Dulwich, are left out of the framing so the centre stays readable; they're still on the map.
+    const located = pubs.filter(p => Number.isFinite(p.lat) && Number.isFinite(p.lng));
+    const central = located.filter(p => isInArea(p));
+    const points = (central.length > 1 ? central : located).map(p => [p.lat, p.lng]);
+    if (!fittedRef.current && points.length && mapRef.current) {
       // No animation: an animated zoom still running when the map is removed makes Leaflet throw.
-      mapRef.current.fitBounds(points, { padding: [30, 30], maxZoom: 16, animate: false });
+      if (points.length > 1) mapRef.current.fitBounds(points, { padding: [30, 30], maxZoom: 16, animate: false });
+      else mapRef.current.setView(points[0], 16, { animate: false });
       fittedRef.current = true;
     }
   }, [pubs, pricesByPub, unconfirmedIds, selectedPubId]);
