@@ -1,4 +1,4 @@
-// Seed dataset: 15 real pubs across Soho, Covent Garden, Holborn and King's Cross.
+// Seed dataset: 16 real pubs across Soho, Covent Garden, Holborn, King's Cross and West Dulwich.
 // Names and addresses are real. Coordinates are approximate (street level).
 // Prices are plausible central-London estimates, to be refined by community reports.
 // Opening years and histories are best-effort and should be checked; null = not known yet.
@@ -9,7 +9,11 @@ const ROCKET_MENU = "https://www.therocketeustonroad.co.uk/drinks";
 const ROCKET_MENU_DATE = "2026-09-24T07:10:00+01:00";
 const ROCKET_ORDER_DATE = "2026-09-24T07:24:00+01:00";
 
-export const AREAS = ["Soho", "Covent Garden", "Holborn", "King's Cross"];
+// The Rosendale's "Spring 2026" drinks menu PDF (page 1), sent in 25 Sep 2026. Links to the pub's menus page.
+const ROSENDALE_MENU = "https://www.therosendale.co.uk/menus/";
+const ROSENDALE_MENU_DATE = "2026-09-25T16:45:00+01:00";
+
+export const AREAS = ["Soho", "Covent Garden", "Holborn", "King's Cross", "West Dulwich"];
 
 export const CATEGORIES = ["Lager", "IPA", "Pale Ale", "Real Ale", "Stout", "Cider", "Wheat Beer", "Other"];
 
@@ -344,6 +348,35 @@ export const SEED_PUBS = [
       { name: "Rekorderlig Peach Raspberry", category: "Cider", price: 6.70, measure: "bottle", volume_ml: 500, source: "website", source_url: ROCKET_MENU, updated: ROCKET_MENU_DATE },
       { name: "Rekorderlig Strawberry Lime", category: "Cider", price: 6.70, measure: "bottle", volume_ml: 500, source: "website", source_url: ROCKET_MENU, updated: ROCKET_MENU_DATE },
       { name: "Rekorderlig Wild Berries", category: "Cider", price: 6.70, measure: "bottle", volume_ml: 500, source: "website", source_url: ROCKET_MENU, updated: ROCKET_MENU_DATE }
+    ]
+  },
+  {
+    id: "the-rosendale",
+    name: "The Rosendale",
+    address: "65 Rosendale Road, West Dulwich, London SE21 8EZ",
+    area: "West Dulwich",
+    lat: 51.4368,
+    lng: -0.0946,
+    opened_year: null,
+    tags: ["historic", "food", "beer-garden", "dog-friendly", "quiz-night"],
+    description:
+      "A Grade II listed former Victorian coaching inn with a pillared portico and original Royal Doulton tiles. It has three gardens with a children's play area, table tennis and boules, and a dining room serving seasonal food.",
+    drinks: [
+      // Draught beer & cider and cask ale from the Spring 2026 drinks menu. The menu doesn't say pint, but
+      // these are draught prices, so they're recorded as pints: check at the bar.
+      { name: "Amstel", category: "Lager", price: 6.40, source: "website", source_url: ROSENDALE_MENU, updated: ROSENDALE_MENU_DATE },
+      { name: "Birra Moretti", category: "Lager", price: 7.50, source: "website", source_url: ROSENDALE_MENU, updated: ROSENDALE_MENU_DATE },
+      { name: "Brixton Coldharbour Lager", category: "Lager", price: 7.40, source: "website", source_url: ROSENDALE_MENU, updated: ROSENDALE_MENU_DATE },
+      { name: "Cruzcampo", category: "Lager", price: 6.90, source: "website", source_url: ROSENDALE_MENU, updated: ROSENDALE_MENU_DATE },
+      { name: "Beavertown Neck Oil", category: "Pale Ale", price: 7.60, source: "website", source_url: ROSENDALE_MENU, updated: ROSENDALE_MENU_DATE },
+      { name: "Brixton Reliance Pale Ale", category: "Pale Ale", price: 7.40, source: "website", source_url: ROSENDALE_MENU, updated: ROSENDALE_MENU_DATE },
+      { name: "Gipsy Hill Hepcat", category: "IPA", price: 7.60, source: "website", source_url: ROSENDALE_MENU, updated: ROSENDALE_MENU_DATE },
+      { name: "Henry Weston's Vintage Cider", category: "Cider", price: 6.60, source: "website", source_url: ROSENDALE_MENU, updated: ROSENDALE_MENU_DATE },
+      { name: "Jubel Peach", category: "Lager", price: 7.80, source: "website", source_url: ROSENDALE_MENU, updated: ROSENDALE_MENU_DATE },
+      { name: "Guinness", category: "Stout", price: 7.30, source: "website", source_url: ROSENDALE_MENU, updated: ROSENDALE_MENU_DATE },
+      { name: "Lucky Saint (0.5%)", category: "Lager", price: 6.00, source: "website", source_url: ROSENDALE_MENU, updated: ROSENDALE_MENU_DATE },
+      { name: "Timothy Taylor Golden Best", category: "Real Ale", price: 6.40, source: "website", source_url: ROSENDALE_MENU, updated: ROSENDALE_MENU_DATE },
+      { name: "Harvey's Sussex Best", category: "Real Ale", price: 6.40, source: "website", source_url: ROSENDALE_MENU, updated: ROSENDALE_MENU_DATE }
     ]
   }
 ];

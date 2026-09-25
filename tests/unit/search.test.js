@@ -169,7 +169,7 @@ describe("real prices only", () => {
   it("lists pubs that stock a drink but only have an estimate", async () => {
     const { unconfirmedPubs } = await import("../../src/lib/core/search.js");
     const list = unconfirmedPubs(withSources(), { query: "guinness" });
-    expect(list).toHaveLength(11);
+    expect(list).toHaveLength(12);
     expect(list.map(x => x.pub.id)).not.toContain("the-harp");
     expect(list.map(x => x.pub.id)).not.toContain("the-toucan");
     expect(list[0].drinks).toEqual(["Guinness"]);

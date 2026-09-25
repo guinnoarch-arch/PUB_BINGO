@@ -168,5 +168,15 @@ export const SEED_EVENTS = [
     start_time: null,
     end_time: null,
     source_url: "https://www.greeneking.co.uk/pubs/greater-london/salisbury/menu"
+  },
+  {
+    pub_id: "the-rosendale",
+    title: "Pub quiz",
+    category: "quiz",
+    description: "Monday pub quiz for teams of up to 6 (£2.50 each in 2023). Check the start time.",
+    weekdays: [1],
+    start_time: null,
+    end_time: null,
+    source_url: "https://www.therosendale.co.uk/whats-on/"
   }
 ];

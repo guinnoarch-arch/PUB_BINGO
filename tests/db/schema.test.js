@@ -90,18 +90,18 @@ afterAll(async () => {
 });
 
 describe("seed data", () => {
-  it("loads 15 pubs, their drinks, and one history entry per drink", async () => {
+  it("loads 16 pubs, their drinks, and one history entry per drink", async () => {
     const counts = await db.query(`select
       (select count(*) from public.pubs)::int as pubs,
       (select count(*) from public.drinks)::int as drinks,
       (select count(*) from public.price_reports)::int as reports`);
-    expect(counts.rows[0]).toEqual({ pubs: 15, drinks: 99, reports: 99 });
+    expect(counts.rows[0]).toEqual({ pubs: 16, drinks: 112, reports: 112 });
   });
 
   it("is safe to run twice", async () => {
     await db.query(read("supabase/seed.sql"));
     const { rows } = await db.query("select count(*)::int as n from public.price_reports");
-    expect(rows[0].n).toBe(99);
+    expect(rows[0].n).toBe(112);
   });
 });
 
@@ -133,7 +133,7 @@ describe("accounts", () => {
 describe("public reads and blocked direct writes", () => {
   it("lets anonymous visitors read pubs, drinks and reports", async () => {
     const { rows } = await asAnon(() => db.query("select count(*)::int as n from public.drinks"));
-    expect(rows[0].n).toBe(99);
+    expect(rows[0].n).toBe(112);
   });
 
   it("does not let anyone write prices directly", async () => {
@@ -287,7 +287,7 @@ describe("0002: hidden pubs, websites and admin tools", () => {
     const { rows } = await db.query("select website, drinks_menu_url, operator from public.pubs where id = 'the-harp'");
     expect(rows[0]).toEqual({ website: "https://www.harpcoventgarden.com/", drinks_menu_url: "https://www.harpcoventgarden.com/drink", operator: "Fuller's" });
     const notes = await db.query("select count(*)::int as n from public.pub_admin");
-    expect(notes.rows[0].n).toBe(15);
+    expect(notes.rows[0].n).toBe(16);
   });
 
   it("keeps research notes admin-only", async () => {
@@ -295,7 +295,7 @@ describe("0002: hidden pubs, websites and admin tools", () => {
     const alice = await as(users.alice, () => db.query("select * from public.pub_admin"));
     expect(alice.rows).toHaveLength(0);
     const admin = await as(users.admin, () => db.query("select * from public.pub_admin"));
-    expect(admin.rows).toHaveLength(15);
+    expect(admin.rows).toHaveLength(16);
   });
 
   it("lets admins save a hidden pub with limited info", async () => {
@@ -408,7 +408,7 @@ describe("0003: events (What's on)", () => {
 
   it("seeds researched events unpublished, and adds feature tags", async () => {
     const { rows } = await db.query("select count(*)::int as n, bool_or(is_published) as any_published from public.events where source = 'research'");
-    expect(rows[0]).toEqual({ n: 18, any_published: false });
+    expect(rows[0]).toEqual({ n: 19, any_published: false });
     const tags = await db.query("select tags from public.pubs where id = 'the-porterhouse'");
     expect(tags.rows[0].tags).toContain("sports-tv");
   });
