@@ -1,6 +1,6 @@
 # Pub Bingo
 
-Find the cheapest pint in Soho, Covent Garden & Holborn. Prices come from the community and are shared live with everyone.
+Find the cheapest pint in London: central London (Soho, Covent Garden, Holborn, King's Cross) and Dulwich so far. Prices come from the community and are shared live with everyone.
 
 Built with the same stack and look as Guinness & Holley Budgeting: **React + Vite** on **Vercel**, with **Supabase** for the shared Postgres database, accounts, photo storage and live updates. Both are free tiers.
 
