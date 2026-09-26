@@ -178,5 +178,27 @@ export const SEED_EVENTS = [
     start_time: null,
     end_time: null,
     source_url: "https://www.therosendale.co.uk/whats-on/"
+  },
+  {
+    pub_id: "the-crown-and-greyhound",
+    title: "Jazz after Dark: 8 October",
+    category: "live-music",
+    description: "Live jazz with candlelit tables, cocktails and food.",
+    schedule: "one-off",
+    event_date: "2026-10-08",
+    weekdays: [],
+    start_time: "19:00",
+    end_time: null,
+    source_url: "https://www.thecrownandgreyhound.co.uk/"
+  },
+  {
+    pub_id: "the-wood-house",
+    title: "Pub quiz",
+    category: "quiz",
+    description: "Weekly pub quiz. Listings disagree on the night (Wednesday 8pm or Thursday): check before publishing.",
+    weekdays: [3],
+    start_time: "20:00",
+    end_time: null,
+    source_url: "https://www.thewoodhousedulwich.co.uk/whats-on"
   }
 ];
