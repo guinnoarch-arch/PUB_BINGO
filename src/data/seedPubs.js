@@ -1,4 +1,4 @@
-// Seed dataset: 16 real pubs across Soho, Covent Garden, Holborn, King's Cross and West Dulwich.
+// Seed dataset: 19 real pubs across Soho, Covent Garden, Holborn, King's Cross and Dulwich.
 // Names and addresses are real. Coordinates are approximate (street level).
 // Prices are plausible central-London estimates, to be refined by community reports.
 // Opening years and histories are best-effort and should be checked; null = not known yet.
@@ -13,7 +13,7 @@ const ROCKET_ORDER_DATE = "2026-09-24T07:24:00+01:00";
 const ROSENDALE_MENU = "https://www.therosendale.co.uk/menus/";
 const ROSENDALE_MENU_DATE = "2026-09-25T16:45:00+01:00";
 
-export const AREAS = ["Soho", "Covent Garden", "Holborn", "King's Cross", "West Dulwich"];
+export const AREAS = ["Soho", "Covent Garden", "Holborn", "King's Cross", "West Dulwich", "Dulwich Village", "Dulwich Wood"];
 
 export const CATEGORIES = ["Lager", "IPA", "Pale Ale", "Real Ale", "Stout", "Cider", "Wheat Beer", "Other"];
 
@@ -377,6 +377,60 @@ export const SEED_PUBS = [
       { name: "Lucky Saint (0.5%)", category: "Lager", price: 6.00, source: "website", source_url: ROSENDALE_MENU, updated: ROSENDALE_MENU_DATE },
       { name: "Timothy Taylor Golden Best", category: "Real Ale", price: 6.40, source: "website", source_url: ROSENDALE_MENU, updated: ROSENDALE_MENU_DATE },
       { name: "Harvey's Sussex Best", category: "Real Ale", price: 6.40, source: "website", source_url: ROSENDALE_MENU, updated: ROSENDALE_MENU_DATE }
+    ]
+  },
+  {
+    id: "the-crown-and-greyhound",
+    name: "The Crown & Greyhound",
+    address: "73 Dulwich Village, London SE21 7BJ",
+    area: "Dulwich Village",
+    lat: 51.4488,
+    lng: -0.0848,
+    opened_year: 1900,
+    tags: ["historic", "food", "beer-garden", "live-music"],
+    description:
+      "A big Grade II listed village pub built around 1900 to replace two rival pubs, The Crown and The Greyhound; locals call it \"The Dog\". It reopened in March 2026 after a refurbishment, with a garden, a dining room and rooms upstairs.",
+    drinks: [
+      // Estimates: no drink prices found online. 2-4 changing real ales per CAMRA.
+      { name: "Guinness", category: "Stout", price: 7.2 },
+      { name: "Camden Hells", category: "Lager", price: 7.4 },
+      { name: "Beavertown Neck Oil", category: "Pale Ale", price: 7.5 }
+    ]
+  },
+  {
+    id: "the-alleyns-head",
+    name: "The Alleyn's Head",
+    address: "Park Hall Road, West Dulwich, London SE21 8BW",
+    area: "West Dulwich",
+    lat: 51.4359,
+    lng: -0.0906,
+    opened_year: null,
+    tags: ["food", "beer-garden", "quiz-night"],
+    description:
+      "A large Ember Inns pub on Park Hall Road with a garden and car park, four regular cask ales, set-price lunch and dinner menus and a weekly quiz.",
+    drinks: [
+      // Estimates: no drink prices found online (Ember advertises cask ale "from £3.50", likely a member offer).
+      { name: "Guinness", category: "Stout", price: 6.5 },
+      { name: "Madri", category: "Lager", price: 6.6 },
+      { name: "Timothy Taylor Landlord", category: "Real Ale", price: 5.95 }
+    ]
+  },
+  {
+    id: "the-wood-house",
+    name: "The Wood House",
+    address: "39 Sydenham Hill, London SE26 6RS",
+    area: "Dulwich Wood",
+    lat: 51.4327,
+    lng: -0.0728,
+    opened_year: null,
+    tags: ["food", "beer-garden", "quiz-night", "live-music", "sports-tv"],
+    description:
+      "A Young's pub on Sydenham Hill by Dulwich Wood, built in the Victorian era to a design by Joseph Paxton of Crystal Palace fame. It has a big, partly covered and heated garden with an outside bar, a conservatory restaurant and a weekly quiz.",
+    drinks: [
+      // Estimates: no drink prices found online. Young's pub, so Young's beers are likely.
+      { name: "Young's London Original", category: "Real Ale", price: 6.2 },
+      { name: "Guinness", category: "Stout", price: 7.0 },
+      { name: "Camden Hells", category: "Lager", price: 7.2 }
     ]
   }
 ];

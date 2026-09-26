@@ -149,5 +149,29 @@ export const PUB_RESEARCH = {
     operator: "Three Cheers Pub Co.",
     prices_online: "yes",
     notes: "[25 Sep 2026] Added on request, with the Spring 2026 drinks menu PDF (page 1, sent in by the user). 13 draught/cask prices entered as pints (the menu doesn't say pint or half: check at the bar). Menu spells it 'Gypsy Hill Hepcat Session IPA'; the brewery is Gipsy Hill, so entered as 'Gipsy Hill Hepcat'. Lucky Saint is 0.5% alcohol-free. Also on the menu but not added (not beer): summer spritzers £10.50 (Aperol, Limoncello, Hugo, Campari), classic cocktails £11.50 (Sriracha Bloody Mary £10), 'Garden Greats' cocktails £11.50, mocktails £6. Page 1 only: there may be more pages (bottles, wine). Pub: 65 Rosendale Road SE21 8EZ, 020 8761 9008, Instagram @therosendalepub. Grade II listed, mid-19th-century front, former Victorian coaching inn; opening year unknown. Three gardens (play area, table tennis, boules), two private rooms (East and West Rooms), dog friendly. Hours (listing): Mon-Thu 11-23, Fri-Sat 11-01, Sun 11-22:30. Events: Monday pub quiz (teams up to 6, £2.50 each per a 2023 listing: check it still runs and the start time); pilates and seasonal events mentioned. What's on: https://www.therosendale.co.uk/whats-on/ . Menus: https://www.therosendale.co.uk/menus/ ; offers: https://www.therosendale.co.uk/offers/ ; CAMRA: https://camra.org.uk/pubs/rosendale-dulwich-158685 . CHECK MAP PIN: coordinates are the postcode centre, not the building."
+  },
+  "the-crown-and-greyhound": {
+    website: "https://www.thecrownandgreyhound.co.uk/",
+    drinks_menu_url: null,
+    food_menu_url: null,
+    operator: "Innkeeper's Collection (Mitchells & Butlers)",
+    prices_online: "unknown",
+    notes: "[26 Sep 2026] Added on request. Grade II listed, built about 1900 to replace The Crown and The Greyhound (across the street from each other until the 1890s); locals call it 'The Dog'. Reopened 19 March 2026 after a refurbishment. 2-4 changing real ales (CAMRA); cocktails about £12-13; set menus 2 courses £25 / 3 courses £28; Sunday roast. Garden, 20 bedrooms. EVENTS: 'Jazz after Dark' live jazz on various dates from Fri 4 Sep 2026; Thu 8 Oct 7pm seeded as a one-off. No quiz found. DRINKS ARE GUESSES: no prices found online; check the website's menu pages and add real prices and menu links."
+  },
+  "the-alleyns-head": {
+    website: "https://www.emberinns.co.uk/nationalsearch/london/the-alleyns-head-west-dulwich",
+    drinks_menu_url: null,
+    food_menu_url: "https://www.emberinns.co.uk/nationalsearch/london/the-alleyns-head-west-dulwich/menus/food",
+    operator: "Ember Inns (Mitchells & Butlers)",
+    prices_online: "unknown",
+    notes: "[26 Sep 2026] Added on request. Ember Inns pub with four regular cask ales (CAMRA), garden, car park, board games. Hours: Mon-Sat 11:30-23, Sun 11:30-22:30. Phone 020 8670 6540. Offers page: https://www.emberinns.co.uk/nationalsearch/london/the-alleyns-head-west-dulwich/news (cask ale 'from £3.50 a pint', likely an Ember Rewards offer, not the normal price; 2 cocktails £13.50 from 5pm). Weekly quiz mentioned, but no day found: ask and add it as an event. DRINKS ARE GUESSES: check at the bar."
+  },
+  "the-wood-house": {
+    website: "https://www.thewoodhousedulwich.co.uk/",
+    drinks_menu_url: "https://www.thewoodhousedulwich.co.uk/food-drink",
+    food_menu_url: "https://www.thewoodhousedulwich.co.uk/food-drink",
+    operator: "Young's",
+    prices_online: "unknown",
+    notes: "[26 Sep 2026] Added on request. Also called Dulwich Wood House; brands itself 'Dulwich' but the address is Sydenham Hill SE26, so it's in its own 'Dulwich Wood' area. Designed by Joseph Paxton (Crystal Palace); refurbished and reopened May 2015 with a conservatory restaurant. Big half-covered, heated garden with an outside bar and a Burger Shack; DOUGHP pizza; Sunday roast. Shows big sport (World Cup 2026, Wimbledon). thewoodhouse@youngs.co.uk, 020 8693 5666. EVENTS: weekly quiz, one listing says Wednesday 8pm, another says a Thursday quiz hosted by Paul Partridge: check which. 'Music sessions' also listed (day not found). What's on: https://www.thewoodhousedulwich.co.uk/whats-on . DRINKS ARE GUESSES: Young's pub, so check the real range and prices."
   }
 };
