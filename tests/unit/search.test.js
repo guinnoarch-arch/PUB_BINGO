@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { cheapestPerPub, cheapestPints, drinkMatches, normaliseText, priceHistoryStats, searchDrinks, sortResults } from "../../src/lib/core/search.js";
-import { distanceMetres, formatDistance, isInArea } from "../../src/lib/core/geo.js";
+import { distanceMetres, formatDistance, nearestPubs } from "../../src/lib/core/geo.js";
 import { pub, seedPubsAsApi } from "./fixtures.js";
 
 describe("normaliseText / drinkMatches", () => {
@@ -140,9 +140,17 @@ describe("geo", () => {
     expect(formatDistance(1520)).toBe("1.5 km · 19 min walk");
   });
 
-  it("knows whether a point is in the covered area", () => {
-    expect(isInArea({ lat: 51.5132, lng: -0.1275 })).toBe(true);
-    expect(isInArea({ lat: 53.48, lng: -2.24 })).toBe(false);
+  it("finds the pubs nearest to a point, anywhere", () => {
+    const pubs = [
+      { id: "soho", lat: 51.5132, lng: -0.1318 },
+      { id: "dulwich", lat: 51.4488, lng: -0.0848 },
+      { id: "no-pin", lat: null, lng: null },
+      { id: "west-dulwich", lat: 51.4368, lng: -0.0946 }
+    ];
+    const herneHill = { lat: 51.4533, lng: -0.1020 };
+    expect(nearestPubs(pubs, herneHill, 2).map(p => p.id)).toEqual(["dulwich", "west-dulwich"]);
+    expect(nearestPubs(pubs, { lat: 53.48, lng: -2.24 }, 1).map(p => p.id)).toEqual(["soho"]);
+    expect(nearestPubs(pubs, null)).toEqual([]);
   });
 });
 

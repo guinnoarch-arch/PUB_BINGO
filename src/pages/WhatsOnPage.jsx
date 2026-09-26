@@ -51,7 +51,7 @@ export default function WhatsOnPage() {
     <>
       <div className="page-title-row">
         <div>
-          <p className="eyebrow">Soho, Covent Garden &amp; Holborn</p>
+          <p className="eyebrow">London</p>
           <h2>What's on</h2>
         </div>
       </div>
