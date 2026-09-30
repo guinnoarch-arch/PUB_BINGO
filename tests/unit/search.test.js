@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { cheapestPerPub, cheapestPints, drinkMatches, normaliseText, priceHistoryStats, searchDrinks, sortResults } from "../../src/lib/core/search.js";
-import { distanceMetres, formatDistance, isInArea } from "../../src/lib/core/geo.js";
+import { distanceMetres, formatDistance, nearestPubs } from "../../src/lib/core/geo.js";
 import { pub, seedPubsAsApi } from "./fixtures.js";
 
 describe("normaliseText / drinkMatches", () => {
@@ -37,10 +37,13 @@ describe("searchDrinks", () => {
 
   it("finds every pub stocking Guinness, cheapest first", () => {
     const rows = searchDrinks(pubs, { query: "Guinness" });
-    const stocking = pubs.filter(p => p.drinks.some(d => d.name === "Guinness")).length;
+    const stocking = pubs.flatMap(p => p.drinks).filter(d => d.name.includes("Guinness")).length;
     expect(rows).toHaveLength(stocking);
-    expect(rows.every(r => r.drink.name === "Guinness")).toBe(true);
-    for (let i = 1; i < rows.length; i += 1) expect(rows[i].pintPrice).toBeGreaterThanOrEqual(rows[i - 1].pintPrice);
+    expect(rows.every(r => r.drink.name.includes("Guinness"))).toBe(true);
+    // Draught first, cheapest pint-equivalent first; bottles and cans (no pint price) come last.
+    const draught = rows.filter(r => r.pintPrice != null);
+    for (let i = 1; i < draught.length; i += 1) expect(draught[i].pintPrice).toBeGreaterThanOrEqual(draught[i - 1].pintPrice);
+    expect(rows.slice(draught.length).every(r => r.pintPrice == null)).toBe(true);
     expect(rows[0].pub.name).toBe("The Toucan");
   });
 
@@ -49,7 +52,10 @@ describe("searchDrinks", () => {
     const french = rows.find(r => r.pub.id === "the-french-house");
     expect(french.price).toBe(3.9);
     expect(french.pintPrice).toBe(7.8);
-    expect(rows.at(-1).pub.id).toBe("the-french-house");
+    // Ranked by the pint-equivalent (£7.80), not the £3.90 half price.
+    const index = rows.indexOf(french);
+    expect(index).toBeGreaterThanOrEqual(rows.filter(r => r.pintPrice != null && r.pintPrice < 7.8).length);
+    expect(index).toBeLessThan(rows.filter(r => r.pintPrice != null && r.pintPrice <= 7.8).length);
   });
 
   it("returns an empty list for an unknown drink", () => {
@@ -101,13 +107,14 @@ describe("cheapestPerPub / cheapestPints", () => {
     const board = cheapestPints(pubs, { limit: 5 });
     expect(board).toHaveLength(5);
     expect(new Set(board.map(r => r.pub.id)).size).toBe(5);
-    expect(board[0]).toMatchObject({ pintPrice: 5.6 });
-    expect(board[0].pub.id).toBe("the-harp");
+    expect(board[0]).toMatchObject({ pintPrice: 4.9 });
+    expect(board[0].pub.id).toBe("the-alleyns-head");
   });
 
   it("can include several drinks from the same pub", () => {
     const board = cheapestPints(pubs, { limit: 3, onePerPub: false });
-    expect(board.map(r => r.pintPrice)).toEqual([5.6, 5.9, 5.9]);
+    expect(board.map(r => r.pintPrice)).toEqual([4.9, 5.1, 5.15]);
+    expect(board[0].pub.id).toBe(board[2].pub.id);
   });
 });
 
@@ -140,9 +147,17 @@ describe("geo", () => {
     expect(formatDistance(1520)).toBe("1.5 km · 19 min walk");
   });
 
-  it("knows whether a point is in the covered area", () => {
-    expect(isInArea({ lat: 51.5132, lng: -0.1275 })).toBe(true);
-    expect(isInArea({ lat: 53.48, lng: -2.24 })).toBe(false);
+  it("finds the pubs nearest to a point, anywhere", () => {
+    const pubs = [
+      { id: "soho", lat: 51.5132, lng: -0.1318 },
+      { id: "dulwich", lat: 51.4488, lng: -0.0848 },
+      { id: "no-pin", lat: null, lng: null },
+      { id: "west-dulwich", lat: 51.4368, lng: -0.0946 }
+    ];
+    const herneHill = { lat: 51.4533, lng: -0.1020 };
+    expect(nearestPubs(pubs, herneHill, 2).map(p => p.id)).toEqual(["dulwich", "west-dulwich"]);
+    expect(nearestPubs(pubs, { lat: 53.48, lng: -2.24 }, 1).map(p => p.id)).toEqual(["soho"]);
+    expect(nearestPubs(pubs, null)).toEqual([]);
   });
 });
 
@@ -169,10 +184,12 @@ describe("real prices only", () => {
   it("lists pubs that stock a drink but only have an estimate", async () => {
     const { unconfirmedPubs } = await import("../../src/lib/core/search.js");
     const list = unconfirmedPubs(withSources(), { query: "guinness" });
-    expect(list).toHaveLength(15);
+    // Every pub with a Guinness, except the two given real prices above.
+    const stocking = withSources().filter(p => p.drinks.some(d => d.name.toLowerCase().includes("guinness"))).length;
+    expect(list).toHaveLength(stocking - 2);
     expect(list.map(x => x.pub.id)).not.toContain("the-harp");
     expect(list.map(x => x.pub.id)).not.toContain("the-toucan");
-    expect(list[0].drinks).toEqual(["Guinness"]);
+    expect(list.every(x => x.drinks.includes("Guinness") || x.drinks.every(n => n.includes("Guinness")))).toBe(true);
   });
 
   it("builds the leaderboard from real prices only", () => {

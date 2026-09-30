@@ -68,6 +68,7 @@ beforeAll(async () => {
   await db.query(read("supabase/migrations/0007_menu_submissions.sql"));
   await db.query(read("supabase/migrations/0008_features.sql"));
   await db.query(read("supabase/migrations/0009_food_menus.sql"));
+  await db.query(read("supabase/migrations/0010_sheet_update.sql"));
   // Migrations must be safe to run twice.
   await db.query(read("supabase/migrations/0002_pub_admin.sql"));
   await db.query(read("supabase/migrations/0003_events.sql"));
@@ -77,6 +78,7 @@ beforeAll(async () => {
   await db.query(read("supabase/migrations/0007_menu_submissions.sql"));
   await db.query(read("supabase/migrations/0008_features.sql"));
   await db.query(read("supabase/migrations/0009_food_menus.sql"));
+  await db.query(read("supabase/migrations/0010_sheet_update.sql"));
   await db.query(read("supabase/seed.sql"));
 
   users.alice = await createUser("Alice_1");
@@ -90,18 +92,18 @@ afterAll(async () => {
 });
 
 describe("seed data", () => {
-  it("loads 19 pubs, their drinks, and one history entry per drink", async () => {
+  it("loads 39 pubs, their drinks, and one history entry per drink", async () => {
     const counts = await db.query(`select
       (select count(*) from public.pubs)::int as pubs,
       (select count(*) from public.drinks)::int as drinks,
       (select count(*) from public.price_reports)::int as reports`);
-    expect(counts.rows[0]).toEqual({ pubs: 19, drinks: 121, reports: 121 });
+    expect(counts.rows[0]).toEqual({ pubs: 39, drinks: 569, reports: 569 });
   });
 
   it("is safe to run twice", async () => {
     await db.query(read("supabase/seed.sql"));
     const { rows } = await db.query("select count(*)::int as n from public.price_reports");
-    expect(rows[0].n).toBe(121);
+    expect(rows[0].n).toBe(569);
   });
 });
 
@@ -133,7 +135,7 @@ describe("accounts", () => {
 describe("public reads and blocked direct writes", () => {
   it("lets anonymous visitors read pubs, drinks and reports", async () => {
     const { rows } = await asAnon(() => db.query("select count(*)::int as n from public.drinks"));
-    expect(rows[0].n).toBe(121);
+    expect(rows[0].n).toBe(569);
   });
 
   it("does not let anyone write prices directly", async () => {
@@ -285,9 +287,9 @@ describe("0002: hidden pubs, websites and admin tools", () => {
 
   it("seeds websites, operators and private research notes", async () => {
     const { rows } = await db.query("select website, drinks_menu_url, operator from public.pubs where id = 'the-harp'");
-    expect(rows[0]).toEqual({ website: "https://www.harpcoventgarden.com/", drinks_menu_url: "https://www.harpcoventgarden.com/drink", operator: "Fuller's" });
+    expect(rows[0]).toEqual({ website: "https://www.harpcoventgarden.com/", drinks_menu_url: "https://untappd.com/v/the-harp/43889", operator: "Fuller's" });
     const notes = await db.query("select count(*)::int as n from public.pub_admin");
-    expect(notes.rows[0].n).toBe(19);
+    expect(notes.rows[0].n).toBe(39);
   });
 
   it("keeps research notes admin-only", async () => {
@@ -295,7 +297,7 @@ describe("0002: hidden pubs, websites and admin tools", () => {
     const alice = await as(users.alice, () => db.query("select * from public.pub_admin"));
     expect(alice.rows).toHaveLength(0);
     const admin = await as(users.admin, () => db.query("select * from public.pub_admin"));
-    expect(admin.rows).toHaveLength(19);
+    expect(admin.rows).toHaveLength(39);
   });
 
   it("lets admins save a hidden pub with limited info", async () => {
@@ -408,7 +410,7 @@ describe("0003: events (What's on)", () => {
 
   it("seeds researched events unpublished, and adds feature tags", async () => {
     const { rows } = await db.query("select count(*)::int as n, bool_or(is_published) as any_published from public.events where source = 'research'");
-    expect(rows[0]).toEqual({ n: 21, any_published: false });
+    expect(rows[0]).toEqual({ n: 46, any_published: false });
     const tags = await db.query("select tags from public.pubs where id = 'the-porterhouse'");
     expect(tags.rows[0].tags).toContain("sports-tv");
   });
@@ -517,11 +519,11 @@ describe("0005: bottles and cans", () => {
     const { rows } = await db.query(
       "select count(*)::int as n, count(*) filter (where source = 'website')::int as website, count(*) filter (where measure = 'bottle')::int as bottles, count(*) filter (where source = 'seed')::int as estimates from public.drinks where pub_id = 'the-rocket'"
     );
-    expect(rows[0]).toEqual({ n: 29, website: 29, bottles: 15, estimates: 0 });
+    expect(rows[0]).toEqual({ n: 36, website: 36, bottles: 21, estimates: 0 });
     const peroni = await db.query("select volume_ml, current_price, source_url from public.drinks where pub_id = 'the-rocket' and name = 'Peroni'");
-    expect(peroni.rows[0]).toEqual({ volume_ml: 330, current_price: "6.05", source_url: "https://www.therocketeustonroad.co.uk/drinks" });
+    expect(peroni.rows[0]).toEqual({ volume_ml: 330, current_price: "5.85", source_url: "https://www.therocketeustonroad.co.uk/drinks" });
     const history = await db.query("select count(*)::int as n from public.price_reports where pub_id = 'the-rocket' and source = 'website' and source_url is not null");
-    expect(history.rows[0].n).toBe(29);
+    expect(history.rows[0].n).toBe(36);
     const guinness = await db.query("select measure, current_price from public.drinks where pub_id = 'the-rocket' and name = 'Guinness'");
     expect(guinness.rows).toEqual([{ measure: "pint", current_price: "6.65" }]);
   });
@@ -538,7 +540,7 @@ describe("0005: bottles and cans", () => {
     await db.query("insert into public.drinks (pub_id, name, category, measure, current_price, source) values ('the-rocket', 'Old Estimate', 'Lager', 'pint', 7, 'seed')");
     await db.query(read("supabase/migrations/0005_bottles.sql"));
     const { rows } = await db.query("select count(*)::int as n, count(*) filter (where source = 'seed')::int as estimates from public.drinks where pub_id = 'the-rocket'");
-    expect(rows[0]).toEqual({ n: 29, estimates: 0 });
+    expect(rows[0]).toEqual({ n: 36, estimates: 0 });
     const others = await db.query("select count(*)::int as n from public.drinks where pub_id = 'the-harp' and source = 'seed'");
     expect(others.rows[0].n).toBeGreaterThan(0);
   });
@@ -756,6 +758,7 @@ describe("0007: menus sent in", () => {
     await db.query(read("supabase/migrations/0007_menu_submissions.sql"));
   await db.query(read("supabase/migrations/0008_features.sql"));
   await db.query(read("supabase/migrations/0009_food_menus.sql"));
+  await db.query(read("supabase/migrations/0010_sheet_update.sql"));
   });
 });
 
@@ -774,7 +777,7 @@ describe("0008: feature switches and new features", () => {
   });
 
   it("lets admins try a feature before launch, and users once it's live", async () => {
-    const id = await drinkId("the-harp", "Westons Old Rosie");
+    const id = await drinkId("the-harp", "Harveys Sussex Best");
     await expect(q(users.alice, "select public.confirm_price($1)", [id])).rejects.toThrow(/isn't available yet/);
     const [adminTry] = await q(users.admin, "select * from public.confirm_price($1)", [id]);
     expect(adminTry).toMatchObject({ kind: "confirm", source: "community" });
@@ -926,7 +929,7 @@ describe("0009: food menu links and the 25 Sep 2026 research", () => {
     const { rows } = await db.query("select notes from public.pub_admin where pub_id = 'the-toucan'");
     expect(rows[0].notes.split("[25 Sep 2026 research]").length).toBe(2);
     const events = await db.query("select schedule, event_date::text, is_published from public.events where pub_id = 'lamb-and-flag' and schedule = 'one-off' order by event_date");
-    expect(events.rows.map(e => e.event_date)).toEqual(["2026-09-27", "2026-10-25", "2026-11-29"]);
+    expect(events.rows.map(e => e.event_date)).toEqual(["2026-10-25", "2026-11-29", "2026-12-27", "2027-01-31", "2027-02-28"]);
     expect(events.rows.every(e => !e.is_published)).toBe(true);
   });
 });

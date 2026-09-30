@@ -238,7 +238,7 @@ function ResearchNotes({ pub, onSaved }) {
       </div>
       <div className="field">
         <label htmlFor="admin-notes">Research notes (admins only)</label>
-        <textarea id="admin-notes" rows={6} value={notes} onChange={e => setNotes(e.target.value)} maxLength={4000} />
+        <textarea id="admin-notes" rows={6} value={notes} onChange={e => setNotes(e.target.value)} maxLength={8000} />
       </div>
       <label className="checkbox-label">
         <input type="checkbox" checked={markChecked} onChange={e => setMarkChecked(e.target.checked)} />

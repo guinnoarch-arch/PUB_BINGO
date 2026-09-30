@@ -102,7 +102,7 @@ describe("pubsWithFeatures", () => {
 describe("researched seed data", async () => {
   const { SEED_EVENTS } = await import("../../src/data/seedEvents.js");
   const { SEED_PUBS } = await import("../../src/data/seedPubs.js");
-  const { PUB_RESEARCH, RESEARCH_UPDATE_MARKER } = await import("../../src/data/pubResearch.js");
+  const { PUB_RESEARCH, researchTag } = await import("../../src/data/pubResearch.js");
   const { EVENT_CATEGORIES } = await import("../../src/data/features.js");
   const pubIds = new Set(SEED_PUBS.map(p => p.id));
 
@@ -122,7 +122,31 @@ describe("researched seed data", async () => {
     for (const [id, r] of Object.entries(PUB_RESEARCH)) {
       expect(pubIds.has(id)).toBe(true);
       for (const url of [r.website, r.drinks_menu_url, r.food_menu_url].filter(Boolean)) expect(url).toMatch(/^https?:\/\/\S+$/);
-      if (r.update) expect(r.update.startsWith(RESEARCH_UPDATE_MARKER)).toBe(true);
+      const tags = r.updates.map(researchTag);
+      tags.forEach(tag => expect(tag).toMatch(/^\[\d{1,2} \w{3} \d{4}[^\]]*\]$/));
+      expect(new Set(tags).size).toBe(tags.length);
+      const total = [r.notes, ...r.updates].join("\n\n").length;
+      expect(total).toBeLessThanOrEqual(8000);
+    }
+  });
+
+  it("has valid drinks and opening hours", () => {
+    const time = /^\d{2}:\d{2}$/;
+    for (const pub of SEED_PUBS) {
+      const seen = new Set();
+      for (const d of pub.drinks) {
+        const key = `${d.name.toLowerCase()}|${d.measure || "pint"}`;
+        expect(seen.has(key)).toBe(false);
+        seen.add(key);
+        expect(d.price).toBeGreaterThanOrEqual(1);
+        expect(d.price).toBeLessThanOrEqual(30);
+        if (d.source) expect(d.updated).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+      }
+      for (const [day, ranges] of Object.entries(pub.opening_hours || {})) {
+        expect(Number(day)).toBeGreaterThanOrEqual(0);
+        expect(Number(day)).toBeLessThanOrEqual(6);
+        ranges.forEach(([open, close]) => { expect(open).toMatch(time); expect(close).toMatch(time); });
+      }
     }
   });
 });

@@ -23,7 +23,7 @@ export function createDemoApi() {
     return { ...pub, uploads_paused: false, is_published: true, website: r.website || null, drinks_menu_url: r.drinks_menu_url || null, food_menu_url: r.food_menu_url || null, operator: r.operator || null };
   });
   const pubAdmin = new Map(SEED_PUBS.map(pub => [pub.id, {
-    pub_id: pub.id, prices_online: PUB_RESEARCH[pub.id]?.prices_online || "unknown", notes: [PUB_RESEARCH[pub.id]?.notes, PUB_RESEARCH[pub.id]?.update].filter(Boolean).join("\n\n"), prices_checked_at: null
+    pub_id: pub.id, prices_online: PUB_RESEARCH[pub.id]?.prices_online || "unknown", notes: [PUB_RESEARCH[pub.id]?.notes, ...(PUB_RESEARCH[pub.id]?.updates || [])].filter(Boolean).join("\n\n"), prices_checked_at: null
   }]));
   const drinks = [];
   const reports = [];

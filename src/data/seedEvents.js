@@ -1,38 +1,8 @@
-// Regular events found by web search on 23-25 Sep 2026. Not checked against the pubs' own pages
-// (the build environment blocks them), so they are seeded UNPUBLISHED: an admin checks each one,
-// then publishes it. weekdays: 0 = Sunday ... 6 = Saturday. Times are London time; null = not known.
+// Researched events (web research 23-25 Sep 2026 and the research spreadsheet of 28-29 Sep 2026). None has
+// been confirmed with the pub, so they are seeded UNPUBLISHED: an admin checks each one, then publishes it.
+// weekdays: 0 = Sunday ... 6 = Saturday. Times are London time; null = not known.
 // Events with schedule "one-off" have an event_date instead of weekdays (titles must be unique per pub).
 export const SEED_EVENTS = [
-  {
-    pub_id: "the-porterhouse",
-    title: "Live music: house bands",
-    category: "live-music",
-    description: "Rock and pop covers from the 60s to today in the Basement Bar.",
-    weekdays: [4, 5, 6],
-    start_time: null,
-    end_time: null,
-    source_url: "https://porterhouse.london/events/"
-  },
-  {
-    pub_id: "the-porterhouse",
-    title: "Irish trad session",
-    category: "live-music",
-    description: "Traditional Irish music session on Sunday afternoons.",
-    weekdays: [0],
-    start_time: null,
-    end_time: null,
-    source_url: "https://porterhouse.london/events/"
-  },
-  {
-    pub_id: "the-coach-and-horses",
-    title: "Piano sing-along",
-    category: "sing-along",
-    description: "Soho's famous piano sing-along, running since 1988. All singing abilities welcome.",
-    weekdays: [3, 6],
-    start_time: null,
-    end_time: null,
-    source_url: "https://www.coachandhorsessoho.pub/"
-  },
   {
     pub_id: "the-blue-posts-berwick-street",
     title: "Soho Comedy Factory",
@@ -54,81 +24,95 @@ export const SEED_EVENTS = [
     source_url: "https://www.theblueposts.net/"
   },
   {
-    pub_id: "the-craft-beer-co-holborn",
-    title: "Quiz night",
-    category: "quiz",
-    description: "Weekly pub quiz.",
-    weekdays: [3],
-    start_time: "20:00",
-    end_time: null,
-    source_url: "http://www.thecraftbeerco.com/events"
-  },
-  {
-    pub_id: "the-craft-beer-co-holborn",
-    title: "Open mic night",
-    category: "open-mic",
-    description: "Weekly open mic from 7:30pm.",
+    pub_id: "the-blue-posts-berwick-street",
+    title: "Karaoke with Christina Draguilera",
+    category: "sing-along",
+    description: "Friday karaoke night. Listed every Friday on the pub's events calendar (dates shown 2 Oct to 27 Nov 2026).",
     weekdays: [5],
     start_time: "19:30",
-    end_time: null,
-    source_url: "http://www.thecraftbeerco.com/events"
+    end_time: "23:00",
+    source_url: "https://www.theblueposts.net/events"
   },
   {
-    pub_id: "the-rocket",
-    title: "Quiz night",
-    category: "quiz",
-    description: "Weekly Monday quiz.",
-    weekdays: [1],
-    start_time: null,
+    pub_id: "the-coach-and-horses",
+    title: "Piano sing-along",
+    category: "sing-along",
+    description: "Piano sing-along, all singing abilities welcome. DesignMyNight lists every Wednesday and Saturday 7:30-11pm (undated listing); Time Out (2021) said monthly on the first Saturday instead. Confirm the schedule with the pub.",
+    weekdays: [3, 6],
+    start_time: "19:30",
+    end_time: "23:00",
+    source_url: "https://www.designmynight.com/london/pubs/soho/coach-and-horses-greek-street/sing-along"
+  },
+  {
+    pub_id: "the-french-house",
+    title: "Pints Day",
+    category: "other",
+    description: "The one day a year the French House serves pints. Pints are auctioned 2-4pm for Soho Parish School (2026 edition was Wed 1 Apr).",
+    schedule: "one-off",
+    event_date: "2027-04-01",
+    weekdays: [],
+    start_time: "12:00",
     end_time: null,
-    source_url: "https://www.therocketeustonroad.co.uk/"
+    source_url: "https://londonist.com/london/drink/pints-day-french-house-soho"
   },
   {
     pub_id: "the-toucan",
     title: "Irish trad session",
     category: "live-music",
-    description: "Unplugged traditional Irish session (seisiún) in the basement bar: fiddles, flutes and bodhráns.",
+    description: "Unplugged traditional Irish session (seisiún) in the basement bar: fiddles, flutes and bodhráns. Not re-verified on 28 Sep 2026 (not on the pub's homepage).",
     weekdays: [2],
     start_time: "19:30",
     end_time: "22:00",
     source_url: "https://www.thetoucansoho.co.uk/"
   },
   {
-    pub_id: "the-ship-tavern",
-    title: "Gin & Jazz",
+    pub_id: "the-toucan",
+    title: "Live music: Ed Bennett & Friends (October)",
     category: "live-music",
-    description: "Live jazz in the Oak Room on Sunday afternoons, alongside the Sunday roast.",
-    weekdays: [0],
-    start_time: null,
+    description: "Ed Bennett & Friends play live in the basement on the last Friday of the month from 8pm (homepage poster, uploaded Apr 2026: confirm it still runs).",
+    schedule: "one-off",
+    event_date: "2026-10-30",
+    weekdays: [],
+    start_time: "20:00",
     end_time: null,
-    source_url: "https://theshiptavern.co.uk/"
+    source_url: "https://www.thetoucansoho.co.uk/"
   },
   {
-    pub_id: "the-ship-tavern",
-    title: "Sunday roast",
-    category: "food",
-    description: "Traditional Sunday roast. Popular: book 1-2 weeks ahead.",
-    weekdays: [0],
-    start_time: null,
-    end_time: null,
-    source_url: "https://theshiptavern.co.uk/menus/sunday-menu/"
-  },
-  ...[
-    ["2026-09-27", "September"],
-    ["2026-10-25", "October"],
-    ["2026-11-29", "November"]
-  ].map(([date, month]) => ({
-    pub_id: "lamb-and-flag",
-    title: `Last-Sunday live jazz: ${month}`,
+    pub_id: "the-toucan",
+    title: "Live music: Ed Bennett & Friends (November)",
     category: "live-music",
-    description: "Live jazz on the last Sunday of the month. Sources disagree on the time (7-9pm or 7:30-10:30pm).",
+    description: "Ed Bennett & Friends play live in the basement on the last Friday of the month from 8pm (homepage poster, uploaded Apr 2026: confirm it still runs).",
     schedule: "one-off",
-    event_date: date,
+    event_date: "2026-11-27",
     weekdays: [],
-    start_time: "19:00",
+    start_time: "20:00",
+    end_time: null,
+    source_url: "https://www.thetoucansoho.co.uk/"
+  },
+  {
+    pub_id: "lamb-and-flag",
+    title: "Last-Sunday live jazz: October",
+    category: "live-music",
+    description: "Live dixie-style jazz from a six-piece band (playing for over 30 years) on the last Sunday of the month from 7.30pm.",
+    schedule: "one-off",
+    event_date: "2026-10-25",
+    weekdays: [],
+    start_time: "19:30",
     end_time: null,
     source_url: "https://www.lambandflagcoventgarden.co.uk/whats-on"
-  })),
+  },
+  {
+    pub_id: "lamb-and-flag",
+    title: "Last-Sunday live jazz: November",
+    category: "live-music",
+    description: "Live dixie-style jazz from a six-piece band (playing for over 30 years) on the last Sunday of the month from 7.30pm.",
+    schedule: "one-off",
+    event_date: "2026-11-29",
+    weekdays: [],
+    start_time: "19:30",
+    end_time: null,
+    source_url: "https://www.lambandflagcoventgarden.co.uk/whats-on"
+  },
   {
     pub_id: "lamb-and-flag",
     title: "Sunday roast",
@@ -140,6 +124,62 @@ export const SEED_EVENTS = [
     source_url: "https://www.lambandflagcoventgarden.co.uk/"
   },
   {
+    pub_id: "lamb-and-flag",
+    title: "Last-Sunday live jazz: December",
+    category: "live-music",
+    description: "Live dixie-style jazz from a six-piece band (playing for over 30 years) on the last Sunday of the month from 7.30pm.",
+    schedule: "one-off",
+    event_date: "2026-12-27",
+    weekdays: [],
+    start_time: "19:30",
+    end_time: null,
+    source_url: "https://www.lambandflagcoventgarden.co.uk/whats-on"
+  },
+  {
+    pub_id: "lamb-and-flag",
+    title: "Last-Sunday live jazz: January",
+    category: "live-music",
+    description: "Live dixie-style jazz from a six-piece band (playing for over 30 years) on the last Sunday of the month from 7.30pm.",
+    schedule: "one-off",
+    event_date: "2027-01-31",
+    weekdays: [],
+    start_time: "19:30",
+    end_time: null,
+    source_url: "https://www.lambandflagcoventgarden.co.uk/whats-on"
+  },
+  {
+    pub_id: "lamb-and-flag",
+    title: "Last-Sunday live jazz: February",
+    category: "live-music",
+    description: "Live dixie-style jazz from a six-piece band (playing for over 30 years) on the last Sunday of the month from 7.30pm.",
+    schedule: "one-off",
+    event_date: "2027-02-28",
+    weekdays: [],
+    start_time: "19:30",
+    end_time: null,
+    source_url: "https://www.lambandflagcoventgarden.co.uk/whats-on"
+  },
+  {
+    pub_id: "the-porterhouse",
+    title: "Live music: house bands",
+    category: "live-music",
+    description: "Rock and pop covers from the 60s to today in the Basement Bar.",
+    weekdays: [4, 5, 6],
+    start_time: null,
+    end_time: null,
+    source_url: "https://porterhouse.london/events/"
+  },
+  {
+    pub_id: "the-porterhouse",
+    title: "Irish trad session",
+    category: "live-music",
+    description: "Traditional Irish music session on Sunday afternoons. Not mentioned on the pub's own site (28 Sep 2026): check before publishing.",
+    weekdays: [0],
+    start_time: null,
+    end_time: null,
+    source_url: "https://porterhouse.london/events/"
+  },
+  {
     pub_id: "the-porterhouse",
     title: "Sunday roast",
     category: "food",
@@ -147,7 +187,79 @@ export const SEED_EVENTS = [
     weekdays: [0],
     start_time: null,
     end_time: null,
-    source_url: "https://porterhouse.london/"
+    source_url: "https://porterhouse.london/wp-content/uploads/2026/09/Sunday-Food-Menu-autumn-2026.pdf"
+  },
+  {
+    pub_id: "the-porterhouse",
+    title: "Live sport: Croatia vs England (UEFA Nations League)",
+    category: "sports",
+    description: "Shown on the big screens (18 screens). Kick-off time as listed on the pub's What's On.",
+    schedule: "one-off",
+    event_date: "2026-10-03",
+    weekdays: [],
+    start_time: "17:00",
+    end_time: null,
+    source_url: "https://porterhouse.london/events/"
+  },
+  {
+    pub_id: "the-porterhouse",
+    title: "Live sport: England vs Czech Republic (UEFA Nations League)",
+    category: "sports",
+    description: "Shown on the big screens (18 screens). Kick-off time as listed on the pub's What's On.",
+    schedule: "one-off",
+    event_date: "2026-10-06",
+    weekdays: [],
+    start_time: "19:45",
+    end_time: null,
+    source_url: "https://porterhouse.london/events/"
+  },
+  {
+    pub_id: "the-porterhouse",
+    title: "Live sport: Arsenal vs Leeds (Premier League)",
+    category: "sports",
+    description: "Shown on the big screens (18 screens). Kick-off time as listed on the pub's What's On.",
+    schedule: "one-off",
+    event_date: "2026-10-10",
+    weekdays: [],
+    start_time: "12:30",
+    end_time: null,
+    source_url: "https://porterhouse.london/events/"
+  },
+  {
+    pub_id: "the-porterhouse",
+    title: "Live sport: Man United vs Tottenham (Premier League)",
+    category: "sports",
+    description: "Shown on the big screens (18 screens). Kick-off time as listed on the pub's What's On.",
+    schedule: "one-off",
+    event_date: "2026-10-10",
+    weekdays: [],
+    start_time: "17:30",
+    end_time: null,
+    source_url: "https://porterhouse.london/events/"
+  },
+  {
+    pub_id: "the-porterhouse",
+    title: "Live sport: Liverpool vs Man City (Premier League)",
+    category: "sports",
+    description: "Shown on the big screens (18 screens). Kick-off time as listed on the pub's What's On.",
+    schedule: "one-off",
+    event_date: "2026-10-11",
+    weekdays: [],
+    start_time: "16:30",
+    end_time: null,
+    source_url: "https://porterhouse.london/events/"
+  },
+  {
+    pub_id: "the-porterhouse",
+    title: "Live sport: Atlético Madrid vs Man United (Champions League)",
+    category: "sports",
+    description: "Shown on the big screens (18 screens). Kick-off time as listed on the pub's What's On.",
+    schedule: "one-off",
+    event_date: "2026-10-13",
+    weekdays: [],
+    start_time: "20:00",
+    end_time: null,
+    source_url: "https://porterhouse.london/events/"
   },
   {
     pub_id: "the-punch-and-judy",
@@ -170,20 +282,114 @@ export const SEED_EVENTS = [
     source_url: "https://www.greeneking.co.uk/pubs/greater-london/salisbury/menu"
   },
   {
-    pub_id: "the-rosendale",
-    title: "Pub quiz",
+    pub_id: "the-craft-beer-co-holborn",
+    title: "Quiz night",
     category: "quiz",
-    description: "Monday pub quiz for teams of up to 6 (£2.50 each in 2023). Check the start time.",
+    description: "Weekly pub quiz, every Wednesday from 8pm. Event page dated Apr 2026: confirm it still runs.",
+    weekdays: [3],
+    start_time: "20:00",
+    end_time: "22:00",
+    source_url: "https://www.thecraftbeerco.com/events/2026/4/1/weekly-quiz-night-at-craft-beer-co-covent-garden"
+  },
+  {
+    pub_id: "the-craft-beer-co-holborn",
+    title: "Open mic night",
+    category: "open-mic",
+    description: "Weekly open mic, every Friday from 7:30pm. Event page dated 2025/Apr 2026: confirm it still runs.",
+    weekdays: [5],
+    start_time: "19:30",
+    end_time: null,
+    source_url: "https://www.thecraftbeerco.com/events/2025/9/15/weekly-open-mic-nights-in-covent-garden"
+  },
+  {
+    pub_id: "the-ship-tavern",
+    title: "Gin & Jazz",
+    category: "live-music",
+    description: "Live jazz in the Oak Room on Sunday afternoons, free entry, alongside the Sunday roast. Times per CAMRA (Jun 2026).",
+    weekdays: [0],
+    start_time: "16:30",
+    end_time: "19:00",
+    source_url: "https://camra.org.uk/pubs/ship-tavern-london-125530"
+  },
+  {
+    pub_id: "the-ship-tavern",
+    title: "Sunday roast",
+    category: "food",
+    description: "Traditional Sunday roast. Popular: book 1-2 weeks ahead.",
+    weekdays: [0],
+    start_time: "12:00",
+    end_time: "21:00",
+    source_url: "https://theshiptavern.co.uk/menus/sunday-menu/"
+  },
+  {
+    pub_id: "the-rocket",
+    title: "Quiz night",
+    category: "quiz",
+    description: "Weekly Monday quiz.",
     weekdays: [1],
     start_time: null,
     end_time: null,
+    source_url: "https://www.therocketeustonroad.co.uk/"
+  },
+  {
+    pub_id: "the-alleyns-head",
+    title: "Breakfast with Santa",
+    category: "other",
+    description: "Breakfast with Santa, £12.99 per person (offers page; year not stated, assumed 2026).",
+    schedule: "one-off",
+    event_date: "2026-12-12",
+    weekdays: [],
+    start_time: null,
+    end_time: null,
+    source_url: "https://www.emberinns.co.uk/nationalsearch/london/the-alleyns-head-west-dulwich/news"
+  },
+  {
+    pub_id: "the-alleyns-head",
+    title: "Breakfast with Santa (2026-12-13)",
+    category: "other",
+    description: "Breakfast with Santa, £12.99 per person (offers page; year not stated, assumed 2026).",
+    schedule: "one-off",
+    event_date: "2026-12-13",
+    weekdays: [],
+    start_time: null,
+    end_time: null,
+    source_url: "https://www.emberinns.co.uk/nationalsearch/london/the-alleyns-head-west-dulwich/news"
+  },
+  {
+    pub_id: "the-rosendale",
+    title: "Pub quiz",
+    category: "quiz",
+    description: "Monday pub quiz: arrive 7:30pm, quiz starts 8pm. £2.50 per person, teams; rounds include TV themes, mystery voices, music, pictures and general knowledge. 1st prize £50 voucher. Book on 020 8761 9008.",
+    weekdays: [1],
+    start_time: "19:30",
+    end_time: null,
+    source_url: "https://www.therosendale.co.uk/whats-on/"
+  },
+  {
+    pub_id: "the-rosendale",
+    title: "Precise Pilates",
+    category: "other",
+    description: "Pilates class: £16 pay as you go or £162 for the course.",
+    weekdays: [2],
+    start_time: "10:00",
+    end_time: null,
+    source_url: "https://www.therosendale.co.uk/whats-on/"
+  },
+  {
+    pub_id: "the-rosendale",
+    title: "Body Talk Pilates",
+    category: "other",
+    description: "Pilates class: £14.50 pay as you go or £50 for 4.",
+    weekdays: [4],
+    start_time: "10:00",
+    end_time: "11:00",
     source_url: "https://www.therosendale.co.uk/whats-on/"
   },
   {
     pub_id: "the-crown-and-greyhound",
     title: "Jazz after Dark: 8 October",
     category: "live-music",
-    description: "Live jazz with candlelit tables, cocktails and food.",
+    description: "Live jazz with candlelit tables, cocktails and food. Not re-found on the What's On page on 28 Sep 2026.",
     schedule: "one-off",
     event_date: "2026-10-08",
     weekdays: [],
@@ -195,10 +401,106 @@ export const SEED_EVENTS = [
     pub_id: "the-wood-house",
     title: "Pub quiz",
     category: "quiz",
-    description: "Weekly pub quiz. Listings disagree on the night (Wednesday 8pm or Thursday): check before publishing.",
-    weekdays: [3],
+    description: "Weekly pub quiz hosted by Paul: cash prizes, bar tabs and cheese boards; teams of up to 6. Day confirmed on the pub's What's On (listed 17 and 24 Sep 2026).",
+    weekdays: [4],
     start_time: "20:00",
+    end_time: "22:00",
+    source_url: "https://www.thewoodhousedulwich.co.uk/whats-on"
+  },
+  {
+    pub_id: "the-wood-house",
+    title: "Men Walking Together",
+    category: "other",
+    description: "Community walk to Crystal Palace and back, then bacon rolls and coffee.",
+    weekdays: [6],
+    start_time: "08:00",
+    end_time: "09:00",
+    source_url: "https://www.thewoodhousedulwich.co.uk/whats-on"
+  },
+  {
+    pub_id: "the-wood-house",
+    title: "Sundays at the Woodhouse",
+    category: "food",
+    description: "Sunday roast, plus a new 4-course Sunday set menu.",
+    weekdays: [0],
+    start_time: "12:00",
     end_time: null,
     source_url: "https://www.thewoodhousedulwich.co.uk/whats-on"
+  },
+  {
+    pub_id: "the-wood-house",
+    title: "Burger Shack",
+    category: "food",
+    description: "Burger Shack in the garden every weekend.",
+    weekdays: [0, 6],
+    start_time: null,
+    end_time: null,
+    source_url: "https://www.thewoodhousedulwich.co.uk/food-drink"
+  },
+  {
+    pub_id: "the-albert",
+    title: "Halloween Party: Horror Night at The Albert",
+    category: "other",
+    description: "Horror-themed party with fancy dress, prizes for the best costumes and music. Free entry. After the 24 Oct reopening.",
+    schedule: "one-off",
+    event_date: "2026-10-31",
+    weekdays: [],
+    start_time: null,
+    end_time: null,
+    source_url: "https://www.greeneking.co.uk/pubs/greater-london/albert/whats-on"
+  },
+  {
+    pub_id: "the-albert",
+    title: "Christmas Jumper Party",
+    category: "other",
+    description: "Prize for the best Christmas jumper; no tickets needed.",
+    schedule: "one-off",
+    event_date: "2026-12-10",
+    weekdays: [],
+    start_time: "17:00",
+    end_time: "23:45",
+    source_url: "https://www.greeneking.co.uk/pubs/greater-london/albert/whats-on"
+  },
+  {
+    pub_id: "the-albert",
+    title: "New Year's Eve Party",
+    category: "other",
+    description: "Music and a midnight countdown; booking recommended.",
+    schedule: "one-off",
+    event_date: "2026-12-31",
+    weekdays: [],
+    start_time: "18:00",
+    end_time: "01:00",
+    source_url: "https://www.greeneking.co.uk/pubs/greater-london/albert/whats-on"
+  },
+  {
+    pub_id: "the-lamb",
+    title: "Pub quiz",
+    category: "quiz",
+    description: "Monday evening quiz per CAMRA; start time not given. The pub's own What's On calendar is currently empty, so confirm with the pub.",
+    weekdays: [1],
+    start_time: null,
+    end_time: null,
+    source_url: "https://camra.org.uk/pubs/lamb-london-125487"
+  },
+  {
+    pub_id: "ye-olde-mitre",
+    title: "Beer from the Wood",
+    category: "other",
+    description: "'Flavour of the week': cask beer served straight from a traditional wooden cask, subject to availability; contact the pub for details.",
+    weekdays: [1],
+    start_time: null,
+    end_time: null,
+    source_url: "https://www.yeoldemitreholborn.co.uk/whats-on"
+  },
+  {
+    pub_id: "the-craft-beer-co-clerkenwell",
+    title: "Tuesday Quiz",
+    category: "quiz",
+    description: "Weekly quiz upstairs run by Compleat Quiz: £2 entry, teams of up to 6, beer prizes and a cash jackpot. WhatPub and Pubquizzers say 19:30; the operator's older listings say 19:00, so confirm.",
+    weekdays: [2],
+    start_time: "19:30",
+    end_time: null,
+    source_url: "https://whatpub.com/pubs/ELC/14671/craft-beer-co-hatton-garden"
   }
 ];

@@ -1,8 +1,7 @@
 const EARTH_RADIUS_M = 6371000;
 
-// Map framing for Soho, Covent Garden & Holborn.
+// Where the map starts before the pubs load (central London).
 export const AREA_CENTRE = { lat: 51.5132, lng: -0.1275 };
-export const AREA_BOUNDS = { south: 51.495, west: -0.16, north: 51.53, east: -0.1 };
 
 export function isValidPoint(point) {
   return Boolean(point) && Number.isFinite(point.lat) && Number.isFinite(point.lng)
@@ -27,7 +26,13 @@ export function formatDistance(metres) {
   return `${dist} · ${minutes} min walk`;
 }
 
-export function isInArea(point) {
-  return isValidPoint(point) && point.lat >= AREA_BOUNDS.south && point.lat <= AREA_BOUNDS.north
-    && point.lng >= AREA_BOUNDS.west && point.lng <= AREA_BOUNDS.east;
+// The `count` pubs closest to a point (pubs without a map position are skipped).
+export function nearestPubs(pubs, point, count = 3) {
+  if (!isValidPoint(point)) return [];
+  return pubs
+    .map(pub => ({ pub, metres: distanceMetres(point, pub) }))
+    .filter(x => x.metres != null)
+    .sort((a, b) => a.metres - b.metres)
+    .slice(0, count)
+    .map(x => x.pub);
 }

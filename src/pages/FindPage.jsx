@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useApp } from "../lib/AppContext.jsx";
 import { CATEGORIES } from "../data/seedPubs.js";
 import { cheapestPerPub, cheapestPints, searchDrinks, unconfirmedPubs } from "../lib/core/search.js";
-import { formatDistance, isInArea } from "../lib/core/geo.js";
+import { formatDistance } from "../lib/core/geo.js";
 import PubMap from "../components/map/PubMap.jsx";
 import FavouriteButton from "../components/ui/FavouriteButton.jsx";
 import { PriceTag, SourceBadge, UpdatedAgo } from "../components/ui/Badges.jsx";
@@ -84,8 +84,8 @@ export default function FindPage() {
     navigator.geolocation.getCurrentPosition(
       position => {
         setLocating(false);
-        const point = { lat: position.coords.latitude, lng: position.coords.longitude };
-        if (!isInArea(point)) toast("You look a long way from Soho. Distances will still work, but they'll be big.");
+        // fromDevice: the map zooms to you and your nearest pubs, wherever you are.
+        const point = { lat: position.coords.latitude, lng: position.coords.longitude, fromDevice: true };
         pickOrigin(point);
       },
       () => {

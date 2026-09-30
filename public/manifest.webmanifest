@@ -1,7 +1,7 @@
 {
   "name": "Pub Bingo",
   "short_name": "Pub Bingo",
-  "description": "Find the cheapest pint in Soho, Covent Garden & Holborn, with prices reported by the community.",
+  "description": "Find the cheapest pint in London, with prices reported by the community.",
   "start_url": "/?source=pwa",
   "scope": "/",
   "id": "/",

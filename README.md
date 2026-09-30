@@ -1,6 +1,6 @@
 # Pub Bingo
 
-Find the cheapest pint in Soho, Covent Garden & Holborn. Prices come from the community and are shared live with everyone.
+Find the cheapest pint in London: central London (Soho to the City, Westminster to Clerkenwell) and Dulwich so far. Prices come from the community and are shared live with everyone.
 
 Built with the same stack and look as Guinness & Holley Budgeting: **React + Vite** on **Vercel**, with **Supabase** for the shared Postgres database, accounts, photo storage and live updates. Both are free tiers.
 
@@ -47,9 +47,9 @@ Built with the same stack and look as Guinness & Holley Budgeting: **React + Vit
 ## Setup (one-off, about 10 minutes)
 
 1. **Create a Supabase project** (free) at supabase.com.
-2. In **SQL Editor**, run the migrations in order (`supabase/migrations/0001_init.sql`, `0002_pub_admin.sql`, `0003_events.sql`, `0004_menu_uploads.sql`, `0005_bottles.sql`, `0006_suggestions.sql`, `0007_menu_submissions.sql`, `0008_features.sql`, `0009_food_menus.sql`), then `supabase/seed.sql`.
+2. In **SQL Editor**, run the migrations in order (`supabase/migrations/0001_init.sql`, `0002_pub_admin.sql`, `0003_events.sql`, `0004_menu_uploads.sql`, `0005_bottles.sql`, `0006_suggestions.sql`, `0007_menu_submissions.sql`, `0008_features.sql`, `0009_food_menus.sql`, `0010_sheet_update.sql`), then `supabase/seed.sql`.
    - **Or let GitHub do it:** see [Automatic database updates](#automatic-database-updates) below. Once set up, you never need to run these by hand.
-   - **Already set up?** Run any migrations you haven't run yet, in order, then run `seed.sql` again. If you ever re-run an older migration, run `0008_features.sql` and `0009_food_menus.sql` again afterwards. It only adds missing things (websites, notes, researched events) and never overwrites your prices or edits.
+   - **Already set up?** Run any migrations you haven't run yet, in order, then run `seed.sql` again. If you ever re-run an older migration, run `0008_features.sql` onwards again afterwards (the automatic update runs them all in order anyway). It only adds missing things (websites, notes, researched events) and never overwrites your prices or edits.
 3. In **Authentication → Providers**, make sure Email is enabled. Leave "Confirm email" on (recommended).
 4. In **Authentication → URL Configuration**, set the Site URL to your Vercel URL.
 5. In **Vercel**, import this repo and add environment variables from **Project Settings → API** in Supabase:
@@ -103,7 +103,7 @@ npm run test:db   # runs the real migration + seed on Postgres and checks securi
 
 ## Seed data
 
-`src/data/seedPubs.js` is the single source: 19 real pubs and 121 drinks (The Rocket's 29 and The Rosendale's 13 are real prices from their menus). `src/data/pubResearch.js` holds websites, drinks and food menu links, operators and admin research notes; `src/data/seedEvents.js` holds researched events. Run `npm run seed:sql` after editing it to regenerate `supabase/seed.sql`.
+`src/data/seedPubs.js` is the single source: 39 real pubs and 569 drinks, most with real prices from the pubs' own menus (from the Sep 2026 research spreadsheet). `src/data/pubResearch.js` holds websites, drinks and food menu links, operators and admin research notes; `src/data/seedEvents.js` holds researched events. Run `npm run seed:sql` after editing it to regenerate `supabase/seed.sql`.
 - Names and addresses are real. **Coordinates are approximate, and opening years and histories are best-effort and should be checked.** Where the year wasn't known it's left blank.
 - Prices are plausible estimates marked **Seed estimate** until someone reports a real price.
 - The French House traditionally serves halves only, so its drinks are listed per half and ranked by their pint equivalent.
@@ -129,7 +129,7 @@ src/
   lib/AppContext.jsx          session, pubs, favourites, live updates
   components/                 shell, map, pub illustration, forms, feed
   pages/                      Find, Pub, Leaderboard, Feed, Favourites, Bingo, Account, Admin
-supabase/migrations/          0001 schema, RLS, functions, storage; 0002 hidden pubs, websites, admin tools; 0003 events; 0004 PDF menu uploads; 0005 bottles/cans; 0006 suggestions; 0007 menus sent in, dated admin prices; 0008 feature switches and the features behind them; 0009 food menu links and the 25 Sep 2026 menus/events research
+supabase/migrations/          0001 schema, RLS, functions, storage; 0002 hidden pubs, websites, admin tools; 0003 events; 0004 PDF menu uploads; 0005 bottles/cans; 0006 suggestions; 0007 menus sent in, dated admin prices; 0008 feature switches and the features behind them; 0009 food menu links and the 25 Sep 2026 menus/events research; 0010 the 28-29 Sep research spreadsheet (existing rows) and longer admin notes
 docs/price-accuracy.md        price research and plan
 supabase/seed.sql             generated seed
 tests/unit, tests/db          Vitest suites

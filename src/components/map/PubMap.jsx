@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { AREA_CENTRE, isInArea } from "../../lib/core/geo.js";
+import { AREA_CENTRE, nearestPubs } from "../../lib/core/geo.js";
 import { formatPrice, measureLabel } from "../../lib/core/prices.js";
 
 // Leaflet map of all pubs. Pins show the cheapest matching price. Clicking the map sets the
@@ -15,6 +15,8 @@ export default function PubMap({ pubs, pricesByPub, unconfirmedIds, origin, onPi
   const originRef = useRef(null);
   const fittedRef = useRef(false);
   const handlersRef = useRef({ onPickOrigin, onOpenPub });
+  const pubsRef = useRef(pubs);
+  pubsRef.current = pubs;
   handlersRef.current = { onPickOrigin, onOpenPub };
 
   useEffect(() => {
@@ -75,11 +77,8 @@ export default function PubMap({ pubs, pricesByPub, unconfirmedIds, origin, onPi
       marker.on("click", () => marker.openPopup());
       layer.addLayer(marker);
     }
-    // On first load, zoom to show every central pub (Soho up to King's Cross). Pubs further out, like
-    // West Dulwich, are left out of the framing so the centre stays readable; they're still on the map.
-    const located = pubs.filter(p => Number.isFinite(p.lat) && Number.isFinite(p.lng));
-    const central = located.filter(p => isInArea(p));
-    const points = (central.length > 1 ? central : located).map(p => [p.lat, p.lng]);
+    // On first load, zoom to show every pub, wherever they are.
+    const points = pubs.filter(p => Number.isFinite(p.lat) && Number.isFinite(p.lng)).map(p => [p.lat, p.lng]);
     if (!fittedRef.current && points.length && mapRef.current) {
       // No animation: an animated zoom still running when the map is removed makes Leaflet throw.
       if (points.length > 1) mapRef.current.fitBounds(points, { padding: [30, 30], maxZoom: 16, animate: false });
@@ -97,6 +96,12 @@ export default function PubMap({ pubs, pricesByPub, unconfirmedIds, origin, onPi
       originRef.current = L.circleMarker([origin.lat, origin.lng], {
         radius: 9, color: "#fff", weight: 3, fillColor: "#2563eb", fillOpacity: 1
       }).bindTooltip("Searching from here", { direction: "top" }).addTo(map);
+      // "Use my location" (or any point off-screen): zoom to it and its nearest pubs.
+      // A point tapped on the map stays put, so the map doesn't jump under your finger.
+      if (origin.fromDevice || !map.getBounds().contains([origin.lat, origin.lng])) {
+        const near = nearestPubs(pubsRef.current, origin, 3).map(p => [p.lat, p.lng]);
+        map.fitBounds([[origin.lat, origin.lng], ...near], { padding: [40, 40], maxZoom: 16, animate: false });
+      }
     }
   }, [origin]);
 
