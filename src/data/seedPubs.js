@@ -1,19 +1,11 @@
-// Seed dataset: 19 real pubs across Soho, Covent Garden, Holborn, King's Cross and Dulwich.
-// Names and addresses are real. Coordinates are approximate (street level).
-// Prices are plausible central-London estimates, to be refined by community reports.
-// Opening years and histories are best-effort and should be checked; null = not known yet.
+// Seed dataset: 39 real pubs across central London and Dulwich.
+// Pubs from Soho to King's Cross came from the first seed; the rest, and every real price, came from the
+// research spreadsheet ("Pub Bingo pubs research", updated 28-29 Sep 2026) and the pubs' own menus.
+// Drinks with a `source` are real prices (with the link and date seen); drinks without one are estimates.
+// opening_hours: { "0": [["12:00", "22:30"]], ... } with 0 = Sunday; a closing time at or before opening = after midnight.
 // This file is the single source of truth: `npm run seed:sql` generates supabase/seed.sql from it.
 
-const ROCKET_MENU = "https://www.therocketeustonroad.co.uk/drinks";
-// Time of the screenshots (London, BST).
-const ROCKET_MENU_DATE = "2026-09-24T07:10:00+01:00";
-const ROCKET_ORDER_DATE = "2026-09-24T07:24:00+01:00";
-
-// The Rosendale's "Spring 2026" drinks menu PDF (page 1), sent in 25 Sep 2026. Links to the pub's menus page.
-const ROSENDALE_MENU = "https://www.therosendale.co.uk/menus/";
-const ROSENDALE_MENU_DATE = "2026-09-25T16:45:00+01:00";
-
-export const AREAS = ["Soho", "Covent Garden", "Holborn", "King's Cross", "West Dulwich", "Dulwich Village", "Dulwich Wood"];
+export const AREAS = ["Soho", "Covent Garden", "Holborn", "King's Cross", "West Dulwich", "Dulwich Village", "Dulwich Wood", "Westminster", "Bloomsbury", "Fitzrovia", "Fleet Street", "Blackfriars", "Clerkenwell", "City"];
 
 export const CATEGORIES = ["Lager", "IPA", "Pale Ale", "Real Ale", "Stout", "Cider", "Wheat Beer", "Other"];
 
@@ -38,40 +30,23 @@ export const TAGS = [
 
 export const SEED_PUBS = [
   {
-    id: "the-french-house",
-    name: "The French House",
-    address: "49 Dean Street, Soho, London W1D 5BG",
+    id: "the-blue-posts-berwick-street",
+    name: "The Blue Posts",
+    address: "22 Berwick Street, Soho, London W1F 0QA",
     area: "Soho",
-    lat: 51.51323,
-    lng: -0.13178,
-    opened_year: 1891,
-    tags: ["historic", "no-music-no-tv", "food"],
+    lat: 51.51331,
+    lng: -0.13521,
+    opened_year: null,
+    tags: ["historic", "food", "live-music", "comedy", "sing-along"],
     description:
-      "A tiny Soho institution with a Free French wartime connection. It traditionally pours beer in halves only, and has no music, TVs or phones.",
+      "A traditional Soho corner pub by the Berwick Street market. One of several Blue Posts pubs in the area, supposedly named after the posts that marked the old royal hunting grounds.",
+    opening_hours: {"0": [["11:30", "22:30"]], "1": [["11:30", "23:00"]], "2": [["11:30", "23:00"]], "3": [["11:30", "23:00"]], "4": [["11:30", "23:00"]], "5": [["11:30", "23:00"]], "6": [["11:30", "23:00"]]},
     drinks: [
-      { name: "Guinness", category: "Stout", price: 3.9, measure: "half" },
-      { name: "Meteor Lager", category: "Lager", price: 3.8, measure: "half" },
-      { name: "Kronenbourg 1664", category: "Lager", price: 3.7, measure: "half" },
-      { name: "Aspall Suffolk Cyder", category: "Cider", price: 3.6, measure: "half" }
-    ]
-  },
-  {
-    id: "the-dog-and-duck",
-    name: "The Dog and Duck",
-    address: "18 Bateman Street, Soho, London W1D 3AJ",
-    area: "Soho",
-    lat: 51.51398,
-    lng: -0.13149,
-    opened_year: 1734,
-    tags: ["historic", "real-ale-specialist", "victorian-interior"],
-    description:
-      "A small corner pub with a pub on the site since the 1700s. It's known for its ornate late-Victorian tiles and mirrors, and a good rotating cask range.",
-    drinks: [
-      { name: "Timothy Taylor Landlord", category: "Real Ale", price: 6.4 },
-      { name: "Camden Hells", category: "Lager", price: 7.1 },
-      { name: "Guinness", category: "Stout", price: 6.9 },
-      { name: "Beavertown Neck Oil", category: "Pale Ale", price: 7.2 },
-      { name: "Thatchers Gold", category: "Cider", price: 6.8 }
+      { name: "Camden Hells", category: "Lager", price: 6.9 },
+      { name: "Guinness", category: "Stout", price: 6.8 },
+      { name: "Doom Bar", category: "Real Ale", price: 6.1 },
+      { name: "BrewDog Punk IPA", category: "IPA", price: 7.1 },
+      { name: "Cornish Orchards Gold", category: "Cider", price: 6.7 }
     ]
   },
   {
@@ -85,31 +60,80 @@ export const SEED_PUBS = [
     tags: ["historic", "real-ale-specialist", "sing-along", "food"],
     description:
       "A classic Soho boozer long linked with writers, artists and Private Eye lunches, once famous for its notoriously blunt landlord.",
+    opening_hours: {"0": [["12:00", "20:00"]], "1": [["12:00", "23:00"]], "2": [["12:00", "23:00"]], "3": [["12:00", "23:00"]], "4": [["12:00", "23:00"]], "5": [["12:00", "23:00"]], "6": [["12:00", "23:00"]]},
     drinks: [
       { name: "Fuller's London Pride", category: "Real Ale", price: 6.2 },
       { name: "Guinness", category: "Stout", price: 6.7 },
       { name: "Peroni", category: "Lager", price: 7.0 },
       { name: "Sambrook's Wandle", category: "Real Ale", price: 6.3 },
-      { name: "Aspall Suffolk Cyder", category: "Cider", price: 6.6 }
+      { name: "Aspall Suffolk Cyder", category: "Cider", price: 6.6 },
+      { name: "Amstel", category: "Lager", price: 5.7 },
+      { name: "Timothy Taylor Landlord", category: "Real Ale", price: 5.1 }
     ]
   },
   {
-    id: "the-blue-posts-berwick-street",
-    name: "The Blue Posts",
-    address: "22 Berwick Street, Soho, London W1F 0QA",
+    id: "the-dog-and-duck",
+    name: "The Dog and Duck",
+    address: "18 Bateman Street, Soho, London W1D 3AJ",
     area: "Soho",
-    lat: 51.51331,
-    lng: -0.13521,
-    opened_year: null,
-    tags: ["historic", "food", "live-music", "comedy"],
+    lat: 51.51398,
+    lng: -0.13149,
+    opened_year: 1734,
+    tags: ["historic", "real-ale-specialist", "victorian-interior"],
     description:
-      "A traditional Soho corner pub by the Berwick Street market. One of several Blue Posts pubs in the area, supposedly named after the posts that marked the old royal hunting grounds.",
+      "A small corner pub with a pub on the site since the 1700s. It's known for its ornate late-Victorian tiles and mirrors, and a good rotating cask range.",
+    opening_hours: {"0": [["12:00", "22:30"]], "1": [["12:00", "23:00"]], "2": [["12:00", "23:00"]], "3": [["12:00", "23:00"]], "4": [["12:00", "23:00"]], "5": [["12:00", "00:00"]], "6": [["12:00", "00:00"]]},
     drinks: [
-      { name: "Camden Hells", category: "Lager", price: 6.9 },
-      { name: "Guinness", category: "Stout", price: 6.8 },
-      { name: "Doom Bar", category: "Real Ale", price: 6.1 },
-      { name: "BrewDog Punk IPA", category: "IPA", price: 7.1 },
-      { name: "Cornish Orchards Gold", category: "Cider", price: 6.7 }
+      { name: "Fuller's London Pride", category: "Real Ale", price: 6.75, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thedogandducksoholondon", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Nicholson's Pale Ale", category: "Real Ale", price: 6.6, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thedogandducksoholondon", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Adnams Ghost Ship", category: "Real Ale", price: 6.8, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thedogandducksoholondon", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Camden Hells", category: "Lager", price: 8.05, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thedogandducksoholondon", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Guinness", category: "Stout", price: 7.75, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thedogandducksoholondon", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Beavertown Neck Oil", category: "Pale Ale", price: 8.25, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thedogandducksoholondon", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Asahi Super Dry", category: "Lager", price: 8.1, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thedogandducksoholondon", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Madri Excepcional", category: "Lager", price: 7.8, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thedogandducksoholondon", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Peroni Nastro Azzurro", category: "Lager", price: 8.0, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thedogandducksoholondon", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Amstel", category: "Lager", price: 7.25, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thedogandducksoholondon", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Carlsberg", category: "Lager", price: 6.55, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thedogandducksoholondon", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Tennent's Lager", category: "Lager", price: 6.5, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thedogandducksoholondon", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Budvar", category: "Lager", price: 8.15, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thedogandducksoholondon", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Jubel Peach", category: "Other", price: 8.25, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thedogandducksoholondon", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Westons Vintage Cider", category: "Cider", price: 7.35, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thedogandducksoholondon", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Lucky Saint (0.5%)", category: "Lager", price: 6.85, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thedogandducksoholondon", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Schöfferhofer Grapefruit", category: "Wheat Beer", price: 6.85, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thedogandducksoholondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Paulaner Weiss", category: "Wheat Beer", price: 7.1, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thedogandducksoholondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Peroni Nastro Azzurro", category: "Lager", price: 6.7, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thedogandducksoholondon", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Budweiser", category: "Lager", price: 6.55, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thedogandducksoholondon", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Corona Extra", category: "Lager", price: 6.7, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thedogandducksoholondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Daura Damm (gluten free)", category: "Lager", price: 6.35, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thedogandducksoholondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Sandford Orchards Devon Red", category: "Cider", price: 7.25, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thedogandducksoholondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Bulmers Original", category: "Cider", price: 6.5, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thedogandducksoholondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Rekorderlig", category: "Cider", price: 7.25, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thedogandducksoholondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Peroni 0.0%", category: "Lager", price: 5.35, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thedogandducksoholondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Guinness 0.0", category: "Stout", price: 5.75, measure: "can", source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thedogandducksoholondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Lucky Saint (0.5%)", category: "Lager", price: 5.55, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thedogandducksoholondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Lucky Saint Hazy IPA (0.5%)", category: "IPA", price: 5.55, measure: "can", source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thedogandducksoholondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Rekorderlig 0.0%", category: "Cider", price: 6.2, measure: "bottle", source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thedogandducksoholondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Proper Job 0.5%", category: "IPA", price: 5.55, measure: "bottle", source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thedogandducksoholondon/drinks", updated: "2026-09-28T12:00:00+01:00" }
+    ]
+  },
+  {
+    id: "the-french-house",
+    name: "The French House",
+    address: "49 Dean Street, Soho, London W1D 5BG",
+    area: "Soho",
+    lat: 51.51323,
+    lng: -0.13178,
+    opened_year: 1891,
+    tags: ["historic", "no-music-no-tv", "food"],
+    description:
+      "A tiny Soho institution with a Free French wartime connection. It traditionally pours beer in halves only, and has no music, TVs or phones.",
+    opening_hours: {"0": [["12:00", "22:30"]], "1": [["11:30", "23:00"]], "2": [["11:30", "23:00"]], "3": [["11:30", "23:00"]], "4": [["11:30", "23:00"]], "5": [["11:30", "23:00"]], "6": [["11:30", "23:00"]]},
+    drinks: [
+      { name: "Guinness", category: "Stout", price: 3.9, measure: "half" },
+      { name: "Meteor Lager", category: "Lager", price: 3.8, measure: "half" },
+      { name: "Kronenbourg 1664", category: "Lager", price: 3.7, measure: "half" },
+      { name: "Aspall Suffolk Cyder", category: "Cider", price: 3.6, measure: "half" }
     ]
   },
   {
@@ -123,108 +147,12 @@ export const SEED_PUBS = [
     tags: ["irish-pub", "sports-tv", "live-music"],
     description:
       "A small, lively Irish bar off Soho Square with a big reputation for Guinness and Irish whiskey. It spills onto the pavement on busy nights.",
+    opening_hours: {"1": [["16:00", "23:00"]], "2": [["16:00", "23:00"]], "3": [["12:00", "23:00"]], "4": [["12:00", "23:00"]], "5": [["12:00", "23:00"]], "6": [["12:00", "23:00"]]},
     drinks: [
-      { name: "Guinness", category: "Stout", price: 6.3 },
+      { name: "Guinness", category: "Stout", price: 6.0 },
       { name: "Harp Lager", category: "Lager", price: 6.2 },
       { name: "Smithwick's Red Ale", category: "Real Ale", price: 6.4 },
       { name: "Bulmers Original", category: "Cider", price: 6.2 }
-    ]
-  },
-  {
-    id: "the-coal-hole",
-    name: "The Coal Hole",
-    address: "91-92 Strand, London WC2R 0DW",
-    area: "Covent Garden",
-    lat: 51.51027,
-    lng: -0.12093,
-    opened_year: 1904,
-    tags: ["historic", "real-ale-specialist", "cellar-bar", "victorian-interior", "food"],
-    description:
-      "An Edwardian pub in the Savoy buildings on the Strand, with an Arts and Crafts interior and a cellar bar. Its name comes from the coal cellars once used by the Savoy.",
-    drinks: [
-      { name: "Fuller's London Pride", category: "Real Ale", price: 6.6 },
-      { name: "Madri Excepcional", category: "Lager", price: 7.3 },
-      { name: "Guinness", category: "Stout", price: 7.0 },
-      { name: "Camden Pale Ale", category: "Pale Ale", price: 7.1 },
-      { name: "Aspall Suffolk Cyder", category: "Cider", price: 6.9 },
-      { name: "Blue Moon", category: "Wheat Beer", price: 7.4 }
-    ]
-  },
-  {
-    id: "the-craft-beer-co-holborn",
-    name: "The Craft Beer Co.",
-    address: "168 High Holborn, London WC1V 7AA",
-    area: "Holborn",
-    lat: 51.51676,
-    lng: -0.12549,
-    opened_year: null,
-    tags: ["craft-beer", "real-ale-specialist", "quiz-night"],
-    description:
-      "A craft beer bar with a long wall of rotating keg and cask lines, from local London breweries to rare imports.",
-    drinks: [
-      { name: "Kernel Table Beer", category: "Pale Ale", price: 6.8 },
-      { name: "Cloudwater IPA", category: "IPA", price: 8.0 },
-      { name: "Titanic Plum Porter", category: "Stout", price: 6.9 },
-      { name: "Lost & Grounded Keller Pils", category: "Lager", price: 7.4 },
-      { name: "Oliver's Cider", category: "Cider", price: 7.2 },
-      { name: "Schneider Weisse", category: "Wheat Beer", price: 7.8 }
-    ]
-  },
-  {
-    id: "the-cross-keys",
-    name: "The Cross Keys",
-    address: "31 Endell Street, London WC2H 9EB",
-    area: "Covent Garden",
-    lat: 51.51452,
-    lng: -0.12507,
-    opened_year: 1848,
-    tags: ["historic", "outdoor-drinking", "food"],
-    description:
-      "An ivy-clad Victorian pub packed with curios, brass and memorabilia. The outside is covered in hanging baskets in summer.",
-    drinks: [
-      { name: "Brodie's Citra", category: "Pale Ale", price: 6.4 },
-      { name: "Guinness", category: "Stout", price: 6.6 },
-      { name: "Camden Hells", category: "Lager", price: 6.9 },
-      { name: "Harveys Sussex Best", category: "Real Ale", price: 5.9 },
-      { name: "Thatchers Gold", category: "Cider", price: 6.5 }
-    ]
-  },
-  {
-    id: "the-ship-tavern",
-    name: "The Ship Tavern",
-    address: "12 Gate Street, Holborn, London WC2A 3HP",
-    area: "Holborn",
-    lat: 51.51712,
-    lng: -0.11846,
-    opened_year: 1549,
-    tags: ["historic", "food", "victorian-interior", "live-music"],
-    description:
-      "A tavern said to date back to 1549, rebuilt in 1923. It's known for its wood-panelled rooms and stories of secret Catholic masses held here in Tudor times.",
-    drinks: [
-      { name: "Fuller's London Pride", category: "Real Ale", price: 6.5 },
-      { name: "Guinness", category: "Stout", price: 6.9 },
-      { name: "Asahi Super Dry", category: "Lager", price: 7.4 },
-      { name: "Sierra Nevada Pale Ale", category: "Pale Ale", price: 7.3 },
-      { name: "Aspall Suffolk Cyder", category: "Cider", price: 6.8 }
-    ]
-  },
-  {
-    id: "the-harp",
-    name: "The Harp",
-    address: "47 Chandos Place, London WC2N 4HS",
-    area: "Covent Garden",
-    lat: 51.50965,
-    lng: -0.12594,
-    opened_year: null,
-    tags: ["real-ale-specialist", "historic"],
-    description:
-      "A narrow, much-loved real ale pub near Charing Cross with stained glass, portraits on the walls and an award-winning cask range.",
-    drinks: [
-      { name: "Harveys Sussex Best", category: "Real Ale", price: 5.6 },
-      { name: "Dark Star Hophead", category: "Pale Ale", price: 5.9 },
-      { name: "Guinness", category: "Stout", price: 6.4 },
-      { name: "Fuller's Frontier", category: "Lager", price: 6.7 },
-      { name: "Westons Old Rosie", category: "Cider", price: 6.2 }
     ]
   },
   {
@@ -238,12 +166,99 @@ export const SEED_PUBS = [
     tags: ["historic", "outdoor-drinking", "food", "live-music"],
     description:
       "One of Covent Garden's oldest pubs, tucked down an alley off Garrick Street. It was once nicknamed the Bucket of Blood for the bare-knuckle fights held here.",
+    opening_hours: {"0": [["12:00", "22:30"]], "1": [["11:00", "23:00"]], "2": [["11:00", "23:00"]], "3": [["11:00", "23:00"]], "4": [["11:00", "23:00"]], "5": [["11:00", "23:00"]], "6": [["11:00", "23:00"]]},
     drinks: [
       { name: "Fuller's London Pride", category: "Real Ale", price: 6.3 },
       { name: "Fuller's ESB", category: "Real Ale", price: 6.6 },
-      { name: "Guinness", category: "Stout", price: 6.8 },
+      { name: "Guinness", category: "Stout", price: 6.73 },
       { name: "Fuller's Frontier", category: "Lager", price: 6.9 },
       { name: "Cornish Orchards Gold", category: "Cider", price: 6.6 }
+    ]
+  },
+  {
+    id: "the-coal-hole",
+    name: "The Coal Hole",
+    address: "91-92 Strand, London WC2R 0DW",
+    area: "Covent Garden",
+    lat: 51.510389,
+    lng: -0.121297,
+    opened_year: 1904,
+    tags: ["historic", "real-ale-specialist", "cellar-bar", "victorian-interior", "food"],
+    description:
+      "An Edwardian pub in the Savoy buildings on the Strand, with an Arts and Crafts interior and a cellar bar. Its name comes from the coal cellars once used by the Savoy.",
+    opening_hours: {"0": [["10:00", "22:30"]], "1": [["11:00", "23:00"]], "2": [["11:00", "23:00"]], "3": [["11:00", "23:30"]], "4": [["11:00", "23:30"]], "5": [["11:00", "00:00"]], "6": [["10:00", "00:00"]]},
+    drinks: [
+      { name: "Black Sheep Bitter", category: "Real Ale", price: 6.5, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thecoalholestrandlondon", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Butcombe Original", category: "Real Ale", price: 6.4, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thecoalholestrandlondon", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Nicholson's Pale Ale", category: "Real Ale", price: 6.5, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thecoalholestrandlondon", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Adnams Ghost Ship", category: "Real Ale", price: 6.7, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thecoalholestrandlondon", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Timothy Taylor Landlord", category: "Real Ale", price: 7.2, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thecoalholestrandlondon", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Hawkstone Lager", category: "Lager", price: 8.3, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thecoalholestrandlondon", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Madri Excepcional", category: "Lager", price: 7.7, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thecoalholestrandlondon", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Peroni Nastro Azzurro", category: "Lager", price: 7.9, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thecoalholestrandlondon", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Camden Hells", category: "Lager", price: 7.95, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thecoalholestrandlondon", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Budvar", category: "Lager", price: 8.05, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thecoalholestrandlondon", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Jubel Peach", category: "Other", price: 8.15, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thecoalholestrandlondon", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Guinness", category: "Stout", price: 7.65, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thecoalholestrandlondon", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Beavertown Neck Oil", category: "Pale Ale", price: 8.2, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thecoalholestrandlondon", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Beavertown Gamma Ray", category: "IPA", price: 8.25, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thecoalholestrandlondon", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Westons Vintage Cider", category: "Cider", price: 7.3, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thecoalholestrandlondon", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Rosie's Pig Rhubarb", category: "Cider", price: 7.9, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thecoalholestrandlondon", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Lucky Saint (0.5%)", category: "Lager", price: 6.8, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thecoalholestrandlondon", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Schöfferhofer Grapefruit Radler", category: "Wheat Beer", price: 6.7, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thecoalholestrandlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Paulaner Weiss", category: "Wheat Beer", price: 7.05, measure: "bottle", source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thecoalholestrandlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Corona Extra", category: "Lager", price: 6.55, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thecoalholestrandlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Daura Damm (gluten free)", category: "Lager", price: 6.35, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thecoalholestrandlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Peroni Nastro Azzurro", category: "Lager", price: 6.65, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thecoalholestrandlondon", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Budweiser", category: "Lager", price: 6.5, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thecoalholestrandlondon", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Rekorderlig Strawberry-Lime", category: "Cider", price: 7.15, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thecoalholestrandlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Rekorderlig Wild Berries", category: "Cider", price: 7.15, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thecoalholestrandlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Bulmers Original", category: "Cider", price: 6.45, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thecoalholestrandlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Sandford Orchards Devon Red", category: "Cider", price: 7.2, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thecoalholestrandlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Peroni 0.0%", category: "Lager", price: 5.3, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thecoalholestrandlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Guinness 0.0", category: "Stout", price: 5.7, measure: "can", volume_ml: 440, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thecoalholestrandlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Lucky Saint (0.5%)", category: "Lager", price: 5.55, measure: "can", volume_ml: 440, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thecoalholestrandlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Lucky Saint Hazy IPA (0.5%)", category: "IPA", price: 5.55, measure: "can", source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thecoalholestrandlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Proper Job 0.5% IPA", category: "IPA", price: 5.55, measure: "bottle", source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thecoalholestrandlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Rekorderlig Strawberry-Lime 0.0%", category: "Cider", price: 6.1, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thecoalholestrandlondon/drinks", updated: "2026-09-28T12:00:00+01:00" }
+    ]
+  },
+  {
+    id: "the-cross-keys",
+    name: "The Cross Keys",
+    address: "31 Endell Street, London WC2H 9EB",
+    area: "Covent Garden",
+    lat: 51.51452,
+    lng: -0.12507,
+    opened_year: 1848,
+    tags: ["historic", "outdoor-drinking", "food"],
+    description:
+      "An ivy-clad Victorian pub packed with curios, brass and memorabilia. The outside is covered in hanging baskets in summer.",
+    opening_hours: {"0": [["12:00", "22:30"]], "1": [["11:00", "23:00"]], "2": [["11:00", "23:00"]], "3": [["11:00", "23:00"]], "4": [["11:00", "23:00"]], "5": [["11:00", "23:00"]], "6": [["11:00", "23:00"]]},
+    drinks: [
+      { name: "Brodie's Citra", category: "Pale Ale", price: 6.4 },
+      { name: "Guinness", category: "Stout", price: 6.6 },
+      { name: "Camden Hells", category: "Lager", price: 6.9 },
+      { name: "Harveys Sussex Best", category: "Real Ale", price: 5.9 },
+      { name: "Thatchers Gold", category: "Cider", price: 6.5 }
+    ]
+  },
+  {
+    id: "the-harp",
+    name: "The Harp",
+    address: "47 Chandos Place, London WC2N 4HS",
+    area: "Covent Garden",
+    lat: 51.50965,
+    lng: -0.12594,
+    opened_year: null,
+    tags: ["real-ale-specialist", "historic"],
+    description:
+      "A narrow, much-loved real ale pub near Charing Cross with stained glass, portraits on the walls and an award-winning cask range.",
+    opening_hours: {"0": [["12:00", "20:00"]], "1": [["11:00", "23:00"]], "2": [["11:00", "23:00"]], "3": [["11:00", "23:00"]], "4": [["11:00", "23:00"]], "5": [["11:00", "23:00"]], "6": [["11:00", "23:00"]]},
+    drinks: [
+      { name: "Harveys Sussex Best", category: "Real Ale", price: 5.6 },
+      { name: "Dark Star Hophead", category: "Real Ale", price: 5.9 },
+      { name: "Guinness", category: "Stout", price: 6.4 }
     ]
   },
   {
@@ -253,16 +268,44 @@ export const SEED_PUBS = [
     area: "Covent Garden",
     lat: 51.51077,
     lng: -0.1231,
-    opened_year: null,
-    tags: ["craft-beer", "irish-pub", "live-music", "sports-tv", "food"],
+    opened_year: 2000,
+    tags: ["craft-beer", "irish-pub", "live-music", "sports-tv", "food", "beer-garden"],
     description:
       "A sprawling multi-level Irish brewpub full of brass and copper pipework, pouring Porterhouse's own stouts and ales alongside a long bottle list.",
+    opening_hours: {"0": [["12:00", "22:00"]], "1": [["12:00", "00:00"]], "2": [["12:00", "00:00"]], "3": [["12:00", "00:00"]], "4": [["12:00", "00:00"]], "5": [["12:00", "00:00"]], "6": [["12:00", "00:00"]]},
     drinks: [
-      { name: "Porterhouse Oyster Stout", category: "Stout", price: 7.2 },
-      { name: "Porterhouse Plain Porter", category: "Stout", price: 7.0 },
-      { name: "Porterhouse Temple Bräu", category: "Lager", price: 7.1 },
-      { name: "Porterhouse Hop Head", category: "IPA", price: 7.4 },
-      { name: "Stonewell Cider", category: "Cider", price: 7.1 }
+      { name: "Porterhouse Temple Lager", category: "Lager", price: 7.2, source: "website", source_url: "https://porterhouse.london/wp-content/uploads/2026/04/QR-Code-Drinks-Menu-Spring-2026-Version-2.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Porterhouse Yippy IPA", category: "IPA", price: 7.3, source: "website", source_url: "https://porterhouse.london/wp-content/uploads/2026/04/QR-Code-Drinks-Menu-Spring-2026-Version-2.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Porterhouse Nitro Red Ale", category: "Other", price: 7.2, source: "website", source_url: "https://porterhouse.london/wp-content/uploads/2026/04/QR-Code-Drinks-Menu-Spring-2026-Version-2.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Porterhouse Plain Porter", category: "Stout", price: 7.3, source: "website", source_url: "https://porterhouse.london/wp-content/uploads/2026/04/QR-Code-Drinks-Menu-Spring-2026-Version-2.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Porterhouse Oyster Stout", category: "Stout", price: 7.4, source: "website", source_url: "https://porterhouse.london/wp-content/uploads/2026/04/QR-Code-Drinks-Menu-Spring-2026-Version-2.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "White Hag Little Fawn Session IPA", category: "IPA", price: 7.3, source: "website", source_url: "https://porterhouse.london/wp-content/uploads/2026/04/QR-Code-Drinks-Menu-Spring-2026-Version-2.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Sambrook's Session Pale Ale", category: "Pale Ale", price: 7.4, source: "website", source_url: "https://porterhouse.london/wp-content/uploads/2026/04/QR-Code-Drinks-Menu-Spring-2026-Version-2.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Budvar Original Lager", category: "Lager", price: 7.5, source: "website", source_url: "https://porterhouse.london/wp-content/uploads/2026/04/QR-Code-Drinks-Menu-Spring-2026-Version-2.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Budvar Nealko (0.5%)", category: "Lager", price: 6.4, source: "website", source_url: "https://porterhouse.london/wp-content/uploads/2026/04/QR-Code-Drinks-Menu-Spring-2026-Version-2.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Früli Strawberry", category: "Other", price: 7.8, source: "website", source_url: "https://porterhouse.london/wp-content/uploads/2026/04/QR-Code-Drinks-Menu-Spring-2026-Version-2.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Guest draught cider", category: "Cider", price: 7.2, source: "website", source_url: "https://porterhouse.london/wp-content/uploads/2026/04/QR-Code-Drinks-Menu-Spring-2026-Version-2.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Cask ale (ask for today's)", category: "Real Ale", price: 7.0, source: "website", source_url: "https://porterhouse.london/wp-content/uploads/2026/04/QR-Code-Drinks-Menu-Spring-2026-Version-2.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Magners", category: "Cider", price: 7.4, measure: "bottle", volume_ml: 568, source: "website", source_url: "https://porterhouse.london/wp-content/uploads/2026/04/QR-Code-Drinks-Menu-Spring-2026-Version-2.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Sandford Orchards Devon Red", category: "Cider", price: 7.1, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://porterhouse.london/wp-content/uploads/2026/04/QR-Code-Drinks-Menu-Spring-2026-Version-2.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Bullhouse Road Trippin' Session IPA", category: "IPA", price: 7.2, measure: "can", volume_ml: 440, source: "website", source_url: "https://porterhouse.london/wp-content/uploads/2026/04/QR-Code-Drinks-Menu-Spring-2026-Version-2.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Bullhouse Rolling Papers Hazy IPA", category: "IPA", price: 7.4, measure: "can", volume_ml: 440, source: "website", source_url: "https://porterhouse.london/wp-content/uploads/2026/04/QR-Code-Drinks-Menu-Spring-2026-Version-2.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Sierra Nevada Pale Ale", category: "Pale Ale", price: 7.2, measure: "bottle", volume_ml: 335, source: "website", source_url: "https://porterhouse.london/wp-content/uploads/2026/04/QR-Code-Drinks-Menu-Spring-2026-Version-2.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Sierra Nevada Torpedo Extra IPA", category: "IPA", price: 7.9, measure: "bottle", volume_ml: 335, source: "website", source_url: "https://porterhouse.london/wp-content/uploads/2026/04/QR-Code-Drinks-Menu-Spring-2026-Version-2.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Stiegl Goldbräu", category: "Lager", price: 6.8, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://porterhouse.london/wp-content/uploads/2026/04/QR-Code-Drinks-Menu-Spring-2026-Version-2.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Mongozo Pilsner", category: "Lager", price: 7.2, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://porterhouse.london/wp-content/uploads/2026/04/QR-Code-Drinks-Menu-Spring-2026-Version-2.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Budvar Dark Lager", category: "Lager", price: 6.9, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://porterhouse.london/wp-content/uploads/2026/04/QR-Code-Drinks-Menu-Spring-2026-Version-2.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Augustiner Helles", category: "Lager", price: 7.7, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://porterhouse.london/wp-content/uploads/2026/04/QR-Code-Drinks-Menu-Spring-2026-Version-2.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Paulaner Munich Helles", category: "Lager", price: 7.5, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://porterhouse.london/wp-content/uploads/2026/04/QR-Code-Drinks-Menu-Spring-2026-Version-2.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Augustiner Weissbier", category: "Wheat Beer", price: 7.7, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://porterhouse.london/wp-content/uploads/2026/04/QR-Code-Drinks-Menu-Spring-2026-Version-2.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Weihenstephan Hefe Weiss", category: "Wheat Beer", price: 7.6, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://porterhouse.london/wp-content/uploads/2026/04/QR-Code-Drinks-Menu-Spring-2026-Version-2.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "König Ludwig Weissbier", category: "Wheat Beer", price: 7.5, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://porterhouse.london/wp-content/uploads/2026/04/QR-Code-Drinks-Menu-Spring-2026-Version-2.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Schneider Original Tap 7", category: "Wheat Beer", price: 7.7, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://porterhouse.london/wp-content/uploads/2026/04/QR-Code-Drinks-Menu-Spring-2026-Version-2.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Früh Kölsch", category: "Other", price: 7.4, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://porterhouse.london/wp-content/uploads/2026/04/QR-Code-Drinks-Menu-Spring-2026-Version-2.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Titanic Plum Porter", category: "Stout", price: 7.7, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://porterhouse.london/wp-content/uploads/2026/04/QR-Code-Drinks-Menu-Spring-2026-Version-2.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Duvel", category: "Other", price: 7.9, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://porterhouse.london/wp-content/uploads/2026/04/QR-Code-Drinks-Menu-Spring-2026-Version-2.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Guinness 0.0", category: "Stout", price: 6.3, measure: "can", volume_ml: 538, source: "website", source_url: "https://porterhouse.london/wp-content/uploads/2026/04/QR-Code-Drinks-Menu-Spring-2026-Version-2.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Stiegl Raspberry Radler", category: "Other", price: 5.9, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://porterhouse.london/wp-content/uploads/2026/04/QR-Code-Drinks-Menu-Spring-2026-Version-2.pdf", updated: "2026-09-28T12:00:00+01:00" }
     ]
   },
   {
@@ -273,15 +316,18 @@ export const SEED_PUBS = [
     lat: 51.51187,
     lng: -0.12319,
     opened_year: null,
-    tags: ["outdoor-drinking", "food", "sports-tv"],
+    tags: ["outdoor-drinking", "food", "sports-tv", "historic", "dog-friendly"],
     description:
       "A pub inside the old Covent Garden market building. Its balcony looks straight down on the Piazza's street performers.",
+    opening_hours: {"0": [["12:00", "22:30"]], "1": [["11:00", "23:00"]], "2": [["11:00", "23:00"]], "3": [["11:00", "23:00"]], "4": [["11:00", "23:00"]], "5": [["11:00", "00:00"]], "6": [["11:00", "00:00"]]},
     drinks: [
       { name: "Samuel Adams Boston Lager", category: "Lager", price: 7.6 },
-      { name: "Guinness", category: "Stout", price: 7.3 },
+      { name: "Guinness", category: "Stout", price: 6.95 },
       { name: "Greene King IPA", category: "Real Ale", price: 6.4 },
       { name: "Camden Pale Ale", category: "Pale Ale", price: 7.5 },
-      { name: "Strongbow Dark Fruit", category: "Cider", price: 7.2 }
+      { name: "Strongbow Dark Fruit", category: "Cider", price: 7.2 },
+      { name: "Beavertown Neck Oil", category: "Pale Ale", price: 8.05 },
+      { name: "Peroni", category: "Lager", price: 7.85 }
     ]
   },
   {
@@ -292,15 +338,87 @@ export const SEED_PUBS = [
     lat: 51.51099,
     lng: -0.12736,
     opened_year: 1892,
-    tags: ["historic", "victorian-interior", "food"],
+    tags: ["historic", "victorian-interior", "food", "dog-friendly"],
     description:
       "A theatreland pub with one of London's most spectacular late-Victorian interiors: etched glass, mahogany and bronze nymph lamps.",
+    opening_hours: {"0": [["12:00", "22:30"]], "1": [["11:00", "23:30"]], "2": [["11:00", "23:30"]], "3": [["11:00", "23:30"]], "4": [["11:00", "23:30"]], "5": [["11:00", "00:30"]], "6": [["11:00", "00:30"]]},
     drinks: [
       { name: "Timothy Taylor Landlord", category: "Real Ale", price: 6.8 },
       { name: "Guinness", category: "Stout", price: 7.1 },
       { name: "Madri Excepcional", category: "Lager", price: 7.4 },
       { name: "Beavertown Neck Oil", category: "Pale Ale", price: 7.5 },
       { name: "Aspall Suffolk Cyder", category: "Cider", price: 7.0 }
+    ]
+  },
+  {
+    id: "the-craft-beer-co-holborn",
+    name: "The Craft Beer Co.",
+    address: "168 High Holborn, London WC1V 7AA",
+    area: "Holborn",
+    lat: 51.51676,
+    lng: -0.12549,
+    opened_year: null,
+    tags: ["craft-beer", "real-ale-specialist", "quiz-night", "sports-tv", "live-music"],
+    description:
+      "A craft beer bar with a long wall of rotating keg and cask lines, from local London breweries to rare imports.",
+    opening_hours: {"0": [["12:00", "00:00"]], "1": [["12:00", "00:00"]], "2": [["12:00", "00:00"]], "3": [["12:00", "00:00"]], "4": [["12:00", "01:00"]], "5": [["12:00", "01:00"]], "6": [["12:00", "01:00"]]},
+    drinks: [
+      { name: "Kernel Pale Ale", category: "Pale Ale", price: 9.65, source: "website", source_url: "https://docs.google.com/presentation/d/1k7gRnKxP5BOVScO1blmw5zmYbGt7F2IK9LQq3ZySMH0/edit", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Pillars Pilsner (GF)", category: "Lager", price: 7.5, source: "website", source_url: "https://docs.google.com/presentation/d/1k7gRnKxP5BOVScO1blmw5zmYbGt7F2IK9LQq3ZySMH0/edit", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Supercute Mama (GF)", category: "IPA", price: 7.95, source: "website", source_url: "https://docs.google.com/presentation/d/1k7gRnKxP5BOVScO1blmw5zmYbGt7F2IK9LQq3ZySMH0/edit", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Anspach & Hobday London Black", category: "Stout", price: 7.8, source: "website", source_url: "https://docs.google.com/presentation/d/1k7gRnKxP5BOVScO1blmw5zmYbGt7F2IK9LQq3ZySMH0/edit", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Flensburger Pilsner", category: "Lager", price: 7.95, source: "website", source_url: "https://docs.google.com/presentation/d/1k7gRnKxP5BOVScO1blmw5zmYbGt7F2IK9LQq3ZySMH0/edit", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "König Ludwig Weissbier", category: "Wheat Beer", price: 8.1, source: "website", source_url: "https://docs.google.com/presentation/d/1k7gRnKxP5BOVScO1blmw5zmYbGt7F2IK9LQq3ZySMH0/edit", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Siren Soundwave", category: "IPA", price: 7.95, source: "website", source_url: "https://docs.google.com/presentation/d/1k7gRnKxP5BOVScO1blmw5zmYbGt7F2IK9LQq3ZySMH0/edit", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Crafty Blends Crafty Apple", category: "Cider", price: 7.5, source: "website", source_url: "https://docs.google.com/presentation/d/1k7gRnKxP5BOVScO1blmw5zmYbGt7F2IK9LQq3ZySMH0/edit", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Redfin Meloncherry", category: "Cider", price: 7.5, source: "website", source_url: "https://docs.google.com/presentation/d/1k7gRnKxP5BOVScO1blmw5zmYbGt7F2IK9LQq3ZySMH0/edit", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Moorhouse's Out Of Office", category: "Real Ale", price: 6.5, source: "website", source_url: "https://docs.google.com/presentation/d/1k7gRnKxP5BOVScO1blmw5zmYbGt7F2IK9LQq3ZySMH0/edit", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Lakedown Kicking Donkey", category: "Real Ale", price: 6.9, source: "website", source_url: "https://docs.google.com/presentation/d/1k7gRnKxP5BOVScO1blmw5zmYbGt7F2IK9LQq3ZySMH0/edit", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Siren Broken Dream", category: "Real Ale", price: 7.55, source: "website", source_url: "https://docs.google.com/presentation/d/1k7gRnKxP5BOVScO1blmw5zmYbGt7F2IK9LQq3ZySMH0/edit", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Newbarns Stout", category: "Real Ale", price: 6.5, source: "website", source_url: "https://docs.google.com/presentation/d/1k7gRnKxP5BOVScO1blmw5zmYbGt7F2IK9LQq3ZySMH0/edit", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Newbarns Strata", category: "Real Ale", price: 6.5, source: "website", source_url: "https://docs.google.com/presentation/d/1k7gRnKxP5BOVScO1blmw5zmYbGt7F2IK9LQq3ZySMH0/edit", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Somer Valley Roost", category: "Real Ale", price: 6.5, source: "website", source_url: "https://docs.google.com/presentation/d/1k7gRnKxP5BOVScO1blmw5zmYbGt7F2IK9LQq3ZySMH0/edit", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Kent Brewery Craft Pale", category: "Real Ale", price: 6.1, source: "website", source_url: "https://docs.google.com/presentation/d/1k7gRnKxP5BOVScO1blmw5zmYbGt7F2IK9LQq3ZySMH0/edit", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Luke's Cider Vintage Draught", category: "Cider", price: 8.0, source: "website", source_url: "https://docs.google.com/presentation/d/1k7gRnKxP5BOVScO1blmw5zmYbGt7F2IK9LQq3ZySMH0/edit", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Green Man Proper Dry", category: "Cider", price: 8.0, source: "website", source_url: "https://docs.google.com/presentation/d/1k7gRnKxP5BOVScO1blmw5zmYbGt7F2IK9LQq3ZySMH0/edit", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Seacider Passion Fruit", category: "Cider", price: 7.5, source: "website", source_url: "https://docs.google.com/presentation/d/1k7gRnKxP5BOVScO1blmw5zmYbGt7F2IK9LQq3ZySMH0/edit", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Seacider White Peach", category: "Cider", price: 7.5, source: "website", source_url: "https://docs.google.com/presentation/d/1k7gRnKxP5BOVScO1blmw5zmYbGt7F2IK9LQq3ZySMH0/edit", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Wiper And True Oktoberfestbier", category: "Lager", price: 6.3, measure: "two-thirds", source: "website", source_url: "https://docs.google.com/presentation/d/1k7gRnKxP5BOVScO1blmw5zmYbGt7F2IK9LQq3ZySMH0/edit", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Lost And Grounded Amplify Your Sound", category: "Lager", price: 7.4, measure: "two-thirds", source: "website", source_url: "https://docs.google.com/presentation/d/1k7gRnKxP5BOVScO1blmw5zmYbGt7F2IK9LQq3ZySMH0/edit", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Dusty's Alcoholic Ginger Beer", category: "Other", price: 6.2, measure: "two-thirds", source: "website", source_url: "https://docs.google.com/presentation/d/1k7gRnKxP5BOVScO1blmw5zmYbGt7F2IK9LQq3ZySMH0/edit", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Farm Yard Pig Pale", category: "IPA", price: 6.5, measure: "two-thirds", source: "website", source_url: "https://docs.google.com/presentation/d/1k7gRnKxP5BOVScO1blmw5zmYbGt7F2IK9LQq3ZySMH0/edit", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Wiper And True Kiwi Lilt", category: "Pale Ale", price: 7.3, measure: "two-thirds", source: "website", source_url: "https://docs.google.com/presentation/d/1k7gRnKxP5BOVScO1blmw5zmYbGt7F2IK9LQq3ZySMH0/edit", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Indie Rabble Unicorn Juice", category: "Pale Ale", price: 6.8, measure: "two-thirds", source: "website", source_url: "https://docs.google.com/presentation/d/1k7gRnKxP5BOVScO1blmw5zmYbGt7F2IK9LQq3ZySMH0/edit", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Drop Project Razza", category: "Wheat Beer", price: 7.7, measure: "two-thirds", source: "website", source_url: "https://docs.google.com/presentation/d/1k7gRnKxP5BOVScO1blmw5zmYbGt7F2IK9LQq3ZySMH0/edit", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Supercute Kissy Kissy", category: "Other", price: 8.6, measure: "two-thirds", source: "website", source_url: "https://docs.google.com/presentation/d/1k7gRnKxP5BOVScO1blmw5zmYbGt7F2IK9LQq3ZySMH0/edit", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Yonder Double Choc Fudge Cake", category: "Stout", price: 10.05, measure: "half", source: "website", source_url: "https://docs.google.com/presentation/d/1k7gRnKxP5BOVScO1blmw5zmYbGt7F2IK9LQq3ZySMH0/edit", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Brasserie Dupont Moinette", category: "Other", price: 10.55, measure: "half", source: "website", source_url: "https://docs.google.com/presentation/d/1k7gRnKxP5BOVScO1blmw5zmYbGt7F2IK9LQq3ZySMH0/edit", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Vault City Strawberry Sundae", category: "Other", price: 6.5, measure: "half", source: "website", source_url: "https://docs.google.com/presentation/d/1k7gRnKxP5BOVScO1blmw5zmYbGt7F2IK9LQq3ZySMH0/edit", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Orbit Chuckleberry", category: "Other", price: 5.95, measure: "half", source: "website", source_url: "https://docs.google.com/presentation/d/1k7gRnKxP5BOVScO1blmw5zmYbGt7F2IK9LQq3ZySMH0/edit", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Augustiner München Helles", category: "Lager", price: 7.5, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://docs.google.com/presentation/d/1k7gRnKxP5BOVScO1blmw5zmYbGt7F2IK9LQq3ZySMH0/edit", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Tegernseer Hell", category: "Lager", price: 9.65, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://docs.google.com/presentation/d/1k7gRnKxP5BOVScO1blmw5zmYbGt7F2IK9LQq3ZySMH0/edit", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Northern Monk Faith (0.5%)", category: "Pale Ale", price: 5.4, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://docs.google.com/presentation/d/1k7gRnKxP5BOVScO1blmw5zmYbGt7F2IK9LQq3ZySMH0/edit", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Orval", category: "Other", price: 9.0, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://docs.google.com/presentation/d/1k7gRnKxP5BOVScO1blmw5zmYbGt7F2IK9LQq3ZySMH0/edit", updated: "2026-09-28T12:00:00+01:00" }
+    ]
+  },
+  {
+    id: "the-ship-tavern",
+    name: "The Ship Tavern",
+    address: "12 Gate Street, Holborn, London WC2A 3HP",
+    area: "Holborn",
+    lat: 51.51712,
+    lng: -0.11846,
+    opened_year: 1549,
+    tags: ["historic", "food", "victorian-interior", "live-music", "sports-tv"],
+    description:
+      "A tavern said to date back to 1549, rebuilt in 1923. It's known for its wood-panelled rooms and stories of secret Catholic masses held here in Tudor times.",
+    opening_hours: {"0": [["11:00", "23:00"]], "1": [["11:00", "23:00"]], "2": [["11:00", "23:00"]], "3": [["11:00", "23:00"]], "4": [["11:00", "00:00"]], "5": [["11:00", "00:00"]], "6": [["11:00", "00:00"]]},
+    drinks: [
+      { name: "Fuller's London Pride", category: "Real Ale", price: 6.5 },
+      { name: "Guinness", category: "Stout", price: 6.9 },
+      { name: "Asahi Super Dry", category: "Lager", price: 7.4 },
+      { name: "Sierra Nevada Pale Ale", category: "Pale Ale", price: 7.3 },
+      { name: "Aspall Suffolk Cyder", category: "Cider", price: 6.8 }
     ]
   },
   {
@@ -314,40 +432,85 @@ export const SEED_PUBS = [
     tags: ["historic", "victorian-interior", "sports-tv", "food", "quiz-night", "live-music", "dog-friendly"],
     description:
       "A Grade II listed Victorian corner pub on Euston Road, rebuilt in 1899 for the Cannon Brewery and once called The Rising Sun. Its arched windows wrap around the corner, and it's handy for Euston, King's Cross and St Pancras.",
+    opening_hours: {"0": [["09:00", "00:00"]], "1": [["10:00", "00:00"]], "2": [["10:00", "00:00"]], "3": [["10:00", "00:00"]], "4": [["10:00", "01:00"]], "5": [["09:00", "02:00"]], "6": [["09:00", "02:00"]]},
     drinks: [
-      // Draught (pints) from The Rocket's order-at-table menu on its website, Archie's screenshots 24 Sep 2026 07:24.
-      // Shown there as "out of stock" only because online ordering was switched off.
-      { name: "Timothy Taylor Landlord", category: "Real Ale", price: 6.45, source: "website", source_url: ROCKET_MENU, updated: ROCKET_ORDER_DATE },
-      { name: "Alpacalypse", category: "Other", price: 7.40, source: "website", source_url: ROCKET_MENU, updated: ROCKET_ORDER_DATE },
-      { name: "Beavertown Neck Oil", category: "Pale Ale", price: 7.90, source: "website", source_url: ROCKET_MENU, updated: ROCKET_ORDER_DATE },
-      { name: "Jubel Peach", category: "Lager", price: 7.95, source: "website", source_url: ROCKET_MENU, updated: ROCKET_ORDER_DATE },
-      { name: "Camden Hells", category: "Lager", price: 7.70, source: "website", source_url: ROCKET_MENU, updated: ROCKET_ORDER_DATE },
-      { name: "Asahi Super Dry", category: "Lager", price: 7.75, source: "website", source_url: ROCKET_MENU, updated: ROCKET_ORDER_DATE },
-      { name: "Heineken", category: "Lager", price: 7.05, source: "website", source_url: ROCKET_MENU, updated: ROCKET_ORDER_DATE },
-      { name: "Peroni Nastro Azzurro", category: "Lager", price: 7.60, source: "website", source_url: ROCKET_MENU, updated: ROCKET_ORDER_DATE },
-      { name: "Madri", category: "Lager", price: 7.15, source: "website", source_url: ROCKET_MENU, updated: ROCKET_ORDER_DATE },
-      { name: "Mahou", category: "Lager", price: 7.30, source: "website", source_url: ROCKET_MENU, updated: ROCKET_ORDER_DATE },
-      { name: "Coors", category: "Lager", price: 6.25, source: "website", source_url: ROCKET_MENU, updated: ROCKET_ORDER_DATE },
-      { name: "Guinness", category: "Stout", price: 6.65, source: "website", source_url: ROCKET_MENU, updated: ROCKET_ORDER_DATE },
-      { name: "Strongbow Dark Fruit", category: "Cider", price: 6.40, source: "website", source_url: ROCKET_MENU, updated: ROCKET_ORDER_DATE },
-      { name: "Inch's Cider", category: "Cider", price: 6.15, source: "website", source_url: ROCKET_MENU, updated: ROCKET_ORDER_DATE },
-      // Real prices from The Rocket's own drinks page (Beer & Cider tab), from Archie's screenshots of 24 Sep 2026.
-      // All packaged (bottles), not draught; sizes are as printed (none printed for some).
-      { name: "Modelo", category: "Lager", price: 6.10, measure: "bottle", volume_ml: 355, source: "website", source_url: ROCKET_MENU, updated: ROCKET_MENU_DATE },
-      { name: "Peroni", category: "Lager", price: 6.05, measure: "bottle", volume_ml: 330, source: "website", source_url: ROCKET_MENU, updated: ROCKET_MENU_DATE },
-      { name: "Corona", category: "Lager", price: 6.05, measure: "bottle", volume_ml: 330, source: "website", source_url: ROCKET_MENU, updated: ROCKET_MENU_DATE },
-      { name: "Budweiser", category: "Lager", price: 6.05, measure: "bottle", volume_ml: 330, source: "website", source_url: ROCKET_MENU, updated: ROCKET_MENU_DATE },
-      { name: "Desperados", category: "Lager", price: 6.30, measure: "bottle", volume_ml: 330, source: "website", source_url: ROCKET_MENU, updated: ROCKET_MENU_DATE },
-      { name: "Daura Damm (gluten free)", category: "Lager", price: 6.05, measure: "bottle", volume_ml: 330, source: "website", source_url: ROCKET_MENU, updated: ROCKET_MENU_DATE },
-      { name: "Schöfferhofer Grapefruit Wheat Beer", category: "Wheat Beer", price: 6.30, measure: "bottle", volume_ml: 500, source: "website", source_url: ROCKET_MENU, updated: ROCKET_MENU_DATE },
-      { name: "Newcastle Brown Ale", category: "Other", price: 5.90, measure: "bottle", volume_ml: 550, source: "website", source_url: ROCKET_MENU, updated: ROCKET_MENU_DATE },
-      { name: "Sharp's Atlantic Pale Ale", category: "Pale Ale", price: 6.20, measure: "bottle", source: "website", source_url: ROCKET_MENU, updated: ROCKET_MENU_DATE },
-      { name: "Sharp's Doom Bar", category: "Other", price: 6.20, measure: "bottle", volume_ml: 500, source: "website", source_url: ROCKET_MENU, updated: ROCKET_MENU_DATE },
-      { name: "Magners Original", category: "Cider", price: 6.25, measure: "bottle", volume_ml: 568, source: "website", source_url: ROCKET_MENU, updated: ROCKET_MENU_DATE },
-      { name: "Thatchers Haze", category: "Cider", price: 6.75, measure: "bottle", volume_ml: 500, source: "website", source_url: ROCKET_MENU, updated: ROCKET_MENU_DATE },
-      { name: "Rekorderlig Peach Raspberry", category: "Cider", price: 6.70, measure: "bottle", volume_ml: 500, source: "website", source_url: ROCKET_MENU, updated: ROCKET_MENU_DATE },
-      { name: "Rekorderlig Strawberry Lime", category: "Cider", price: 6.70, measure: "bottle", volume_ml: 500, source: "website", source_url: ROCKET_MENU, updated: ROCKET_MENU_DATE },
-      { name: "Rekorderlig Wild Berries", category: "Cider", price: 6.70, measure: "bottle", volume_ml: 500, source: "website", source_url: ROCKET_MENU, updated: ROCKET_MENU_DATE }
+      { name: "Timothy Taylor Landlord", category: "Real Ale", price: 6.45, source: "website", source_url: "https://www.therocketeustonroad.co.uk/drinks", updated: "2026-09-24T12:00:00+01:00" },
+      { name: "Alpacalypse", category: "Other", price: 7.4, source: "website", source_url: "https://www.therocketeustonroad.co.uk/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Beavertown Neck Oil", category: "Pale Ale", price: 7.9, source: "website", source_url: "https://www.therocketeustonroad.co.uk/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Jubel Peach", category: "Lager", price: 7.95, source: "website", source_url: "https://www.therocketeustonroad.co.uk/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Camden Hells", category: "Lager", price: 7.7, source: "website", source_url: "https://www.therocketeustonroad.co.uk/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Asahi Super Dry", category: "Lager", price: 7.75, source: "website", source_url: "https://www.therocketeustonroad.co.uk/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Heineken", category: "Lager", price: 7.05, source: "website", source_url: "https://www.therocketeustonroad.co.uk/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Peroni Nastro Azzurro", category: "Lager", price: 7.6, source: "website", source_url: "https://www.therocketeustonroad.co.uk/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Madri", category: "Lager", price: 7.15, source: "website", source_url: "https://www.therocketeustonroad.co.uk/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Mahou", category: "Lager", price: 7.3, source: "website", source_url: "https://www.therocketeustonroad.co.uk/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Coors", category: "Lager", price: 6.25, source: "website", source_url: "https://www.therocketeustonroad.co.uk/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Guinness", category: "Stout", price: 6.65, source: "website", source_url: "https://www.therocketeustonroad.co.uk/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Strongbow Dark Fruit", category: "Cider", price: 6.4, source: "website", source_url: "https://www.therocketeustonroad.co.uk/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Inch's Cider", category: "Cider", price: 6.15, source: "website", source_url: "https://www.therocketeustonroad.co.uk/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Modelo", category: "Lager", price: 5.9, measure: "bottle", volume_ml: 355, source: "website", source_url: "https://www.therocketeustonroad.co.uk/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Peroni", category: "Lager", price: 5.85, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.therocketeustonroad.co.uk/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Corona", category: "Lager", price: 5.85, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.therocketeustonroad.co.uk/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Budweiser", category: "Lager", price: 5.85, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.therocketeustonroad.co.uk/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Desperados", category: "Lager", price: 6.1, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.therocketeustonroad.co.uk/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Daura Damm (gluten free)", category: "Lager", price: 5.85, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.therocketeustonroad.co.uk/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Schöfferhofer Grapefruit Wheat Beer", category: "Wheat Beer", price: 6.1, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.therocketeustonroad.co.uk/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Newcastle Brown Ale", category: "Other", price: 5.75, measure: "bottle", volume_ml: 550, source: "website", source_url: "https://www.therocketeustonroad.co.uk/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Sharp's Atlantic Pale Ale", category: "Pale Ale", price: 6.05, measure: "bottle", source: "website", source_url: "https://www.therocketeustonroad.co.uk/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Sharp's Doom Bar", category: "Other", price: 6.05, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.therocketeustonroad.co.uk/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Magners Original", category: "Cider", price: 6.1, measure: "bottle", volume_ml: 568, source: "website", source_url: "https://www.therocketeustonroad.co.uk/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Thatchers Haze", category: "Cider", price: 6.6, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.therocketeustonroad.co.uk/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Rekorderlig Peach Raspberry", category: "Cider", price: 6.5, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.therocketeustonroad.co.uk/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Rekorderlig Strawberry Lime", category: "Cider", price: 6.5, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.therocketeustonroad.co.uk/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Rekorderlig Wild Berries", category: "Cider", price: 6.5, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.therocketeustonroad.co.uk/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Guinness 0.0", category: "Stout", price: 5.95, measure: "can", volume_ml: 538, source: "website", source_url: "https://www.therocketeustonroad.co.uk/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Peroni 0.0%", category: "Lager", price: 4.65, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.therocketeustonroad.co.uk/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Madri 0.0", category: "Lager", price: 4.45, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.therocketeustonroad.co.uk/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Corona Cero", category: "Lager", price: 4.45, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.therocketeustonroad.co.uk/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Proper Job 0.5%", category: "IPA", price: 4.9, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.therocketeustonroad.co.uk/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Thatchers Zero", category: "Cider", price: 4.85, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.therocketeustonroad.co.uk/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Rekorderlig 0.0%", category: "Cider", price: 4.75, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.therocketeustonroad.co.uk/drinks", updated: "2026-09-28T12:00:00+01:00" }
+    ]
+  },
+  {
+    id: "the-alleyns-head",
+    name: "The Alleyn's Head",
+    address: "Park Hall Road, West Dulwich, London SE21 8BW",
+    area: "West Dulwich",
+    lat: 51.436926,
+    lng: -0.088414,
+    opened_year: null,
+    tags: ["food", "beer-garden", "quiz-night"],
+    description:
+      "A large Ember Inns pub on Park Hall Road with a garden and car park, four regular cask ales, set-price lunch and dinner menus and a weekly quiz.",
+    opening_hours: {"0": [["12:00", "22:00"]], "1": [["12:00", "23:00"]], "2": [["12:00", "23:00"]], "3": [["12:00", "23:00"]], "4": [["12:00", "23:00"]], "5": [["12:00", "23:00"]], "6": [["12:00", "23:00"]]},
+    drinks: [
+      { name: "Sharp's Doom Bar", category: "Real Ale", price: 4.9, source: "website", source_url: "https://www.emberinns.co.uk/nationalsearch/london/the-alleyns-head-west-dulwich/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Guinness", category: "Stout", price: 6.05, source: "website", source_url: "https://www.emberinns.co.uk/nationalsearch/london/the-alleyns-head-west-dulwich/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Madri", category: "Lager", price: 6.5, source: "website", source_url: "https://www.emberinns.co.uk/nationalsearch/london/the-alleyns-head-west-dulwich/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Asahi Super Dry", category: "Lager", price: 7.0, source: "website", source_url: "https://www.emberinns.co.uk/nationalsearch/london/the-alleyns-head-west-dulwich/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Peroni Nastro Azzurro", category: "Lager", price: 6.85, source: "website", source_url: "https://www.emberinns.co.uk/nationalsearch/london/the-alleyns-head-west-dulwich/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Coors", category: "Lager", price: 5.75, source: "website", source_url: "https://www.emberinns.co.uk/nationalsearch/london/the-alleyns-head-west-dulwich/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Stella Artois", category: "Lager", price: 6.05, source: "website", source_url: "https://www.emberinns.co.uk/nationalsearch/london/the-alleyns-head-west-dulwich/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Carling", category: "Lager", price: 5.15, source: "website", source_url: "https://www.emberinns.co.uk/nationalsearch/london/the-alleyns-head-west-dulwich/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "BrewDog Wingman", category: "IPA", price: 6.5, source: "website", source_url: "https://www.emberinns.co.uk/nationalsearch/london/the-alleyns-head-west-dulwich/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Thatchers Gold", category: "Cider", price: 5.65, source: "website", source_url: "https://www.emberinns.co.uk/nationalsearch/london/the-alleyns-head-west-dulwich/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Strongbow Dark Fruit", category: "Cider", price: 5.8, source: "website", source_url: "https://www.emberinns.co.uk/nationalsearch/london/the-alleyns-head-west-dulwich/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Westons Old Rosie", category: "Cider", price: 5.95, source: "website", source_url: "https://www.emberinns.co.uk/nationalsearch/london/the-alleyns-head-west-dulwich/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Peroni Nastro Azzurro", category: "Lager", price: 5.25, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.emberinns.co.uk/nationalsearch/london/the-alleyns-head-west-dulwich/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Corona", category: "Lager", price: 5.25, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.emberinns.co.uk/nationalsearch/london/the-alleyns-head-west-dulwich/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Desperados", category: "Lager", price: 5.55, measure: "bottle", source: "website", source_url: "https://www.emberinns.co.uk/nationalsearch/london/the-alleyns-head-west-dulwich/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Budweiser", category: "Lager", price: 5.2, measure: "bottle", source: "website", source_url: "https://www.emberinns.co.uk/nationalsearch/london/the-alleyns-head-west-dulwich/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Daura Damm (gluten free)", category: "Lager", price: 5.4, measure: "bottle", source: "website", source_url: "https://www.emberinns.co.uk/nationalsearch/london/the-alleyns-head-west-dulwich/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Rekorderlig", category: "Cider", price: 6.0, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.emberinns.co.uk/nationalsearch/london/the-alleyns-head-west-dulwich/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Bulmers", category: "Cider", price: 5.65, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.emberinns.co.uk/nationalsearch/london/the-alleyns-head-west-dulwich/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Thatchers Rosé", category: "Cider", price: 6.0, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.emberinns.co.uk/nationalsearch/london/the-alleyns-head-west-dulwich/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Guinness 0.0", category: "Stout", price: 5.35, measure: "can", volume_ml: 538, source: "website", source_url: "https://www.emberinns.co.uk/nationalsearch/london/the-alleyns-head-west-dulwich/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Proper Job 0.5%", category: "IPA", price: 4.4, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.emberinns.co.uk/nationalsearch/london/the-alleyns-head-west-dulwich/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Madrí Zero", category: "Lager", price: 3.95, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.emberinns.co.uk/nationalsearch/london/the-alleyns-head-west-dulwich/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Peroni 0.0%", category: "Lager", price: 4.0, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.emberinns.co.uk/nationalsearch/london/the-alleyns-head-west-dulwich/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Thatchers Zero", category: "Cider", price: 4.45, measure: "can", volume_ml: 500, source: "website", source_url: "https://www.emberinns.co.uk/nationalsearch/london/the-alleyns-head-west-dulwich/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Rekorderlig Strawberry Lime 0.0%", category: "Cider", price: 4.35, measure: "bottle", source: "website", source_url: "https://www.emberinns.co.uk/nationalsearch/london/the-alleyns-head-west-dulwich/menus/drink", updated: "2026-09-28T12:00:00+01:00" }
     ]
   },
   {
@@ -361,22 +524,26 @@ export const SEED_PUBS = [
     tags: ["historic", "food", "beer-garden", "dog-friendly", "quiz-night"],
     description:
       "A Grade II listed former Victorian coaching inn with a pillared portico and original Royal Doulton tiles. It has three gardens with a children's play area, table tennis and boules, and a dining room serving seasonal food.",
+    opening_hours: {"0": [["11:00", "22:30"]], "1": [["11:00", "23:00"]], "2": [["11:00", "23:00"]], "3": [["11:00", "23:00"]], "4": [["11:00", "23:00"]], "5": [["11:00", "01:00"]], "6": [["11:00", "01:00"]]},
     drinks: [
-      // Draught beer & cider and cask ale from the Spring 2026 drinks menu. The menu doesn't say pint, but
-      // these are draught prices, so they're recorded as pints: check at the bar.
-      { name: "Amstel", category: "Lager", price: 6.40, source: "website", source_url: ROSENDALE_MENU, updated: ROSENDALE_MENU_DATE },
-      { name: "Birra Moretti", category: "Lager", price: 7.50, source: "website", source_url: ROSENDALE_MENU, updated: ROSENDALE_MENU_DATE },
-      { name: "Brixton Coldharbour Lager", category: "Lager", price: 7.40, source: "website", source_url: ROSENDALE_MENU, updated: ROSENDALE_MENU_DATE },
-      { name: "Cruzcampo", category: "Lager", price: 6.90, source: "website", source_url: ROSENDALE_MENU, updated: ROSENDALE_MENU_DATE },
-      { name: "Beavertown Neck Oil", category: "Pale Ale", price: 7.60, source: "website", source_url: ROSENDALE_MENU, updated: ROSENDALE_MENU_DATE },
-      { name: "Brixton Reliance Pale Ale", category: "Pale Ale", price: 7.40, source: "website", source_url: ROSENDALE_MENU, updated: ROSENDALE_MENU_DATE },
-      { name: "Gipsy Hill Hepcat", category: "IPA", price: 7.60, source: "website", source_url: ROSENDALE_MENU, updated: ROSENDALE_MENU_DATE },
-      { name: "Henry Weston's Vintage Cider", category: "Cider", price: 6.60, source: "website", source_url: ROSENDALE_MENU, updated: ROSENDALE_MENU_DATE },
-      { name: "Jubel Peach", category: "Lager", price: 7.80, source: "website", source_url: ROSENDALE_MENU, updated: ROSENDALE_MENU_DATE },
-      { name: "Guinness", category: "Stout", price: 7.30, source: "website", source_url: ROSENDALE_MENU, updated: ROSENDALE_MENU_DATE },
-      { name: "Lucky Saint (0.5%)", category: "Lager", price: 6.00, source: "website", source_url: ROSENDALE_MENU, updated: ROSENDALE_MENU_DATE },
-      { name: "Timothy Taylor Golden Best", category: "Real Ale", price: 6.40, source: "website", source_url: ROSENDALE_MENU, updated: ROSENDALE_MENU_DATE },
-      { name: "Harvey's Sussex Best", category: "Real Ale", price: 6.40, source: "website", source_url: ROSENDALE_MENU, updated: ROSENDALE_MENU_DATE }
+      { name: "Amstel", category: "Lager", price: 6.4, source: "website", source_url: "https://www.therosendale.co.uk/assets/PAGE-1-SPRING-2026-1.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Birra Moretti", category: "Lager", price: 7.5, source: "website", source_url: "https://www.therosendale.co.uk/assets/PAGE-1-SPRING-2026-1.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Brixton Coldharbour Lager", category: "Lager", price: 7.4, source: "website", source_url: "https://www.therosendale.co.uk/assets/PAGE-1-SPRING-2026-1.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Cruzcampo", category: "Lager", price: 6.9, source: "website", source_url: "https://www.therosendale.co.uk/assets/PAGE-1-SPRING-2026-1.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Beavertown Neck Oil", category: "Pale Ale", price: 7.6, source: "website", source_url: "https://www.therosendale.co.uk/assets/PAGE-1-SPRING-2026-1.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Brixton Reliance Pale Ale", category: "Pale Ale", price: 7.4, source: "website", source_url: "https://www.therosendale.co.uk/assets/PAGE-1-SPRING-2026-1.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Gipsy Hill Hepcat", category: "IPA", price: 7.6, source: "website", source_url: "https://www.therosendale.co.uk/assets/PAGE-1-SPRING-2026-1.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Henry Weston's Vintage Cider", category: "Cider", price: 6.6, source: "website", source_url: "https://www.therosendale.co.uk/assets/PAGE-1-SPRING-2026-1.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Jubel Peach", category: "Lager", price: 7.8, source: "website", source_url: "https://www.therosendale.co.uk/assets/PAGE-1-SPRING-2026-1.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Guinness", category: "Stout", price: 7.3, source: "website", source_url: "https://www.therosendale.co.uk/assets/PAGE-1-SPRING-2026-1.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Lucky Saint (0.5%)", category: "Lager", price: 6.0, source: "website", source_url: "https://www.therosendale.co.uk/assets/PAGE-1-SPRING-2026-1.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Timothy Taylor Golden Best", category: "Real Ale", price: 6.4, source: "website", source_url: "https://www.therosendale.co.uk/assets/PAGE-1-SPRING-2026-1.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Harvey's Sussex Best", category: "Real Ale", price: 6.4, source: "website", source_url: "https://www.therosendale.co.uk/assets/PAGE-1-SPRING-2026-1.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Heineken 0.0", category: "Lager", price: 4.7, measure: "bottle", source: "website", source_url: "https://www.therosendale.co.uk/assets/LOW-NO-SOFTS-MENU-CURRENT-2.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Erdinger Alkoholfrei", category: "Wheat Beer", price: 5.2, measure: "bottle", source: "website", source_url: "https://www.therosendale.co.uk/assets/LOW-NO-SOFTS-MENU-CURRENT-2.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Guinness 0.0", category: "Stout", price: 6.0, measure: "can", source: "website", source_url: "https://www.therosendale.co.uk/assets/LOW-NO-SOFTS-MENU-CURRENT-2.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Lucky Saint Hazy IPA", category: "IPA", price: 5.2, measure: "can", source: "website", source_url: "https://www.therosendale.co.uk/assets/LOW-NO-SOFTS-MENU-CURRENT-2.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Magners Cider 0.0%", category: "Cider", price: 4.7, measure: "bottle", source: "website", source_url: "https://www.therosendale.co.uk/assets/LOW-NO-SOFTS-MENU-CURRENT-2.pdf", updated: "2026-09-28T12:00:00+01:00" }
     ]
   },
   {
@@ -384,35 +551,52 @@ export const SEED_PUBS = [
     name: "The Crown & Greyhound",
     address: "73 Dulwich Village, London SE21 7BJ",
     area: "Dulwich Village",
-    lat: 51.4488,
+    lat: 51.449367,
     lng: -0.0848,
     opened_year: 1900,
     tags: ["historic", "food", "beer-garden", "live-music"],
     description:
       "A big Grade II listed village pub built around 1900 to replace two rival pubs, The Crown and The Greyhound; locals call it \"The Dog\". It reopened in March 2026 after a refurbishment, with a garden, a dining room and rooms upstairs.",
+    opening_hours: {"0": [["11:00", "22:30"]], "1": [["09:00", "23:00"]], "2": [["09:00", "23:00"]], "3": [["09:00", "23:00"]], "4": [["09:00", "23:00"]], "5": [["09:00", "00:00"]], "6": [["09:00", "00:00"]]},
     drinks: [
-      // Estimates: no drink prices found online. 2-4 changing real ales per CAMRA.
-      { name: "Guinness", category: "Stout", price: 7.2 },
-      { name: "Camden Hells", category: "Lager", price: 7.4 },
-      { name: "Beavertown Neck Oil", category: "Pale Ale", price: 7.5 }
-    ]
-  },
-  {
-    id: "the-alleyns-head",
-    name: "The Alleyn's Head",
-    address: "Park Hall Road, West Dulwich, London SE21 8BW",
-    area: "West Dulwich",
-    lat: 51.4359,
-    lng: -0.0906,
-    opened_year: null,
-    tags: ["food", "beer-garden", "quiz-night"],
-    description:
-      "A large Ember Inns pub on Park Hall Road with a garden and car park, four regular cask ales, set-price lunch and dinner menus and a weekly quiz.",
-    drinks: [
-      // Estimates: no drink prices found online (Ember advertises cask ale "from £3.50", likely a member offer).
-      { name: "Guinness", category: "Stout", price: 6.5 },
-      { name: "Madri", category: "Lager", price: 6.6 },
-      { name: "Timothy Taylor Landlord", category: "Real Ale", price: 5.95 }
+      { name: "Fuller's London Pride", category: "Real Ale", price: 7.1, source: "website", source_url: "https://www.thecrownandgreyhound.co.uk/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Timothy Taylor Landlord", category: "Real Ale", price: 7.2, source: "website", source_url: "https://www.thecrownandgreyhound.co.uk/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Harveys Sussex Bitter", category: "Real Ale", price: 6.7, source: "website", source_url: "https://www.thecrownandgreyhound.co.uk/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Beavertown Neck Oil", category: "Pale Ale", price: 8.25, source: "website", source_url: "https://www.thecrownandgreyhound.co.uk/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Jubel Peach", category: "Other", price: 8.3, source: "website", source_url: "https://www.thecrownandgreyhound.co.uk/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Verdant Lightbulb", category: "Pale Ale", price: 8.65, source: "website", source_url: "https://www.thecrownandgreyhound.co.uk/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Kirkstall Ripple Effect", category: "Pale Ale", price: 8.25, source: "website", source_url: "https://www.thecrownandgreyhound.co.uk/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Sambrook's Poolside", category: "Pale Ale", price: 8.05, source: "website", source_url: "https://www.thecrownandgreyhound.co.uk/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Gipsy Hill Hepcat", category: "IPA", price: 8.3, source: "website", source_url: "https://www.thecrownandgreyhound.co.uk/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Camden Hells", category: "Lager", price: 8.2, source: "website", source_url: "https://www.thecrownandgreyhound.co.uk/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Peroni Nastro Azzurro", category: "Lager", price: 8.05, source: "website", source_url: "https://www.thecrownandgreyhound.co.uk/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Madri Excepcional", category: "Lager", price: 7.85, source: "website", source_url: "https://www.thecrownandgreyhound.co.uk/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Pravha", category: "Lager", price: 7.2, source: "website", source_url: "https://www.thecrownandgreyhound.co.uk/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Asahi Super Dry", category: "Lager", price: 8.2, source: "website", source_url: "https://www.thecrownandgreyhound.co.uk/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Guinness", category: "Stout", price: 7.8, source: "website", source_url: "https://www.thecrownandgreyhound.co.uk/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Aspall Cyder", category: "Cider", price: 7.35, source: "website", source_url: "https://www.thecrownandgreyhound.co.uk/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Lucky Saint (0.5%)", category: "Lager", price: 7.4, source: "website", source_url: "https://www.thecrownandgreyhound.co.uk/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Arbor Faked Alaska Pudding IPA", category: "IPA", price: 8.2, measure: "can", source: "website", source_url: "https://www.thecrownandgreyhound.co.uk/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Arbor Pocket Rocket", category: "Pale Ale", price: 8.2, measure: "can", source: "website", source_url: "https://www.thecrownandgreyhound.co.uk/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Verdant Sundialer", category: "Pale Ale", price: 7.6, measure: "can", source: "website", source_url: "https://www.thecrownandgreyhound.co.uk/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Verdant Even Sharks Need Water", category: "IPA", price: 7.6, measure: "can", source: "website", source_url: "https://www.thecrownandgreyhound.co.uk/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Vault City Strawberry Sundae Sour", category: "Other", price: 7.6, measure: "can", source: "website", source_url: "https://www.thecrownandgreyhound.co.uk/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Leffe Blond", category: "Other", price: 7.7, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.thecrownandgreyhound.co.uk/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Paulaner Hefe-Weizen", category: "Wheat Beer", price: 7.3, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.thecrownandgreyhound.co.uk/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Duvel", category: "Other", price: 7.35, measure: "bottle", source: "website", source_url: "https://www.thecrownandgreyhound.co.uk/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Bacchus Raspberry", category: "Other", price: 7.7, measure: "bottle", volume_ml: 375, source: "website", source_url: "https://www.thecrownandgreyhound.co.uk/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Schöfferhofer Grapefruit Radler", category: "Wheat Beer", price: 6.6, measure: "bottle", source: "website", source_url: "https://www.thecrownandgreyhound.co.uk/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Daura Damm (gluten free)", category: "Lager", price: 6.05, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.thecrownandgreyhound.co.uk/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Peroni Nastro Azzurro", category: "Lager", price: 6.3, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.thecrownandgreyhound.co.uk/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Corona", category: "Lager", price: 6.3, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.thecrownandgreyhound.co.uk/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Lucky Saint (0.5%)", category: "Lager", price: 5.8, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.thecrownandgreyhound.co.uk/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Lucky Saint IPA (0.5%)", category: "IPA", price: 5.8, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.thecrownandgreyhound.co.uk/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Peroni 0.0%", category: "Lager", price: 5.15, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.thecrownandgreyhound.co.uk/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Thatchers Zero", category: "Cider", price: 6.15, measure: "can", volume_ml: 500, source: "website", source_url: "https://www.thecrownandgreyhound.co.uk/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Guinness 0.0", category: "Stout", price: 6.05, measure: "can", volume_ml: 538, source: "website", source_url: "https://www.thecrownandgreyhound.co.uk/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Proper Job 0.5% IPA", category: "IPA", price: 6.2, measure: "bottle", source: "website", source_url: "https://www.thecrownandgreyhound.co.uk/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Rekorderlig Strawberry-Lime", category: "Cider", price: 7.05, measure: "bottle", source: "website", source_url: "https://www.thecrownandgreyhound.co.uk/menus/drink", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Sandford Orchards Devon Red", category: "Cider", price: 7.45, measure: "bottle", source: "website", source_url: "https://www.thecrownandgreyhound.co.uk/menus/drink", updated: "2026-09-28T12:00:00+01:00" }
     ]
   },
   {
@@ -426,11 +610,572 @@ export const SEED_PUBS = [
     tags: ["food", "beer-garden", "quiz-night", "live-music", "sports-tv"],
     description:
       "A Young's pub on Sydenham Hill by Dulwich Wood, built in the Victorian era to a design by Joseph Paxton of Crystal Palace fame. It has a big, partly covered and heated garden with an outside bar, a conservatory restaurant and a weekly quiz.",
+    opening_hours: {"0": [["09:00", "23:00"]], "1": [["10:30", "23:00"]], "2": [["10:30", "23:00"]], "3": [["10:30", "23:00"]], "4": [["10:30", "23:00"]], "5": [["09:00", "23:00"]], "6": [["09:00", "23:00"]]},
     drinks: [
-      // Estimates: no drink prices found online. Young's pub, so Young's beers are likely.
       { name: "Young's London Original", category: "Real Ale", price: 6.2 },
       { name: "Guinness", category: "Stout", price: 7.0 },
       { name: "Camden Hells", category: "Lager", price: 7.2 }
+    ]
+  },
+  {
+    id: "the-argyll-arms",
+    name: "The Argyll Arms",
+    address: "18 Argyll Street, London W1F 7TP",
+    area: "Soho",
+    lat: 51.515096,
+    lng: -0.141281,
+    opened_year: 1868,
+    tags: ["historic", "victorian-interior", "food", "outdoor-drinking"],
+    description:
+      "Built in 1868 and refitted around 1895, this Grade II* pub by the London Palladium has one of London's best surviving late-Victorian interiors, with etched glass and mahogany screens dividing the front into small snugs under a Lincrusta ceiling. It's a busy Nicholson's house just off Oxford Circus serving cask ales, pies and pub classics.",
+    opening_hours: {"0": [["11:00", "22:30"]], "1": [["11:00", "23:00"]], "2": [["11:00", "23:00"]], "3": [["11:00", "23:00"]], "4": [["11:00", "23:00"]], "5": [["11:00", "00:00"]], "6": [["11:00", "00:00"]]},
+    drinks: [
+      { name: "Nicholson's Pale Ale", category: "Real Ale", price: 6.85, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theargyllarmsoxfordcircuslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Timothy Taylor Landlord", category: "Real Ale", price: 7.5, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theargyllarmsoxfordcircuslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Signature Haze Machine", category: "IPA", price: 8.45, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theargyllarmsoxfordcircuslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Asahi Super Dry", category: "Lager", price: 8.3, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theargyllarmsoxfordcircuslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Madri", category: "Lager", price: 8.0, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theargyllarmsoxfordcircuslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Peroni Nastro Azzurro", category: "Lager", price: 8.2, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theargyllarmsoxfordcircuslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Camden Hells", category: "Lager", price: 8.25, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theargyllarmsoxfordcircuslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Budvar", category: "Lager", price: 8.35, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theargyllarmsoxfordcircuslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Jubel Peach", category: "Other", price: 8.45, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theargyllarmsoxfordcircuslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Guinness", category: "Stout", price: 7.95, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theargyllarmsoxfordcircuslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Beavertown Neck Oil", category: "Pale Ale", price: 8.45, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theargyllarmsoxfordcircuslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Westons Vintage Cider", category: "Cider", price: 7.6, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theargyllarmsoxfordcircuslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Schöfferhofer Grapefruit Radler", category: "Wheat Beer", price: 7.05, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theargyllarmsoxfordcircuslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Budweiser", category: "Lager", price: 6.8, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theargyllarmsoxfordcircuslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Peroni Nastro Azzurro", category: "Lager", price: 6.9, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theargyllarmsoxfordcircuslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Corona Extra", category: "Lager", price: 6.9, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theargyllarmsoxfordcircuslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Daura Damm (gluten free)", category: "Lager", price: 6.5, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theargyllarmsoxfordcircuslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Paulaner Weiss", category: "Wheat Beer", price: 7.3, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theargyllarmsoxfordcircuslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Sandford Orchards Devon Red", category: "Cider", price: 7.5, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theargyllarmsoxfordcircuslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Bulmers Original", category: "Cider", price: 6.75, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theargyllarmsoxfordcircuslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Rekorderlig Wild Berries", category: "Cider", price: 7.5, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theargyllarmsoxfordcircuslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Rekorderlig Strawberry-Lime", category: "Cider", price: 7.5, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theargyllarmsoxfordcircuslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Lucky Saint (0.5%)", category: "Lager", price: 6.95, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theargyllarmsoxfordcircuslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Peroni 0.0%", category: "Lager", price: 5.5, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theargyllarmsoxfordcircuslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Guinness 0.0", category: "Stout", price: 5.95, measure: "can", volume_ml: 583, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theargyllarmsoxfordcircuslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Lucky Saint (0.5%)", category: "Lager", price: 5.65, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theargyllarmsoxfordcircuslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Lucky Saint Hazy IPA (0.5%)", category: "IPA", price: 5.65, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theargyllarmsoxfordcircuslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Rekorderlig Strawberry-Lime 0.0%", category: "Cider", price: 6.4, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theargyllarmsoxfordcircuslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Proper Job 0.5% IPA", category: "IPA", price: 5.65, measure: "bottle", source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theargyllarmsoxfordcircuslondon/drinks", updated: "2026-09-28T12:00:00+01:00" }
+    ]
+  },
+  {
+    id: "the-clachan",
+    name: "The Clachan",
+    address: "34 Kingly Street, London W1B 5QH",
+    area: "Soho",
+    lat: 51.513497,
+    lng: -0.140265,
+    opened_year: 1898,
+    tags: ["historic", "victorian-interior", "food", "sports-tv"],
+    description:
+      "A French Renaissance-style corner pub of 1898 just off Carnaby Street, once owned by the Liberty department store. Inside is a large mahogany island bar with etched glass, Lincrusta ceilings and a raised snug at the back. It's a busy Nicholson's pub serving cask ale and pies.",
+    opening_hours: {"0": [["12:00", "22:00"]], "1": [["11:30", "23:00"]], "2": [["11:30", "23:00"]], "3": [["11:30", "23:30"]], "4": [["11:30", "23:30"]], "5": [["11:30", "00:00"]], "6": [["11:30", "00:00"]]},
+    drinks: [
+      { name: "Nicholson's Pale Ale", category: "Real Ale", price: 6.75, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theclachankinglystreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Timothy Taylor Landlord", category: "Real Ale", price: 7.4, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theclachankinglystreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Signature Haze Machine", category: "IPA", price: 8.35, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theclachankinglystreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Hawkstone Lager", category: "Lager", price: 8.5, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theclachankinglystreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Madri", category: "Lager", price: 7.9, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theclachankinglystreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Peroni Nastro Azzurro", category: "Lager", price: 8.1, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theclachankinglystreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Camden Hells", category: "Lager", price: 8.15, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theclachankinglystreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Budvar", category: "Lager", price: 8.25, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theclachankinglystreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Jubel Peach", category: "Other", price: 8.35, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theclachankinglystreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Beavertown Neck Oil", category: "Pale Ale", price: 8.35, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theclachankinglystreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Guinness", category: "Stout", price: 7.85, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theclachankinglystreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Henry Westons Vintage Cider", category: "Cider", price: 7.5, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theclachankinglystreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Schöfferhofer Grapefruit Radler", category: "Wheat Beer", price: 6.95, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theclachankinglystreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Budweiser", category: "Lager", price: 6.7, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theclachankinglystreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Peroni Nastro Azzurro", category: "Lager", price: 6.8, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theclachankinglystreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Corona Extra", category: "Lager", price: 6.8, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theclachankinglystreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Daura Damm (gluten free)", category: "Lager", price: 6.4, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theclachankinglystreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Paulaner Weiss", category: "Wheat Beer", price: 7.2, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theclachankinglystreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Sandford Orchards Devon Red", category: "Cider", price: 7.4, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theclachankinglystreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Bulmers Original", category: "Cider", price: 6.65, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theclachankinglystreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Rekorderlig Wild Berries", category: "Cider", price: 7.4, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theclachankinglystreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Rekorderlig Strawberry-Lime", category: "Cider", price: 7.4, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theclachankinglystreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Lucky Saint (0.5%)", category: "Lager", price: 6.85, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theclachankinglystreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Peroni 0.0%", category: "Lager", price: 5.4, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theclachankinglystreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Guinness 0.0", category: "Stout", price: 5.85, measure: "can", volume_ml: 583, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theclachankinglystreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Lucky Saint (0.5%)", category: "Lager", price: 5.55, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theclachankinglystreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Lucky Saint Hazy IPA (0.5%)", category: "IPA", price: 5.55, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theclachankinglystreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Rekorderlig Strawberry-Lime 0.0%", category: "Cider", price: 6.3, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theclachankinglystreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Proper Job 0.5% IPA", category: "IPA", price: 5.55, measure: "bottle", source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theclachankinglystreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" }
+    ]
+  },
+  {
+    id: "the-old-coffee-house",
+    name: "The Old Coffee House",
+    address: "49 Beak Street, Soho, London W1F 9SF",
+    area: "Soho",
+    lat: 51.51255,
+    lng: -0.13736,
+    opened_year: 1894,
+    tags: ["historic", "food", "sports-tv", "dog-friendly", "outdoor-drinking"],
+    description:
+      "First licensed in 1772 as the Silver Street Coffee House and rebuilt in 1894, this granite-fronted backstreet pub near Carnaby Street has been run by the Brodie family since the 1970s. Inside it's dark panelling, a long wooden bar, old brewery mirrors and bric-a-brac, with a cosier back room by the fire and Brodie's ales on cask.",
+    opening_hours: {"0": [["12:00", "22:30"]], "1": [["11:00", "23:00"]], "2": [["11:00", "23:00"]], "3": [["11:00", "23:00"]], "4": [["11:00", "23:00"]], "5": [["11:00", "23:00"]], "6": [["11:00", "23:00"]]},
+    drinks: []
+  },
+  {
+    id: "nell-gwynne-tavern",
+    name: "Nell Gwynne Tavern",
+    address: "1-2 Bull Inn Court, London WC2R 0NP",
+    area: "Covent Garden",
+    lat: 51.51024,
+    lng: -0.12284,
+    opened_year: null,
+    tags: ["historic", "food", "sports-tv"],
+    description:
+      "A tiny, dimly lit Young's pub hidden down a tiled alleyway off the Strand, named after Nell Gwynne, the actress and mistress of Charles II. The Grade II-listed building is an early-19th-century rebuild of an older house. It's cosy and often packed, with a free jukebox, Young's cask ales and simple bar snacks.",
+    opening_hours: {"0": [["12:00", "22:00"]], "1": [["12:00", "22:00"]], "2": [["12:00", "23:00"]], "3": [["12:00", "23:00"]], "4": [["12:00", "23:00"]], "5": [["12:00", "23:00"]], "6": [["12:00", "23:00"]]},
+    drinks: [
+      { name: "Young's Original", category: "Real Ale", price: 5.7, source: "website", source_url: "https://www.thenellgwynne.com/wp-content/uploads/sites/149/2025/11/Nell.pdf", updated: "2025-11-12T12:00:00+01:00" },
+      { name: "Young's Special", category: "Real Ale", price: 6.05, source: "website", source_url: "https://www.thenellgwynne.com/wp-content/uploads/sites/149/2025/11/Nell.pdf", updated: "2025-11-12T12:00:00+01:00" },
+      { name: "St Austell Proper Job", category: "Real Ale", price: 6.45, source: "website", source_url: "https://www.thenellgwynne.com/wp-content/uploads/sites/149/2025/11/Nell.pdf", updated: "2025-11-12T12:00:00+01:00" },
+      { name: "Dark Star Hophead", category: "Real Ale", price: 6.55, source: "website", source_url: "https://www.thenellgwynne.com/wp-content/uploads/sites/149/2025/11/Nell.pdf", updated: "2025-11-12T12:00:00+01:00" },
+      { name: "Guinness", category: "Stout", price: 7.25, source: "website", source_url: "https://www.thenellgwynne.com/wp-content/uploads/sites/149/2025/11/Nell.pdf", updated: "2025-11-12T12:00:00+01:00" },
+      { name: "Murphy's", category: "Stout", price: 7.05, source: "website", source_url: "https://www.thenellgwynne.com/wp-content/uploads/sites/149/2025/11/Nell.pdf", updated: "2025-11-12T12:00:00+01:00" },
+      { name: "Jubel Peach", category: "Other", price: 7.7, source: "website", source_url: "https://www.thenellgwynne.com/wp-content/uploads/sites/149/2025/11/Nell.pdf", updated: "2025-11-12T12:00:00+01:00" },
+      { name: "Estrella Damm", category: "Lager", price: 7.3, source: "website", source_url: "https://www.thenellgwynne.com/wp-content/uploads/sites/149/2025/11/Nell.pdf", updated: "2025-11-12T12:00:00+01:00" },
+      { name: "Camden Hells", category: "Lager", price: 7.4, source: "website", source_url: "https://www.thenellgwynne.com/wp-content/uploads/sites/149/2025/11/Nell.pdf", updated: "2025-11-12T12:00:00+01:00" },
+      { name: "Asahi", category: "Lager", price: 7.65, source: "website", source_url: "https://www.thenellgwynne.com/wp-content/uploads/sites/149/2025/11/Nell.pdf", updated: "2025-11-12T12:00:00+01:00" },
+      { name: "Peroni", category: "Lager", price: 7.5, source: "website", source_url: "https://www.thenellgwynne.com/wp-content/uploads/sites/149/2025/11/Nell.pdf", updated: "2025-11-12T12:00:00+01:00" },
+      { name: "DEYA Steady Rolling Man", category: "Pale Ale", price: 8.0, source: "website", source_url: "https://www.thenellgwynne.com/wp-content/uploads/sites/149/2025/11/Nell.pdf", updated: "2025-11-12T12:00:00+01:00" },
+      { name: "Beavertown Neck Oil", category: "Pale Ale", price: 7.5, source: "website", source_url: "https://www.thenellgwynne.com/wp-content/uploads/sites/149/2025/11/Nell.pdf", updated: "2025-11-12T12:00:00+01:00" },
+      { name: "Aspall", category: "Cider", price: 7.0, source: "website", source_url: "https://www.thenellgwynne.com/wp-content/uploads/sites/149/2025/11/Nell.pdf", updated: "2025-11-12T12:00:00+01:00" },
+      { name: "Rekorderlig Strawberry & Lime", category: "Cider", price: 7.05, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.thenellgwynne.com/wp-content/uploads/sites/149/2025/11/Nell.pdf", updated: "2025-11-12T12:00:00+01:00" },
+      { name: "Rekorderlig Passionfruit", category: "Cider", price: 7.05, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.thenellgwynne.com/wp-content/uploads/sites/149/2025/11/Nell.pdf", updated: "2025-11-12T12:00:00+01:00" },
+      { name: "Rekorderlig Blood Orange", category: "Cider", price: 7.05, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.thenellgwynne.com/wp-content/uploads/sites/149/2025/11/Nell.pdf", updated: "2025-11-12T12:00:00+01:00" },
+      { name: "Rekorderlig Wild Berries", category: "Cider", price: 7.05, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.thenellgwynne.com/wp-content/uploads/sites/149/2025/11/Nell.pdf", updated: "2025-11-12T12:00:00+01:00" },
+      { name: "Brooklyn Lager", category: "Lager", price: 6.5, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.thenellgwynne.com/wp-content/uploads/sites/149/2025/11/Nell.pdf", updated: "2025-11-12T12:00:00+01:00" },
+      { name: "Corona", category: "Lager", price: 5.75, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.thenellgwynne.com/wp-content/uploads/sites/149/2025/11/Nell.pdf", updated: "2025-11-12T12:00:00+01:00" },
+      { name: "Desperados", category: "Lager", price: 5.75, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.thenellgwynne.com/wp-content/uploads/sites/149/2025/11/Nell.pdf", updated: "2025-11-12T12:00:00+01:00" },
+      { name: "Erdinger", category: "Wheat Beer", price: 6.7, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.thenellgwynne.com/wp-content/uploads/sites/149/2025/11/Nell.pdf", updated: "2025-11-12T12:00:00+01:00" },
+      { name: "Budvar", category: "Lager", price: 5.8, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.thenellgwynne.com/wp-content/uploads/sites/149/2025/11/Nell.pdf", updated: "2025-11-12T12:00:00+01:00" },
+      { name: "Lucky Saint (0.5%)", category: "Lager", price: 5.45, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.thenellgwynne.com/wp-content/uploads/sites/149/2025/11/Nell.pdf", updated: "2025-11-12T12:00:00+01:00" },
+      { name: "Rekorderlig Strawberry & Lime 0%", category: "Cider", price: 5.85, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.thenellgwynne.com/wp-content/uploads/sites/149/2025/11/Nell.pdf", updated: "2025-11-12T12:00:00+01:00" },
+      { name: "Proper Job 0.5% IPA", category: "IPA", price: 5.95, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.thenellgwynne.com/wp-content/uploads/sites/149/2025/11/Nell.pdf", updated: "2025-11-12T12:00:00+01:00" }
+    ]
+  },
+  {
+    id: "the-sherlock-holmes",
+    name: "The Sherlock Holmes",
+    address: "10-11 Northumberland Street, London WC2N 5DB",
+    area: "Westminster",
+    lat: 51.507294,
+    lng: -0.125245,
+    opened_year: 1957,
+    tags: ["historic", "food", "dog-friendly", "outdoor-drinking"],
+    description:
+      "London's original Sherlock Holmes theme pub, created in 1957 in the former Northumberland Arms using the collection from the 1951 Festival of Britain Holmes exhibition, with a recreation of Holmes's 221b Baker Street sitting room upstairs. It's a busy Greene King pub near Trafalgar Square with cask ales, food and a small roof terrace.",
+    opening_hours: {"0": [["11:00", "22:30"]], "1": [["11:00", "23:00"]], "2": [["11:00", "23:00"]], "3": [["11:00", "23:00"]], "4": [["11:00", "23:00"]], "5": [["11:00", "23:00"]], "6": [["11:00", "23:00"]]},
+    drinks: [
+      { name: "Amstel", category: "Lager", price: 6.45 },
+      { name: "Guinness", category: "Stout", price: 6.55 },
+      { name: "Estrella Damm", category: "Lager", price: 7.1 },
+      { name: "Birra Moretti", category: "Lager", price: 7.1 },
+      { name: "Peroni", category: "Lager", price: 7.4 },
+      { name: "Beavertown Neck Oil", category: "Pale Ale", price: 7.45 }
+    ]
+  },
+  {
+    id: "the-red-lion-westminster",
+    name: "The Red Lion",
+    address: "48 Parliament Street, London SW1A 2NH",
+    area: "Westminster",
+    lat: 51.502078,
+    lng: -0.12568,
+    opened_year: 1899,
+    tags: ["historic", "victorian-interior", "food", "sports-tv", "cellar-bar", "outdoor-drinking"],
+    description:
+      "A tavern has stood on this Parliament Street site since at least 1434; the present narrow Flemish-style corner pub was rebuilt in the 1890s and keeps its carved mahogany bar-back, decorated ceiling and etched glass. Between Downing Street and Parliament, it is the traditional local of MPs and political journalists, with a division bell and prime ministers' portraits in the bar. Today it's a busy Fuller's ale-and-pie house with cask ales, a cellar bar and an upstairs dining room.",
+    opening_hours: {"0": [["11:00", "22:30"]], "1": [["11:00", "23:00"]], "2": [["11:00", "23:00"]], "3": [["11:00", "23:00"]], "4": [["11:00", "23:00"]], "5": [["11:00", "23:00"]], "6": [["11:00", "23:00"]]},
+    drinks: []
+  },
+  {
+    id: "the-albert",
+    name: "The Albert",
+    address: "52 Victoria Street, London SW1H 0NP",
+    area: "Westminster",
+    lat: 51.497667,
+    lng: -0.135515,
+    opened_year: 1862,
+    tags: ["historic", "victorian-interior", "food", "sports-tv", "dog-friendly"],
+    description:
+      "A Grade II-listed Victorian pub of the 1860s named after Prince Albert, and one of the few original buildings left on Victoria Street. It keeps ornate ceilings and etched glass, and a division bell for Parliament rings in the dining room. It's a big, busy Greene King pub with cask ales, food, an upstairs restaurant and live football on TV.",
+    opening_hours: {"0": [["08:00", "23:30"]], "1": [["08:00", "00:00"]], "2": [["08:00", "00:00"]], "3": [["08:00", "00:00"]], "4": [["08:00", "00:00"]], "5": [["08:00", "00:00"]], "6": [["08:00", "00:00"]]},
+    drinks: [
+      { name: "Estrella Galicia", category: "Lager", price: 7.6 }
+    ]
+  },
+  {
+    id: "st-stephens-tavern",
+    name: "St Stephen's Tavern",
+    address: "10 Bridge Street, Westminster, London SW1A 2JR",
+    area: "Westminster",
+    lat: 51.50111,
+    lng: -0.12556,
+    opened_year: 1875,
+    tags: ["historic", "victorian-interior", "food", "dog-friendly"],
+    description:
+      "A Grade II-listed 1875 tavern on Bridge Street directly opposite Big Ben, named after St Stephen's Chapel, whose division bell still calls MPs back to vote. Restored and reopened by Hall & Woodhouse in 2003, it has ornate bars with carved woodwork, etched mirrors and tall windows onto Parliament Square. It serves Badger ales from Dorset and traditional pub food to office workers, politicians and tourists.",
+    opening_hours: {"0": [["09:30", "22:00"]], "1": [["09:30", "22:30"]], "2": [["09:30", "22:30"]], "3": [["09:30", "22:30"]], "4": [["09:30", "22:30"]], "5": [["09:30", "22:30"]], "6": [["09:30", "22:30"]]},
+    drinks: [
+      { name: "Badger Fursty Ferret", category: "Real Ale", price: 6.2 }
+    ]
+  },
+  {
+    id: "the-museum-tavern",
+    name: "The Museum Tavern",
+    address: "49 Great Russell Street, Bloomsbury, London WC1B 3BA",
+    area: "Bloomsbury",
+    lat: 51.51821,
+    lng: -0.126006,
+    opened_year: 1855,
+    tags: ["historic", "victorian-interior", "food", "dog-friendly", "beer-garden", "outdoor-drinking"],
+    description:
+      "A Grade II-listed Victorian pub directly opposite the British Museum, tracing its history to the Dog and Duck of 1723 and renamed once the museum arrived. The 1850s building keeps its 1889 mahogany bar-back, mirrors and etched glass naming the old public, private and saloon bars, and Karl Marx is said to have drunk here. Today it's a busy Greene King pub with cask ales and traditional pub food.",
+    opening_hours: {"0": [["11:00", "22:30"]], "1": [["11:00", "23:00"]], "2": [["11:00", "23:00"]], "3": [["11:00", "23:00"]], "4": [["11:00", "23:00"]], "5": [["11:00", "00:00"]], "6": [["11:00", "00:00"]]},
+    drinks: [
+      { name: "Amstel", category: "Lager", price: 6.15 },
+      { name: "Guinness", category: "Stout", price: 6.35 },
+      { name: "Estrella Damm", category: "Lager", price: 7.0 },
+      { name: "Peroni", category: "Lager", price: 7.35 },
+      { name: "Beavertown Neck Oil", category: "Pale Ale", price: 7.55 }
+    ]
+  },
+  {
+    id: "the-lamb",
+    name: "The Lamb",
+    address: "94 Lamb's Conduit Street, Bloomsbury, London WC1N 3LZ",
+    area: "Bloomsbury",
+    lat: 51.52308,
+    lng: -0.11905,
+    opened_year: null,
+    tags: ["historic", "victorian-interior", "real-ale-specialist", "food", "beer-garden", "outdoor-drinking", "no-music-no-tv"],
+    description:
+      "One of London's oldest pubs, dating from the 1720s, whose Grade II-listed Victorian interior keeps rare hinged 'snob screens' at the bar, music-hall photographs and a working polyphon. Dickens, Ted Hughes and Sylvia Plath were among its drinkers. It's a quiet Young's house with no piped music, known for its real ale, with a small walled garden at the back.",
+    opening_hours: {"0": [["12:00", "22:00"]], "1": [["12:00", "23:00"]], "2": [["12:00", "23:00"]], "3": [["12:00", "23:00"]], "4": [["12:00", "23:30"]], "5": [["12:00", "23:30"]], "6": [["12:00", "23:30"]]},
+    drinks: [
+      { name: "Estrella", category: "Lager", price: 6.65 }
+    ]
+  },
+  {
+    id: "the-fitzroy-tavern",
+    name: "The Fitzroy Tavern",
+    address: "16 Charlotte Street, London W1T 2LY",
+    area: "Fitzrovia",
+    lat: 51.518549,
+    lng: -0.134708,
+    opened_year: 1897,
+    tags: ["historic", "food", "no-music-no-tv"],
+    description:
+      "The pub that gave Fitzrovia its name: from the 1920s it was the bohemian heart of the district, drawing Dylan Thomas, George Orwell, Augustus John and Nina Hamnett. Today it's a quiet Sam Smith's house with no music or TV, a restored Victorian-style interior of etched glass and mahogany booths, cask Old Brewery Bitter from oak casks and a full food menu.",
+    opening_hours: {"0": [["12:00", "22:30"]], "1": [["12:00", "23:00"]], "2": [["12:00", "23:00"]], "3": [["12:00", "23:00"]], "4": [["12:00", "23:00"]], "5": [["12:00", "23:00"]], "6": [["11:00", "23:00"]]},
+    drinks: []
+  },
+  {
+    id: "the-newman-arms",
+    name: "The Newman Arms",
+    address: "23 Rathbone Street, Fitzrovia, London W1T 1NG",
+    area: "Fitzrovia",
+    lat: 51.51813,
+    lng: -0.13525,
+    opened_year: null,
+    tags: ["historic", "food", "cellar-bar"],
+    description:
+      "A narrow, low-ceilinged Fitzrovia pub in a 1720s building, licensed as a beer house from 1863 and a haunt of George Orwell, who is thought to have based the 'Proles' Arms' in 1984 on it. Today it's a pies-and-pints pub with a busy ground-floor bar, a sofa-filled basement and a candlelit upstairs pie room.",
+    opening_hours: {"1": [["12:00", "23:00"]], "2": [["12:00", "23:00"]], "3": [["12:00", "23:00"]], "4": [["12:00", "23:00"]], "5": [["12:00", "23:00"]], "6": [["12:00", "23:00"]]},
+    drinks: [
+      { name: "Murphy's Irish Stout", category: "Stout", price: 6.9, source: "website", source_url: "https://www.thenewmanarms.co.uk/_files/ugd/7d8c0e_179368d791ef4cfd8ae3efea3933484b.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Pillars Helles", category: "Lager", price: 7.5, source: "website", source_url: "https://www.thenewmanarms.co.uk/_files/ugd/7d8c0e_179368d791ef4cfd8ae3efea3933484b.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Pillars Original Pale", category: "Pale Ale", price: 7.5, source: "website", source_url: "https://www.thenewmanarms.co.uk/_files/ugd/7d8c0e_179368d791ef4cfd8ae3efea3933484b.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Hawkstone Session Lager", category: "Lager", price: 7.5, source: "website", source_url: "https://www.thenewmanarms.co.uk/_files/ugd/7d8c0e_179368d791ef4cfd8ae3efea3933484b.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Tennent's Lager", category: "Lager", price: 6.6, source: "website", source_url: "https://www.thenewmanarms.co.uk/_files/ugd/7d8c0e_179368d791ef4cfd8ae3efea3933484b.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "DEYA Steady Rolling Man", category: "Pale Ale", price: 7.95, source: "website", source_url: "https://www.thenewmanarms.co.uk/_files/ugd/7d8c0e_179368d791ef4cfd8ae3efea3933484b.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Hawkstone Cider", category: "Cider", price: 7.5, source: "website", source_url: "https://www.thenewmanarms.co.uk/_files/ugd/7d8c0e_179368d791ef4cfd8ae3efea3933484b.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Poretti", category: "Lager", price: 5.75, measure: "bottle", source: "website", source_url: "https://www.thenewmanarms.co.uk/_files/ugd/7d8c0e_179368d791ef4cfd8ae3efea3933484b.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Hawkstone IPA", category: "IPA", price: 5.75, measure: "bottle", source: "website", source_url: "https://www.thenewmanarms.co.uk/_files/ugd/7d8c0e_179368d791ef4cfd8ae3efea3933484b.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Sol", category: "Lager", price: 5.75, measure: "bottle", source: "website", source_url: "https://www.thenewmanarms.co.uk/_files/ugd/7d8c0e_179368d791ef4cfd8ae3efea3933484b.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Old Mout Berries & Cherries", category: "Cider", price: 7.5, measure: "bottle", source: "website", source_url: "https://www.thenewmanarms.co.uk/_files/ugd/7d8c0e_179368d791ef4cfd8ae3efea3933484b.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Old Mout Kiwi & Lime", category: "Cider", price: 7.5, measure: "bottle", source: "website", source_url: "https://www.thenewmanarms.co.uk/_files/ugd/7d8c0e_179368d791ef4cfd8ae3efea3933484b.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Lucky Saint (0.5%)", category: "Lager", price: 5.25, measure: "bottle", source: "website", source_url: "https://www.thenewmanarms.co.uk/_files/ugd/7d8c0e_179368d791ef4cfd8ae3efea3933484b.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Lucky Saint Hazy IPA (0.5%)", category: "IPA", price: 5.25, measure: "bottle", source: "website", source_url: "https://www.thenewmanarms.co.uk/_files/ugd/7d8c0e_179368d791ef4cfd8ae3efea3933484b.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Old Mout Berries & Cherries 0.5%", category: "Cider", price: 6.25, measure: "bottle", source: "website", source_url: "https://www.thenewmanarms.co.uk/_files/ugd/7d8c0e_179368d791ef4cfd8ae3efea3933484b.pdf", updated: "2026-09-28T12:00:00+01:00" }
+    ]
+  },
+  {
+    id: "ye-olde-cheshire-cheese",
+    name: "Ye Olde Cheshire Cheese",
+    address: "145 Fleet Street, London EC4A 2BU",
+    area: "Fleet Street",
+    lat: 51.51434,
+    lng: -0.10718,
+    opened_year: 1667,
+    tags: ["historic", "food", "cellar-bar", "dog-friendly", "no-music-no-tv"],
+    description:
+      "A 17th-century chophouse rebuilt just after the Great Fire of 1666, reached down a narrow alley off Fleet Street, where Dickens, Dr Johnson, Mark Twain and Yeats all drank. Inside is a dark maze of panelled rooms over three levels, with sawdust on the floor, open fires and a vaulted cellar bar, serving only Samuel Smith's beers alongside chophouse food.",
+    opening_hours: {"0": [["12:00", "22:30"]], "1": [["12:00", "23:00"]], "2": [["12:00", "23:00"]], "3": [["12:00", "23:00"]], "4": [["12:00", "23:00"]], "5": [["12:00", "23:00"]], "6": [["12:00", "23:00"]]},
+    drinks: []
+  },
+  {
+    id: "the-black-friar",
+    name: "The Black Friar",
+    address: "174 Queen Victoria Street, London EC4V 4EG",
+    area: "Blackfriars",
+    lat: 51.512102,
+    lng: -0.103716,
+    opened_year: 1875,
+    tags: ["historic", "food", "outdoor-drinking", "dog-friendly"],
+    description:
+      "A wedge-shaped pub of about 1875 on the site of a medieval Dominican friary, remodelled around 1905 into London's most extravagant Arts & Crafts interior, with marble, mosaics and copper reliefs of jolly friars. Saved from demolition in the 1960s by a campaign led by John Betjeman, it's now a lively Nicholson's pub opposite Blackfriars station, serving cask ale and pies.",
+    opening_hours: {"0": [["12:00", "22:30"]], "1": [["11:00", "23:00"]], "2": [["11:00", "23:00"]], "3": [["11:00", "23:30"]], "4": [["11:00", "23:30"]], "5": [["11:00", "23:30"]], "6": [["11:00", "23:30"]]},
+    drinks: [
+      { name: "Nicholson's Pale Ale", category: "Real Ale", price: 6.95, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theblackfriarblackfriarslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "St Austell Tribute", category: "Real Ale", price: 6.95, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theblackfriarblackfriarslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "St Austell Proper Job", category: "Real Ale", price: 7.0, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theblackfriarblackfriarslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Madri", category: "Lager", price: 8.1, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theblackfriarblackfriarslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Peroni Nastro Azzurro", category: "Lager", price: 8.3, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theblackfriarblackfriarslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Camden Hells", category: "Lager", price: 8.35, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theblackfriarblackfriarslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Budvar", category: "Lager", price: 8.45, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theblackfriarblackfriarslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Damm Lemon", category: "Other", price: 8.0, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theblackfriarblackfriarslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Guinness", category: "Stout", price: 8.1, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theblackfriarblackfriarslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Beavertown Neck Oil", category: "Pale Ale", price: 8.55, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theblackfriarblackfriarslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Camden Pale Ale", category: "Pale Ale", price: 8.1, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theblackfriarblackfriarslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Westons Vintage Cider", category: "Cider", price: 7.7, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theblackfriarblackfriarslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Schöfferhofer Grapefruit Radler", category: "Wheat Beer", price: 7.15, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theblackfriarblackfriarslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Budweiser", category: "Lager", price: 6.9, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theblackfriarblackfriarslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Peroni Nastro Azzurro", category: "Lager", price: 7.0, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theblackfriarblackfriarslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Corona Extra", category: "Lager", price: 7.0, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theblackfriarblackfriarslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Daura Damm (gluten free)", category: "Lager", price: 6.6, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theblackfriarblackfriarslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Paulaner Weiss", category: "Wheat Beer", price: 7.4, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theblackfriarblackfriarslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Sandford Orchards Devon Red", category: "Cider", price: 7.6, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theblackfriarblackfriarslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Bulmers Original", category: "Cider", price: 6.85, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theblackfriarblackfriarslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Rekorderlig Wild Berries", category: "Cider", price: 7.6, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theblackfriarblackfriarslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Rekorderlig Strawberry-Lime", category: "Cider", price: 7.6, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theblackfriarblackfriarslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Lucky Saint (0.5%)", category: "Lager", price: 7.05, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theblackfriarblackfriarslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Peroni 0.0%", category: "Lager", price: 5.6, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theblackfriarblackfriarslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Guinness 0.0", category: "Stout", price: 6.05, measure: "can", volume_ml: 583, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theblackfriarblackfriarslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Lucky Saint (0.5%)", category: "Lager", price: 5.75, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theblackfriarblackfriarslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Lucky Saint Hazy IPA (0.5%)", category: "IPA", price: 5.75, measure: "can", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theblackfriarblackfriarslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Rekorderlig Strawberry-Lime 0.0%", category: "Cider", price: 6.5, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theblackfriarblackfriarslondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Proper Job 0.5% IPA", category: "IPA", price: 5.75, measure: "bottle", source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theblackfriarblackfriarslondon/drinks", updated: "2026-09-28T12:00:00+01:00" }
+    ]
+  },
+  {
+    id: "the-old-bell-tavern",
+    name: "The Old Bell Tavern",
+    address: "95 Fleet Street, London EC4Y 1DH",
+    area: "Fleet Street",
+    lat: 51.514059,
+    lng: -0.105191,
+    opened_year: null,
+    tags: ["historic", "food", "sports-tv"],
+    description:
+      "A small, snug Fleet Street pub said to have been built by Christopher Wren for the masons rebuilding St Bride's Church after the Great Fire, on a site linked to Wynkyn de Worde's early printing press. Inside are bare boards, half-panelling, a U-shaped bar, old press cuttings and a fine stained-glass window, with the back looking onto St Bride's churchyard. It's a Nicholson's pub serving cask ale and pub food.",
+    opening_hours: {"0": [["12:00", "18:00"]], "1": [["11:00", "23:00"]], "2": [["11:00", "23:00"]], "3": [["11:00", "23:00"]], "4": [["11:00", "23:00"]], "5": [["11:00", "23:00"]], "6": [["11:00", "21:00"]]},
+    drinks: [
+      { name: "Nicholson's Pale Ale", category: "Real Ale", price: 6.5, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theoldbelltavernfleetstreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Thwaites Wainwright", category: "Real Ale", price: 6.45, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theoldbelltavernfleetstreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Madri", category: "Lager", price: 7.7, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theoldbelltavernfleetstreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Peroni Nastro Azzurro", category: "Lager", price: 7.9, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theoldbelltavernfleetstreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Carlsberg", category: "Lager", price: 6.5, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theoldbelltavernfleetstreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Tennent's Lager", category: "Lager", price: 6.5, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theoldbelltavernfleetstreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Pravha", category: "Lager", price: 7.05, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theoldbelltavernfleetstreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Camden Hells", category: "Lager", price: 7.95, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theoldbelltavernfleetstreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Budvar", category: "Lager", price: 8.1, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theoldbelltavernfleetstreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Jubel Peach", category: "Other", price: 8.2, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theoldbelltavernfleetstreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Guinness", category: "Stout", price: 7.65, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theoldbelltavernfleetstreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Beavertown Neck Oil", category: "Pale Ale", price: 8.15, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theoldbelltavernfleetstreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Westons Vintage Cider", category: "Cider", price: 7.3, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theoldbelltavernfleetstreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Henry Westons Vintage Still Cider", category: "Cider", price: 7.25, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theoldbelltavernfleetstreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Rosie's Pig Rhubarb", category: "Cider", price: 7.9, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theoldbelltavernfleetstreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Schöfferhofer Grapefruit Radler", category: "Wheat Beer", price: 6.65, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theoldbelltavernfleetstreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Maisel's Weisse", category: "Wheat Beer", price: 6.75, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theoldbelltavernfleetstreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Budweiser", category: "Lager", price: 6.45, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theoldbelltavernfleetstreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Peroni Nastro Azzurro", category: "Lager", price: 6.45, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theoldbelltavernfleetstreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Corona Extra", category: "Lager", price: 6.5, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theoldbelltavernfleetstreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Daura Damm (gluten free)", category: "Lager", price: 6.4, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theoldbelltavernfleetstreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Paulaner Weiss", category: "Wheat Beer", price: 7.0, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theoldbelltavernfleetstreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Sandford Orchards Devon Red", category: "Cider", price: 7.25, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theoldbelltavernfleetstreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Bulmers Original", category: "Cider", price: 6.45, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theoldbelltavernfleetstreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Rekorderlig Wild Berries", category: "Cider", price: 7.15, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theoldbelltavernfleetstreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Rekorderlig Strawberry-Lime", category: "Cider", price: 7.15, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theoldbelltavernfleetstreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Lucky Saint (0.5%)", category: "Lager", price: 6.7, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theoldbelltavernfleetstreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Peroni 0.0%", category: "Lager", price: 5.2, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theoldbelltavernfleetstreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Guinness 0.0", category: "Stout", price: 5.65, measure: "can", volume_ml: 583, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theoldbelltavernfleetstreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Lucky Saint (0.5%)", category: "Lager", price: 5.6, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theoldbelltavernfleetstreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Lucky Saint Hazy IPA (0.5%)", category: "IPA", price: 5.6, measure: "can", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theoldbelltavernfleetstreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Rekorderlig Strawberry-Lime 0.0%", category: "Cider", price: 6.1, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theoldbelltavernfleetstreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Proper Job 0.5% IPA", category: "IPA", price: 5.6, measure: "bottle", source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/theoldbelltavernfleetstreetlondon/drinks", updated: "2026-09-28T12:00:00+01:00" }
+    ]
+  },
+  {
+    id: "the-holy-tavern",
+    name: "The Holy Tavern",
+    address: "55 Britton Street, Clerkenwell, London EC1M 5UQ",
+    area: "Clerkenwell",
+    lat: 51.52177,
+    lng: -0.10402,
+    opened_year: 1996,
+    tags: ["historic", "real-ale-specialist", "food", "dog-friendly", "no-music-no-tv"],
+    description:
+      "A candlelit, wood-panelled tavern in a 1720 Clerkenwell merchant's house, fitted out in 1996 to look like an 18th-century coffee house. Formerly the Jerusalem Tavern, St Peter's Brewery's only London pub, it was renamed the Holy Tavern in 2022. It still pours St Peter's ales from taps set into the wall, alongside London craft keg, across a warren of tiny rooms and a mezzanine.",
+    opening_hours: {"0": [["12:00", "21:30"]], "1": [["12:00", "23:00"]], "2": [["12:00", "23:00"]], "3": [["12:00", "23:00"]], "4": [["12:00", "23:00"]], "5": [["12:00", "23:00"]], "6": [["12:00", "23:00"]]},
+    drinks: []
+  },
+  {
+    id: "ye-olde-mitre",
+    name: "Ye Olde Mitre",
+    address: "1 Ely Court, Ely Place, London EC1N 6SJ",
+    area: "Holborn",
+    lat: 51.51843,
+    lng: -0.10738,
+    opened_year: 1773,
+    tags: ["historic", "real-ale-specialist", "food", "outdoor-drinking"],
+    description:
+      "A tiny, famously hard-to-find tavern in an alley between Hatton Garden and Ely Place, tracing its origins to 1546 and the Bishops of Ely; the current building dates from the 1770s. Its wood-panelled little rooms include the stump of a cherry tree Elizabeth I is said to have danced around, and it's known for well-kept cask ale from seven handpumps, a scrumpy cider and toasties and pork pies.",
+    opening_hours: {"1": [["11:00", "23:00"]], "2": [["11:00", "23:00"]], "3": [["11:00", "23:00"]], "4": [["11:00", "23:00"]], "5": [["11:00", "23:00"]], "6": [["11:00", "21:00"]]},
+    drinks: [
+      { name: "Asahi Super Dry", category: "Lager", price: 7.35 },
+      { name: "Delirium Blonde", category: "Other", price: 7.0, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.yeoldemitreholborn.co.uk/-/media/sites/pubs-and-hotels/y/ye-olde-mitre-_-p148/files/global-menu-files-2022/wine-menus-both-sides-2023---copy.pdf", updated: "2023-02-22T12:00:00+01:00" },
+      { name: "Brugse Zot Blonde", category: "Other", price: 7.0, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.yeoldemitreholborn.co.uk/-/media/sites/pubs-and-hotels/y/ye-olde-mitre-_-p148/files/global-menu-files-2022/wine-menus-both-sides-2023---copy.pdf", updated: "2023-02-22T12:00:00+01:00" },
+      { name: "Trappistes Rochefort 10", category: "Other", price: 10.1, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.yeoldemitreholborn.co.uk/-/media/sites/pubs-and-hotels/y/ye-olde-mitre-_-p148/files/global-menu-files-2022/wine-menus-both-sides-2023---copy.pdf", updated: "2023-02-22T12:00:00+01:00" },
+      { name: "Liefmans Kriek Brut", category: "Other", price: 6.0, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.yeoldemitreholborn.co.uk/-/media/sites/pubs-and-hotels/y/ye-olde-mitre-_-p148/files/global-menu-files-2022/wine-menus-both-sides-2023---copy.pdf", updated: "2023-02-22T12:00:00+01:00" },
+      { name: "Orval", category: "Other", price: 7.0, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.yeoldemitreholborn.co.uk/-/media/sites/pubs-and-hotels/y/ye-olde-mitre-_-p148/files/global-menu-files-2022/wine-menus-both-sides-2023---copy.pdf", updated: "2023-02-22T12:00:00+01:00" },
+      { name: "Leffe Blonde", category: "Other", price: 4.8, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.yeoldemitreholborn.co.uk/-/media/sites/pubs-and-hotels/y/ye-olde-mitre-_-p148/files/global-menu-files-2022/wine-menus-both-sides-2023---copy.pdf", updated: "2023-02-22T12:00:00+01:00" }
+    ]
+  },
+  {
+    id: "the-craft-beer-co-clerkenwell",
+    name: "The Craft Beer Co. Clerkenwell",
+    address: "82 Leather Lane, Clerkenwell, London EC1N 7TR",
+    area: "Clerkenwell",
+    lat: 51.52123,
+    lng: -0.10971,
+    opened_year: null,
+    tags: ["historic", "real-ale-specialist", "craft-beer", "victorian-interior", "food", "quiz-night"],
+    description:
+      "A mid-19th-century Grade II-listed corner pub on Leather Lane that became the first Craft Beer Co. in 2011. Under its ornate mirrored ceiling and chandelier it pours 16 cask and 21 keg lines of rotating independent beer, with 200-plus bottles and cans, bar snacks and an upstairs lounge.",
+    opening_hours: {"1": [["12:00", "23:00"]], "2": [["12:00", "23:00"]], "3": [["12:00", "23:00"]], "4": [["12:00", "23:00"]], "5": [["12:00", "23:00"]], "6": [["12:00", "23:00"]]},
+    drinks: [
+      { name: "Kent Brewery Craft Pale", category: "Real Ale", price: 5.9, source: "website", source_url: "https://docs.google.com/presentation/d/1EC2uRezUE6Tut_vY0UnLnMjFk7rzxUPQpV-gpNo5CQ4/edit", updated: "2026-09-29T12:00:00+01:00" },
+      { name: "Neptune Ezili", category: "Real Ale", price: 5.9, source: "website", source_url: "https://docs.google.com/presentation/d/1EC2uRezUE6Tut_vY0UnLnMjFk7rzxUPQpV-gpNo5CQ4/edit", updated: "2026-09-29T12:00:00+01:00" },
+      { name: "Drop Project Scoff", category: "Real Ale", price: 5.9, source: "website", source_url: "https://docs.google.com/presentation/d/1EC2uRezUE6Tut_vY0UnLnMjFk7rzxUPQpV-gpNo5CQ4/edit", updated: "2026-09-29T12:00:00+01:00" },
+      { name: "Colbier Legato", category: "Real Ale", price: 6.1, source: "website", source_url: "https://docs.google.com/presentation/d/1EC2uRezUE6Tut_vY0UnLnMjFk7rzxUPQpV-gpNo5CQ4/edit", updated: "2026-09-29T12:00:00+01:00" },
+      { name: "Siren Fashionably Late", category: "Real Ale", price: 6.1, source: "website", source_url: "https://docs.google.com/presentation/d/1EC2uRezUE6Tut_vY0UnLnMjFk7rzxUPQpV-gpNo5CQ4/edit", updated: "2026-09-29T12:00:00+01:00" },
+      { name: "Sea Cider Pineapple Cider", category: "Cider", price: 8.0, source: "website", source_url: "https://docs.google.com/presentation/d/1EC2uRezUE6Tut_vY0UnLnMjFk7rzxUPQpV-gpNo5CQ4/edit", updated: "2026-09-29T12:00:00+01:00" },
+      { name: "Pillars Pilsner (GF)", category: "Lager", price: 7.5, source: "website", source_url: "https://docs.google.com/presentation/d/1EC2uRezUE6Tut_vY0UnLnMjFk7rzxUPQpV-gpNo5CQ4/edit", updated: "2026-09-29T12:00:00+01:00" },
+      { name: "Flensburger Pilsner", category: "Lager", price: 7.6, source: "website", source_url: "https://docs.google.com/presentation/d/1EC2uRezUE6Tut_vY0UnLnMjFk7rzxUPQpV-gpNo5CQ4/edit", updated: "2026-09-29T12:00:00+01:00" },
+      { name: "Anspach & Hobday London Black", category: "Stout", price: 7.65, source: "website", source_url: "https://docs.google.com/presentation/d/1EC2uRezUE6Tut_vY0UnLnMjFk7rzxUPQpV-gpNo5CQ4/edit", updated: "2026-09-29T12:00:00+01:00" },
+      { name: "Supercute Mama (GF)", category: "IPA", price: 7.9, source: "website", source_url: "https://docs.google.com/presentation/d/1EC2uRezUE6Tut_vY0UnLnMjFk7rzxUPQpV-gpNo5CQ4/edit", updated: "2026-09-29T12:00:00+01:00" },
+      { name: "Siren Soundwave", category: "IPA", price: 7.9, source: "website", source_url: "https://docs.google.com/presentation/d/1EC2uRezUE6Tut_vY0UnLnMjFk7rzxUPQpV-gpNo5CQ4/edit", updated: "2026-09-29T12:00:00+01:00" },
+      { name: "König Ludwig Weissbier", category: "Wheat Beer", price: 8.1, source: "website", source_url: "https://docs.google.com/presentation/d/1EC2uRezUE6Tut_vY0UnLnMjFk7rzxUPQpV-gpNo5CQ4/edit", updated: "2026-09-29T12:00:00+01:00" },
+      { name: "The Kernel Pale", category: "Pale Ale", price: 8.7, source: "website", source_url: "https://docs.google.com/presentation/d/1EC2uRezUE6Tut_vY0UnLnMjFk7rzxUPQpV-gpNo5CQ4/edit", updated: "2026-09-29T12:00:00+01:00" },
+      { name: "Real Al Co. Crafty Apple", category: "Cider", price: 7.2, source: "website", source_url: "https://docs.google.com/presentation/d/1EC2uRezUE6Tut_vY0UnLnMjFk7rzxUPQpV-gpNo5CQ4/edit", updated: "2026-09-29T12:00:00+01:00" },
+      { name: "Wiper & True Bristol Crush", category: "Other", price: 5.1, measure: "two-thirds", source: "website", source_url: "https://docs.google.com/presentation/d/1EC2uRezUE6Tut_vY0UnLnMjFk7rzxUPQpV-gpNo5CQ4/edit", updated: "2026-09-29T12:00:00+01:00" },
+      { name: "Bianca Road Hazy", category: "Pale Ale", price: 6.0, measure: "two-thirds", source: "website", source_url: "https://docs.google.com/presentation/d/1EC2uRezUE6Tut_vY0UnLnMjFk7rzxUPQpV-gpNo5CQ4/edit", updated: "2026-09-29T12:00:00+01:00" },
+      { name: "Siren Final Boss", category: "IPA", price: 5.6, measure: "two-thirds", source: "website", source_url: "https://docs.google.com/presentation/d/1EC2uRezUE6Tut_vY0UnLnMjFk7rzxUPQpV-gpNo5CQ4/edit", updated: "2026-09-29T12:00:00+01:00" },
+      { name: "Wiper & True Too Much Fun", category: "Other", price: 7.3, measure: "two-thirds", source: "website", source_url: "https://docs.google.com/presentation/d/1EC2uRezUE6Tut_vY0UnLnMjFk7rzxUPQpV-gpNo5CQ4/edit", updated: "2026-09-29T12:00:00+01:00" },
+      { name: "Polly's Brew Undercurrent", category: "IPA", price: 6.1, measure: "half", source: "website", source_url: "https://docs.google.com/presentation/d/1EC2uRezUE6Tut_vY0UnLnMjFk7rzxUPQpV-gpNo5CQ4/edit", updated: "2026-09-29T12:00:00+01:00" },
+      { name: "Tartarus Cactus Puma (GF)", category: "IPA", price: 6.5, measure: "half", source: "website", source_url: "https://docs.google.com/presentation/d/1EC2uRezUE6Tut_vY0UnLnMjFk7rzxUPQpV-gpNo5CQ4/edit", updated: "2026-09-29T12:00:00+01:00" },
+      { name: "De la Senne x Burning Sky Crisp & Bitter", category: "Pale Ale", price: 6.95, measure: "half", source: "website", source_url: "https://docs.google.com/presentation/d/1EC2uRezUE6Tut_vY0UnLnMjFk7rzxUPQpV-gpNo5CQ4/edit", updated: "2026-09-29T12:00:00+01:00" },
+      { name: "St Bernardus Extra 4", category: "Other", price: 6.2, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://docs.google.com/presentation/d/1xN4qgPfWVSxsspd06hfDFzvub-dna86_WMcdnDksY9Y/edit", updated: "2026-09-29T12:00:00+01:00" },
+      { name: "Westmalle Dubbel", category: "Other", price: 6.2, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://docs.google.com/presentation/d/1xN4qgPfWVSxsspd06hfDFzvub-dna86_WMcdnDksY9Y/edit", updated: "2026-09-29T12:00:00+01:00" },
+      { name: "Orval", category: "Other", price: 6.3, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://docs.google.com/presentation/d/1xN4qgPfWVSxsspd06hfDFzvub-dna86_WMcdnDksY9Y/edit", updated: "2026-09-29T12:00:00+01:00" },
+      { name: "Rochefort 6", category: "Other", price: 6.3, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://docs.google.com/presentation/d/1xN4qgPfWVSxsspd06hfDFzvub-dna86_WMcdnDksY9Y/edit", updated: "2026-09-29T12:00:00+01:00" },
+      { name: "St Bernardus Prior 8", category: "Other", price: 7.65, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://docs.google.com/presentation/d/1xN4qgPfWVSxsspd06hfDFzvub-dna86_WMcdnDksY9Y/edit", updated: "2026-09-29T12:00:00+01:00" },
+      { name: "Rochefort 8", category: "Other", price: 8.2, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://docs.google.com/presentation/d/1xN4qgPfWVSxsspd06hfDFzvub-dna86_WMcdnDksY9Y/edit", updated: "2026-09-29T12:00:00+01:00" },
+      { name: "Westmalle Tripel", category: "Other", price: 8.25, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://docs.google.com/presentation/d/1xN4qgPfWVSxsspd06hfDFzvub-dna86_WMcdnDksY9Y/edit", updated: "2026-09-29T12:00:00+01:00" },
+      { name: "St Bernardus Abt 12", category: "Other", price: 9.1, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://docs.google.com/presentation/d/1xN4qgPfWVSxsspd06hfDFzvub-dna86_WMcdnDksY9Y/edit", updated: "2026-09-29T12:00:00+01:00" },
+      { name: "Rochefort 10", category: "Other", price: 10.55, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://docs.google.com/presentation/d/1xN4qgPfWVSxsspd06hfDFzvub-dna86_WMcdnDksY9Y/edit", updated: "2026-09-29T12:00:00+01:00" },
+      { name: "The Bruery Trade Winds", category: "Other", price: 25.0, measure: "bottle", volume_ml: 750, source: "website", source_url: "https://docs.google.com/presentation/d/1xN4qgPfWVSxsspd06hfDFzvub-dna86_WMcdnDksY9Y/edit", updated: "2026-09-29T12:00:00+01:00" },
+      { name: "Lakedown Sound (GF)", category: "Lager", price: 6.75, source: "website", source_url: "https://docs.google.com/presentation/d/1EC2uRezUE6Tut_vY0UnLnMjFk7rzxUPQpV-gpNo5CQ4/edit", updated: "2026-09-29T12:00:00+01:00" },
+      { name: "Athletic Light Lager", category: "Lager", price: 6.0, measure: "can", volume_ml: 350, source: "website", source_url: "https://docs.google.com/presentation/d/1xN4qgPfWVSxsspd06hfDFzvub-dna86_WMcdnDksY9Y/edit", updated: "2026-09-29T12:00:00+01:00" },
+      { name: "Athletic Upside Down Pale Ale", category: "Pale Ale", price: 6.0, measure: "can", volume_ml: 355, source: "website", source_url: "https://docs.google.com/presentation/d/1xN4qgPfWVSxsspd06hfDFzvub-dna86_WMcdnDksY9Y/edit", updated: "2026-09-29T12:00:00+01:00" },
+      { name: "Brulo 5 Fruit Gose", category: "Other", price: 6.0, measure: "can", volume_ml: 330, source: "website", source_url: "https://docs.google.com/presentation/d/1xN4qgPfWVSxsspd06hfDFzvub-dna86_WMcdnDksY9Y/edit", updated: "2026-09-29T12:00:00+01:00" },
+      { name: "Schneider Weisse Tap 3", category: "Wheat Beer", price: 6.9, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://docs.google.com/presentation/d/1xN4qgPfWVSxsspd06hfDFzvub-dna86_WMcdnDksY9Y/edit", updated: "2026-09-29T12:00:00+01:00" },
+      { name: "Northern Monk Holy Faith", category: "Pale Ale", price: 6.0, measure: "can", volume_ml: 330, source: "website", source_url: "https://docs.google.com/presentation/d/1xN4qgPfWVSxsspd06hfDFzvub-dna86_WMcdnDksY9Y/edit", updated: "2026-09-29T12:00:00+01:00" },
+      { name: "Mikkeller Weird Weather", category: "IPA", price: 6.0, measure: "can", volume_ml: 330, source: "website", source_url: "https://docs.google.com/presentation/d/1xN4qgPfWVSxsspd06hfDFzvub-dna86_WMcdnDksY9Y/edit", updated: "2026-09-29T12:00:00+01:00" },
+      { name: "Sport Zot Alcoholvrij", category: "Other", price: 6.7, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://docs.google.com/presentation/d/1xN4qgPfWVSxsspd06hfDFzvub-dna86_WMcdnDksY9Y/edit", updated: "2026-09-29T12:00:00+01:00" },
+      { name: "Hitachino Yuzu Ginger Non Ale", category: "Other", price: 6.0, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://docs.google.com/presentation/d/1xN4qgPfWVSxsspd06hfDFzvub-dna86_WMcdnDksY9Y/edit", updated: "2026-09-29T12:00:00+01:00" },
+      { name: "La Trappe Nillis", category: "Other", price: 6.0, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://docs.google.com/presentation/d/1xN4qgPfWVSxsspd06hfDFzvub-dna86_WMcdnDksY9Y/edit", updated: "2026-09-29T12:00:00+01:00" },
+      { name: "Heaps Normal Hazy Pale Ale", category: "Pale Ale", price: 7.0, measure: "can", volume_ml: 375, source: "website", source_url: "https://docs.google.com/presentation/d/1xN4qgPfWVSxsspd06hfDFzvub-dna86_WMcdnDksY9Y/edit", updated: "2026-09-29T12:00:00+01:00" }
+    ]
+  },
+  {
+    id: "jamaica-wine-house",
+    name: "Jamaica Wine House",
+    address: "St Michael's Alley, Cornhill, London EC3V 9DS",
+    area: "City",
+    lat: 51.5129497,
+    lng: -0.0856603,
+    opened_year: 1869,
+    tags: ["historic", "victorian-interior", "cellar-bar", "outdoor-drinking"],
+    description:
+      "Hidden in a medieval alley off Cornhill, 'the Jampot' stands on the site of London's first coffee house (1652) and has traded as a pub since 1869. The ground-floor bar is a wood-panelled Victorian room divided by mahogany screens, pouring Shepherd Neame's Kentish ales to City workers who spill into the alley, with a new basement cocktail bar, the Jamaica Clubhouse.",
+    opening_hours: {"1": [["11:00", "22:00"]], "2": [["11:00", "23:00"]], "3": [["11:00", "23:00"]], "4": [["11:00", "23:00"]], "5": [["11:00", "23:00"]], "6": [["11:00", "21:00"]]},
+    drinks: [
+      { name: "Shepherd Neame Spitfire Amber", category: "Real Ale", price: 6.75, source: "website", source_url: "https://snsites.co.uk/sites/default/files/2026-07/Jamaica%20Wine%20House%20Drinks%20Menu.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Shepherd Neame Whitstable Bay Pale Ale", category: "Real Ale", price: 6.75, source: "website", source_url: "https://snsites.co.uk/sites/default/files/2026-07/Jamaica%20Wine%20House%20Drinks%20Menu.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Shepherd Neame Master Brew", category: "Real Ale", price: 6.35, source: "website", source_url: "https://snsites.co.uk/sites/default/files/2026-07/Jamaica%20Wine%20House%20Drinks%20Menu.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Shepherd Neame Creekside", category: "Real Ale", price: 6.9, source: "website", source_url: "https://snsites.co.uk/sites/default/files/2026-07/Jamaica%20Wine%20House%20Drinks%20Menu.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "First Drop Session IPA", category: "IPA", price: 7.8, source: "website", source_url: "https://snsites.co.uk/sites/default/files/2026-07/Jamaica%20Wine%20House%20Drinks%20Menu.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Bear Island East Coast Pale Ale", category: "Pale Ale", price: 7.25, source: "website", source_url: "https://snsites.co.uk/sites/default/files/2026-07/Jamaica%20Wine%20House%20Drinks%20Menu.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Guinness", category: "Stout", price: 8.0, source: "website", source_url: "https://snsites.co.uk/sites/default/files/2026-07/Jamaica%20Wine%20House%20Drinks%20Menu.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Orchard View Cider", category: "Cider", price: 7.15, source: "website", source_url: "https://snsites.co.uk/sites/default/files/2026-07/Jamaica%20Wine%20House%20Drinks%20Menu.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Birra Moretti", category: "Lager", price: 8.2, source: "website", source_url: "https://snsites.co.uk/sites/default/files/2026-07/Jamaica%20Wine%20House%20Drinks%20Menu.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Singha", category: "Lager", price: 7.95, source: "website", source_url: "https://snsites.co.uk/sites/default/files/2026-07/Jamaica%20Wine%20House%20Drinks%20Menu.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Spitfire Lager", category: "Lager", price: 6.8, source: "website", source_url: "https://snsites.co.uk/sites/default/files/2026-07/Jamaica%20Wine%20House%20Drinks%20Menu.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Whitstable Bay Lager", category: "Lager", price: 7.2, source: "website", source_url: "https://snsites.co.uk/sites/default/files/2026-07/Jamaica%20Wine%20House%20Drinks%20Menu.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Sol", category: "Lager", price: 6.35, measure: "bottle", source: "website", source_url: "https://snsites.co.uk/sites/default/files/2026-07/Jamaica%20Wine%20House%20Drinks%20Menu.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Peroni (gluten free)", category: "Lager", price: 6.35, measure: "bottle", source: "website", source_url: "https://snsites.co.uk/sites/default/files/2026-07/Jamaica%20Wine%20House%20Drinks%20Menu.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Old Mout Berries & Cherries", category: "Cider", price: 7.4, measure: "bottle", source: "website", source_url: "https://snsites.co.uk/sites/default/files/2026-07/Jamaica%20Wine%20House%20Drinks%20Menu.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Old Mout Kiwi & Lime", category: "Cider", price: 7.4, measure: "bottle", source: "website", source_url: "https://snsites.co.uk/sites/default/files/2026-07/Jamaica%20Wine%20House%20Drinks%20Menu.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Guinness 0.0", category: "Stout", price: 7.3, measure: "bottle", source: "website", source_url: "https://snsites.co.uk/sites/default/files/2026-07/Jamaica%20Wine%20House%20Drinks%20Menu.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Heineken 0.0", category: "Lager", price: 5.05, measure: "bottle", source: "website", source_url: "https://snsites.co.uk/sites/default/files/2026-07/Jamaica%20Wine%20House%20Drinks%20Menu.pdf", updated: "2026-09-28T12:00:00+01:00" },
+      { name: "Lucky Saint Unfiltered Pilsner", category: "Lager", price: 6.45, measure: "bottle", source: "website", source_url: "https://snsites.co.uk/sites/default/files/2026-07/Jamaica%20Wine%20House%20Drinks%20Menu.pdf", updated: "2026-09-28T12:00:00+01:00" }
+    ]
+  },
+  {
+    id: "the-viaduct-tavern",
+    name: "The Viaduct Tavern",
+    address: "126 Newgate Street, London EC1A 7AA",
+    area: "City",
+    lat: 51.51629,
+    lng: -0.10169,
+    opened_year: 1874,
+    tags: ["historic", "victorian-interior", "food", "dog-friendly"],
+    description:
+      "A late-Victorian gin palace of 1874-75 opposite the Old Bailey, refitted around 1900 with one of London's finest pub interiors: etched and gilded glass, an ornate ceiling and three paintings of women signed 'Hal'. The cellars are said to be old debtors' cells. Today it's a Fuller's pub with cask ales, gins, toasties and pies, popular with City workers.",
+    opening_hours: {"1": [["11:00", "23:00"]], "2": [["11:00", "23:00"]], "3": [["11:00", "23:00"]], "4": [["11:00", "23:00"]], "5": [["11:00", "23:00"]], "6": [["12:00", "20:00"]]},
+    drinks: [
+      { name: "Asahi Super Dry", category: "Lager", price: 7.35, source: "website", source_url: "https://www.viaducttavern.co.uk/-/media/sites/pubs-and-hotels/v/the-viaduct-tavern-_-p121/files/global-menu-files/viaduct-tavern-drinks-menu.pdf", updated: "2023-09-15T12:00:00+01:00" },
+      { name: "Amstel", category: "Lager", price: 6.2, source: "website", source_url: "https://www.viaducttavern.co.uk/-/media/sites/pubs-and-hotels/v/the-viaduct-tavern-_-p121/files/global-menu-files/viaduct-tavern-drinks-menu.pdf", updated: "2023-09-15T12:00:00+01:00" },
+      { name: "Peroni Nastro Azzurro", category: "Lager", price: 7.15, source: "website", source_url: "https://www.viaducttavern.co.uk/-/media/sites/pubs-and-hotels/v/the-viaduct-tavern-_-p121/files/global-menu-files/viaduct-tavern-drinks-menu.pdf", updated: "2023-09-15T12:00:00+01:00" },
+      { name: "Fuller's Frontier", category: "Lager", price: 6.7, source: "website", source_url: "https://www.viaducttavern.co.uk/-/media/sites/pubs-and-hotels/v/the-viaduct-tavern-_-p121/files/global-menu-files/viaduct-tavern-drinks-menu.pdf", updated: "2023-09-15T12:00:00+01:00" },
+      { name: "Guinness", category: "Stout", price: 7.05, source: "website", source_url: "https://www.viaducttavern.co.uk/-/media/sites/pubs-and-hotels/v/the-viaduct-tavern-_-p121/files/global-menu-files/viaduct-tavern-drinks-menu.pdf", updated: "2023-09-15T12:00:00+01:00" },
+      { name: "Beavertown Neck Oil", category: "Pale Ale", price: 7.5, source: "website", source_url: "https://www.viaducttavern.co.uk/-/media/sites/pubs-and-hotels/v/the-viaduct-tavern-_-p121/files/global-menu-files/viaduct-tavern-drinks-menu.pdf", updated: "2023-09-15T12:00:00+01:00" },
+      { name: "Cornish Orchards Gold Cider", category: "Cider", price: 6.6, source: "website", source_url: "https://www.viaducttavern.co.uk/-/media/sites/pubs-and-hotels/v/the-viaduct-tavern-_-p121/files/global-menu-files/viaduct-tavern-drinks-menu.pdf", updated: "2023-09-15T12:00:00+01:00" },
+      { name: "Jubel Peach", category: "Other", price: 7.05, source: "website", source_url: "https://www.viaducttavern.co.uk/-/media/sites/pubs-and-hotels/v/the-viaduct-tavern-_-p121/files/global-menu-files/viaduct-tavern-drinks-menu.pdf", updated: "2023-09-15T12:00:00+01:00" },
+      { name: "Fuller's London Pride", category: "Real Ale", price: 5.95, source: "website", source_url: "https://www.viaducttavern.co.uk/-/media/sites/pubs-and-hotels/v/the-viaduct-tavern-_-p121/files/global-menu-files/viaduct-tavern-drinks-menu.pdf", updated: "2023-09-15T12:00:00+01:00" },
+      { name: "Fuller's Oliver's Island", category: "Real Ale", price: 6.1, source: "website", source_url: "https://www.viaducttavern.co.uk/-/media/sites/pubs-and-hotels/v/the-viaduct-tavern-_-p121/files/global-menu-files/viaduct-tavern-drinks-menu.pdf", updated: "2023-09-15T12:00:00+01:00" },
+      { name: "Asahi Super Dry", category: "Lager", price: 6.0, measure: "bottle", source: "website", source_url: "https://www.viaducttavern.co.uk/-/media/sites/pubs-and-hotels/v/the-viaduct-tavern-_-p121/files/global-menu-files/viaduct-tavern-drinks-menu.pdf", updated: "2023-09-15T12:00:00+01:00" },
+      { name: "Peroni Nastro Azzurro", category: "Lager", price: 5.8, measure: "bottle", source: "website", source_url: "https://www.viaducttavern.co.uk/-/media/sites/pubs-and-hotels/v/the-viaduct-tavern-_-p121/files/global-menu-files/viaduct-tavern-drinks-menu.pdf", updated: "2023-09-15T12:00:00+01:00" },
+      { name: "Peroni Gluten Free", category: "Lager", price: 5.8, measure: "bottle", source: "website", source_url: "https://www.viaducttavern.co.uk/-/media/sites/pubs-and-hotels/v/the-viaduct-tavern-_-p121/files/global-menu-files/viaduct-tavern-drinks-menu.pdf", updated: "2023-09-15T12:00:00+01:00" },
+      { name: "Sol", category: "Lager", price: 5.9, measure: "bottle", source: "website", source_url: "https://www.viaducttavern.co.uk/-/media/sites/pubs-and-hotels/v/the-viaduct-tavern-_-p121/files/global-menu-files/viaduct-tavern-drinks-menu.pdf", updated: "2023-09-15T12:00:00+01:00" },
+      { name: "Meantime London Pale Ale", category: "Pale Ale", price: 6.15, measure: "bottle", source: "website", source_url: "https://www.viaducttavern.co.uk/-/media/sites/pubs-and-hotels/v/the-viaduct-tavern-_-p121/files/global-menu-files/viaduct-tavern-drinks-menu.pdf", updated: "2023-09-15T12:00:00+01:00" },
+      { name: "Delirium Tremens", category: "Other", price: 8.0, measure: "bottle", source: "website", source_url: "https://www.viaducttavern.co.uk/-/media/sites/pubs-and-hotels/v/the-viaduct-tavern-_-p121/files/global-menu-files/viaduct-tavern-drinks-menu.pdf", updated: "2023-09-15T12:00:00+01:00" },
+      { name: "Franziskaner Weissbier", category: "Wheat Beer", price: 6.3, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.viaducttavern.co.uk/-/media/sites/pubs-and-hotels/v/the-viaduct-tavern-_-p121/files/global-menu-files/viaduct-tavern-drinks-menu.pdf", updated: "2023-09-15T12:00:00+01:00" },
+      { name: "Old Mout Kiwi & Lime", category: "Cider", price: 6.65, measure: "bottle", source: "website", source_url: "https://www.viaducttavern.co.uk/-/media/sites/pubs-and-hotels/v/the-viaduct-tavern-_-p121/files/global-menu-files/viaduct-tavern-drinks-menu.pdf", updated: "2023-09-15T12:00:00+01:00" },
+      { name: "Old Mout Pineapple & Raspberry", category: "Cider", price: 6.65, measure: "bottle", source: "website", source_url: "https://www.viaducttavern.co.uk/-/media/sites/pubs-and-hotels/v/the-viaduct-tavern-_-p121/files/global-menu-files/viaduct-tavern-drinks-menu.pdf", updated: "2023-09-15T12:00:00+01:00" },
+      { name: "Old Mout Berries & Cherries", category: "Cider", price: 6.65, measure: "bottle", source: "website", source_url: "https://www.viaducttavern.co.uk/-/media/sites/pubs-and-hotels/v/the-viaduct-tavern-_-p121/files/global-menu-files/viaduct-tavern-drinks-menu.pdf", updated: "2023-09-15T12:00:00+01:00" },
+      { name: "Brooklyn Special Effects", category: "Other", price: 4.45, measure: "bottle", source: "website", source_url: "https://www.viaducttavern.co.uk/-/media/sites/pubs-and-hotels/v/the-viaduct-tavern-_-p121/files/global-menu-files/viaduct-tavern-drinks-menu.pdf", updated: "2023-09-15T12:00:00+01:00" },
+      { name: "Erdinger Alkoholfrei", category: "Wheat Beer", price: 5.8, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.viaducttavern.co.uk/-/media/sites/pubs-and-hotels/v/the-viaduct-tavern-_-p121/files/global-menu-files/viaduct-tavern-drinks-menu.pdf", updated: "2023-09-15T12:00:00+01:00" },
+      { name: "Peroni 0.0%", category: "Lager", price: 4.6, measure: "bottle", source: "website", source_url: "https://www.viaducttavern.co.uk/-/media/sites/pubs-and-hotels/v/the-viaduct-tavern-_-p121/files/global-menu-files/viaduct-tavern-drinks-menu.pdf", updated: "2023-09-15T12:00:00+01:00" }
     ]
   }
 ];
