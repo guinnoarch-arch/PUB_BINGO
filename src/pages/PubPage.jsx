@@ -71,7 +71,7 @@ export default function PubPage() {
   }
 
   if (status === "loading") return <Loading label="Loading pub…" />;
-  if (status === "error") return <ErrorState message={error} onRetry={() => { setStatus("loading"); reload(); }} />;
+  if (status === "error") return <ErrorState title="Couldn't load this pub" message={error} onRetry={() => { setStatus("loading"); reload(); }} />;
   if (status === "missing") {
     return <section className="card"><EmptyState title="Pub not found">That pub isn't in Pub Bingo yet, or the link is wrong. <Link to="/">Search all pubs</Link></EmptyState></section>;
   }

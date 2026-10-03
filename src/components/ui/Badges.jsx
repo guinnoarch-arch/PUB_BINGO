@@ -21,6 +21,7 @@ export function SourceBadge({ source, url }) {
 }
 
 export function UpdatedAgo({ value }) {
+  if (!Number.isFinite(new Date(value).getTime())) return <span className="updated">Update date unknown</span>;
   const stale = isStale(value);
   return (
     <span className={`updated ${stale ? "stale" : ""}`}>

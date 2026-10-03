@@ -34,7 +34,7 @@ function NeedsChecking() {
         </div>
         <label className="checkbox-label"><input type="checkbox" checked={showEstimates} onChange={e => setShowEstimates(e.target.checked)} /> Include estimates</label>
       </section>
-      {pubsStatus === "loading" ? <Loading /> : pubsStatus === "error" ? <ErrorState message={pubsError} onRetry={() => reloadPubs()} /> : groups.length === 0 ? (
+      {pubsStatus === "loading" ? <Loading /> : pubsStatus === "error" ? <ErrorState title="Couldn't load pubs and prices" message={pubsError} onRetry={() => reloadPubs()} /> : groups.length === 0 ? (
         <section className="card"><EmptyState title="All checked!">Every price here has been confirmed recently. 🍻</EmptyState></section>
       ) : groups.map(({ pub, rows: items }) => (
         <section key={pub.id} className="card check-group">

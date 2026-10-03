@@ -22,7 +22,7 @@ function Round() {
 
   const update = (index, patch) => setItems(prev => prev.map((item, i) => (i === index ? { ...item, ...patch } : item)));
   if (pubsStatus === "loading") return <Loading />;
-  if (pubsStatus === "error") return <ErrorState message={pubsError} onRetry={() => reloadPubs()} />;
+  if (pubsStatus === "error") return <ErrorState title="Couldn't load pubs and prices" message={pubsError} onRetry={() => reloadPubs()} />;
   return (
     <>
       <div className="page-title-row">

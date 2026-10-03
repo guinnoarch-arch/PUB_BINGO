@@ -167,7 +167,7 @@ export default function FindPage() {
           </div>
 
           {pubsStatus === "loading" && <Loading label="Loading pubs and prices…" />}
-          {pubsStatus === "error" && <ErrorState message={pubsError} onRetry={() => reloadPubs()} />}
+          {pubsStatus === "error" && <ErrorState title="Couldn't load pubs and prices" message={pubsError} onRetry={() => reloadPubs()} />}
           {pubsStatus === "ready" && results.length === 0 && !filtering && (
             <EmptyState title="No confirmed prices yet">
               <p>Prices show here once someone reports what they paid. Open any pub and tap “Report a price”, or search for a drink to see where it's sold.</p>

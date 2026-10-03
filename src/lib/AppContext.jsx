@@ -47,7 +47,9 @@ export function AppProvider({ api, children }) {
   const reloadPubs = useCallback(async ({ quiet = false } = {}) => {
     if (!quiet) setPubsStatus(status => (status === "ready" ? "ready" : "loading"));
     try {
-      setPubs(await api.listPubs());
+      const rows = await api.listPubs();
+      // A broken or empty response shouldn't crash every page.
+      setPubs(Array.isArray(rows) ? rows.filter(pub => pub && pub.id) : []);
       setPubsStatus("ready");
       setPubsError("");
     } catch (error) {

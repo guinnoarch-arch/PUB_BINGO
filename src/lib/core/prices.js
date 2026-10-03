@@ -59,27 +59,27 @@ export function cleanText(value) {
 export function validatePriceReport(input = {}) {
   const errors = {};
   const price = parsePrice(input.price);
-  if (price == null) errors.price = "Enter a price like 5.80";
-  else if (price < MIN_PRICE || price > MAX_PRICE) errors.price = `Price must be between ${formatPrice(MIN_PRICE)} and ${formatPrice(MAX_PRICE)}`;
+  if (price == null) errors.price = String(input.price ?? "").trim() ? "Enter the price as a number, like 5.80." : "Enter the price you paid, like 5.80.";
+  else if (price < MIN_PRICE || price > MAX_PRICE) errors.price = `Enter a price between ${formatPrice(MIN_PRICE)} and ${formatPrice(MAX_PRICE)}. Check the decimal point.`;
 
   const drinkId = input.drinkId || null;
   const drinkName = cleanText(input.drinkName);
   if (!drinkId) {
-    if (drinkName.length < LIMITS.drinkName.min) errors.drinkName = "Enter the drink's name";
-    else if (drinkName.length > LIMITS.drinkName.max) errors.drinkName = `Keep the name under ${LIMITS.drinkName.max} characters`;
+    if (drinkName.length < LIMITS.drinkName.min) errors.drinkName = "Enter the drink's name, like Camden Hells.";
+    else if (drinkName.length > LIMITS.drinkName.max) errors.drinkName = `Shorten the name to ${LIMITS.drinkName.max} characters or fewer.`;
   }
 
   const category = input.category || (drinkId ? null : "");
-  if (!drinkId && !CATEGORIES.includes(category)) errors.category = "Pick a category";
-  if (drinkId && category && !CATEGORIES.includes(category)) errors.category = "Pick a category";
+  if (!drinkId && !CATEGORIES.includes(category)) errors.category = "Choose a category, like Lager or Stout.";
+  if (drinkId && category && !CATEGORIES.includes(category)) errors.category = "Choose a category from the list.";
 
   const measure = input.measure || "pint";
-  if (!MEASURES.includes(measure)) errors.measure = "Pick a measure";
+  if (!MEASURES.includes(measure)) errors.measure = "Choose a measure from the list.";
 
   const note = cleanText(input.note);
-  if (note.length > LIMITS.note.max) errors.note = `Keep notes under ${LIMITS.note.max} characters`;
+  if (note.length > LIMITS.note.max) errors.note = `Shorten the note to ${LIMITS.note.max} characters or fewer.`;
 
-  if (!input.pubId) errors.pubId = "Pick a pub";
+  if (!input.pubId) errors.pubId = "Choose a pub.";
 
   const ok = Object.keys(errors).length === 0;
   return {

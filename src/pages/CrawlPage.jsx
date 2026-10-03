@@ -54,7 +54,7 @@ function Crawl() {
   const toggle = id => setPicked(prev => { const next = new Set(prev); if (next.has(id)) next.delete(id); else next.add(id); return next; });
 
   if (pubsStatus === "loading") return <Loading />;
-  if (pubsStatus === "error") return <ErrorState message={pubsError} onRetry={() => reloadPubs()} />;
+  if (pubsStatus === "error") return <ErrorState title="Couldn't load pubs and prices" message={pubsError} onRetry={() => reloadPubs()} />;
   return (
     <>
       <div className="page-title-row">

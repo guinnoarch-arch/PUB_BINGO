@@ -5,6 +5,7 @@ import { friendlyError } from "../../lib/api/errors.js";
 import { timeAgo } from "../../lib/core/time.js";
 import { EmptyState } from "../ui/States.jsx";
 import { MENU_STATUS } from "./MenuSubmit.jsx";
+import { FormError } from "../ui/FormErrors.jsx";
 
 export function formatSeenOn(dateKey) {
   const d = new Date(`${dateKey}T12:00:00Z`);
@@ -55,15 +56,17 @@ export function SubmissionReview({ item, onChanged, compact = false }) {
   const [note, setNote] = useState(item.admin_note || "");
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState("");
 
   async function save(nextStatus = status) {
     setSaving(true);
+    setError("");
     try {
       await api.admin.reviewMenuSubmission(item.id, { status: nextStatus, note });
-      toast("Menu updated.", "success");
+      toast(`Menu marked “${MENU_STATUS[nextStatus]?.label || nextStatus}”.`, "success");
       onChanged();
     } catch (err) {
-      toast(friendlyError(err), "error");
+      setError(friendlyError(err, "Couldn't save the review. Your reply is still here, so try again."));
     } finally {
       setSaving(false);
     }
@@ -91,6 +94,7 @@ export function SubmissionReview({ item, onChanged, compact = false }) {
       <input id={`menu-reply-${item.id}`} value={note} maxLength={500} onChange={e => setNote(e.target.value)} placeholder="Reply (only the sender sees it)" />
       <button type="button" className="secondary-button small" onClick={() => save()} disabled={saving}>{saving ? "Saving…" : "Save"}</button>
       {!compact && <button type="button" className="text-button danger" onClick={remove} disabled={deleting}>{deleting ? "Deleting…" : "Delete"}</button>}
+      <FormError>{error}</FormError>
     </div>
   );
 }

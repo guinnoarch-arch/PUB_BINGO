@@ -4,8 +4,10 @@ import { friendlyError } from "../../lib/api/errors.js";
 import { londonToday, validateMenuSubmissionFile, validateSeenOn } from "../../lib/api/menuFiles.js";
 import { formatDate } from "../../lib/core/events.js";
 import { timeAgo } from "../../lib/core/time.js";
+import { ErrorSummary, FieldError, FormError, Required, RequiredHint } from "../ui/FormErrors.jsx";
 
 const OTHER = "__other__";
+const FIELD_IDS = { pub: "menu-pub", pubName: "menu-pub-name", seenOn: "menu-seen-on", file: "menu-file" };
 export const MENU_STATUS = {
   new: { label: "Waiting for admin", tone: "new" },
   used: { label: "Used to update prices", tone: "done" },
@@ -22,7 +24,9 @@ export function MenuSubmitForm({ onSent, initialPubId = "" }) {
   const [seenOn, setSeenOn] = useState(today);
   const [note, setNote] = useState("");
   const [fileName, setFileName] = useState("");
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
+  const [attempt, setAttempt] = useState(0);
+  const [serverError, setServerError] = useState("");
   const [sending, setSending] = useState(false);
   const sortedPubs = [...(pubs || [])].sort((a, b) => a.name.localeCompare(b.name));
 
@@ -33,14 +37,21 @@ export function MenuSubmitForm({ onSent, initialPubId = "" }) {
 
   async function send(event) {
     event.preventDefault();
-    setError("");
+    setServerError("");
     const file = fileRef.current?.files?.[0];
-    if (!pubId) { setError("Pick the pub."); return; }
-    if (pubId === OTHER && pubName.trim().length < 2) { setError("Type the pub's name."); return; }
+    const found = {};
+    if (!pubId) found.pub = "Choose the pub, or “A pub that isn't listed”.";
+    if (pubId === OTHER && pubName.trim().length < 2) found.pubName = "Type the pub's name and area.";
     const dateProblem = validateSeenOn(seenOn, today);
-    if (dateProblem) { setError(dateProblem); return; }
+    if (dateProblem) found.seenOn = dateProblem;
     const fileProblem = validateMenuSubmissionFile(file);
-    if (fileProblem) { setError(fileProblem); return; }
+    if (fileProblem) found.file = fileProblem;
+    setErrors(found);
+    setAttempt(a => a + 1);
+    if (Object.keys(found).length) {
+      if (Object.keys(found).length === 1) document.getElementById(FIELD_IDS[Object.keys(found)[0]])?.focus();
+      return;
+    }
     setSending(true);
     try {
       await api.submitMenu(userId, {
@@ -50,13 +61,14 @@ export function MenuSubmitForm({ onSent, initialPubId = "" }) {
         note: note.trim(),
         file
       });
-      toast("Thanks! Your menu has been sent to the Pub Bingo admins.", "success");
+      toast("Menu sent to the admins.", "success");
       setNote("");
       setFileName("");
       if (fileRef.current) fileRef.current.value = "";
       onSent();
     } catch (err) {
-      setError(friendlyError(err, "Couldn't send the menu."));
+      // The pub, date and note stay filled in so it can be sent again.
+      setServerError(friendlyError(err, "Couldn't send the menu."));
     } finally {
       setSending(false);
     }
@@ -67,30 +79,36 @@ export function MenuSubmitForm({ onSent, initialPubId = "" }) {
       <p className="muted small-text">
         Send a PDF menu, or a photo of a menu, price board, or just one drink's price. <strong>Only Pub Bingo admins see it.</strong> They check it and update the prices, so they're real and dated.
       </p>
+      <ErrorSummary errors={errors} fieldIds={FIELD_IDS} attempt={attempt} />
+      <RequiredHint />
       <div className="form-grid">
         <div className="field">
-          <label htmlFor="menu-pub">Which pub?</label>
-          <select id="menu-pub" value={pubId} onChange={e => setPubId(e.target.value)}>
+          <label htmlFor="menu-pub">Which pub?<Required /></label>
+          <select id="menu-pub" value={pubId} onChange={e => { setPubId(e.target.value); setErrors(prev => ({ ...prev, pub: undefined })); }} aria-required="true" aria-invalid={Boolean(errors.pub)} aria-describedby={errors.pub ? "menu-pub-error" : undefined}>
             <option value="">Choose a pub…</option>
             {sortedPubs.map(p => <option key={p.id} value={p.id}>{p.name} ({p.area})</option>)}
             <option value={OTHER}>A pub that isn't listed…</option>
           </select>
+          <FieldError id="menu-pub-error">{errors.pub}</FieldError>
         </div>
         {pubId === OTHER && (
           <div className="field">
-            <label htmlFor="menu-pub-name">Pub name and area</label>
-            <input id="menu-pub-name" value={pubName} maxLength={100} onChange={e => setPubName(e.target.value)} placeholder="e.g. The Lamb, Holborn" />
+            <label htmlFor="menu-pub-name">Pub name and area<Required /></label>
+            <input id="menu-pub-name" value={pubName} maxLength={100} onChange={e => setPubName(e.target.value)} placeholder="e.g. The Lamb, Holborn" aria-required="true" aria-invalid={Boolean(errors.pubName)} aria-describedby={errors.pubName ? "menu-pub-name-error" : undefined} />
+            <FieldError id="menu-pub-name-error">{errors.pubName}</FieldError>
           </div>
         )}
         <div className="field">
-          <label htmlFor="menu-seen-on">Date on the menu, or when you saw it</label>
-          <input id="menu-seen-on" type="date" value={seenOn} max={today} onChange={e => setSeenOn(e.target.value)} />
+          <label htmlFor="menu-seen-on">Date on the menu, or when you saw it<Required /></label>
+          <input id="menu-seen-on" type="date" value={seenOn} max={today} onChange={e => setSeenOn(e.target.value)} aria-required="true" aria-invalid={Boolean(errors.seenOn)} aria-describedby={errors.seenOn ? "menu-seen-on-error" : undefined} />
+          <FieldError id="menu-seen-on-error">{errors.seenOn}</FieldError>
         </div>
       </div>
       <div className="field">
-        <label htmlFor="menu-file">Menu (PDF) or photo</label>
-        <input id="menu-file" ref={fileRef} type="file" accept="application/pdf,.pdf,image/*" onChange={e => setFileName(e.target.files?.[0]?.name || "")} />
+        <label htmlFor="menu-file">Menu (PDF) or photo<Required /></label>
+        <input id="menu-file" ref={fileRef} type="file" accept="application/pdf,.pdf,image/*" onChange={e => { setFileName(e.target.files?.[0]?.name || ""); setErrors(prev => ({ ...prev, file: undefined })); }} aria-required="true" aria-invalid={Boolean(errors.file)} aria-describedby={errors.file ? "menu-file-error" : undefined} />
         {fileName && <span className="muted small-text">Selected: {fileName}</span>}
+        <FieldError id="menu-file-error">{errors.file}</FieldError>
       </div>
       <div className="field">
         <label htmlFor="menu-note">Anything to add? (optional)</label>
@@ -100,7 +118,7 @@ export function MenuSubmitForm({ onSent, initialPubId = "" }) {
         <span className="muted small-text">PDF up to 10 MB, or any photo (resized, with location data removed).</span>
         <button type="submit" className="primary-button" disabled={sending}>{sending ? "Sending…" : "Send to admin"}</button>
       </div>
-      {error && <p className="form-error" role="alert">{error}</p>}
+      <FormError>{serverError}</FormError>
     </form>
   );
 }
@@ -108,13 +126,15 @@ export function MenuSubmitForm({ onSent, initialPubId = "" }) {
 export function MyMenus({ reloadKey }) {
   const { api, userId } = useApp();
   const [items, setItems] = useState([]);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     let active = true;
-    api.listMyMenus(userId).then(rows => active && setItems(rows)).catch(() => {});
+    api.listMyMenus(userId).then(rows => { if (active) { setItems(rows); setError(""); } }).catch(err => active && setError(friendlyError(err, "Couldn't load the menus you've sent.")));
     return () => { active = false; };
   }, [api, userId, reloadKey]);
 
+  if (error) return <p className="muted small-text">{error}</p>;
   if (!items.length) return null;
   return (
     <div className="my-menus">

@@ -6,7 +6,7 @@ const MAX_PAGES = 20;
 export function validateMenuFile(file) {
   if (!file) return "Choose a PDF menu first.";
   if (file.type && file.type !== "application/pdf" && !/\.pdf$/i.test(file.name || "")) return "That isn't a PDF. Upload the menu as a PDF file.";
-  if (file.size > MENU_MAX_BYTES) return "That PDF is over 10 MB.";
+  if (file.size > MENU_MAX_BYTES) return "That PDF is over 10 MB. Save a smaller copy (for example with “Reduce file size” when exporting) and try again.";
   return null;
 }
 

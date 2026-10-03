@@ -67,7 +67,7 @@ function PubsTable() {
 
   const toggleSort = key => setSort(prev => ({ key, direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc" }));
 
-  if (error) return <ErrorState message={error} onRetry={() => setRetry(r => r + 1)} />;
+  if (error) return <ErrorState title="Couldn't load the pubs table" message={error} onRetry={() => setRetry(r => r + 1)} />;
   if (!pubs) return <Loading label="Loading pubs…" />;
 
   return (
@@ -204,7 +204,7 @@ export default function AdminPage() {
       {tab === "pubs" && <section className="card"><PubsTable /></section>}
       {tab === "menus" && (
         <section className="card" aria-label="Menus sent in">
-          {menusError ? <ErrorState message={menusError} onRetry={reloadMenus} />
+          {menusError ? <ErrorState title="Couldn't load menus sent in" message={menusError} onRetry={reloadMenus} />
             : menus === null ? <Loading label="Loading menus…" />
               : <AdminMenus items={menus} onChanged={reloadMenus} />}
         </section>

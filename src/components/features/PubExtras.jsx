@@ -41,13 +41,13 @@ export function CheckIn({ pub }) {
 
   function checkIn() {
     if (!userId) { toast("Sign in to check in."); return; }
-    if (!navigator.geolocation) { toast("Your browser can't share its location.", "error"); return; }
+    if (!navigator.geolocation) { toast("This browser can't share your location, which check-in needs. Try another browser.", "error"); return; }
     setBusy(true);
     navigator.geolocation.getCurrentPosition(
       async pos => {
         try {
           await api.checkIn(pub.id, pos.coords.latitude, pos.coords.longitude);
-          toast(`Checked in at ${pub.name}. Cheers! 🍻`, "success");
+          toast(`Checked in at ${pub.name}.`, "success");
           notifyChange();
         } catch (err) {
           toast(friendlyError(err, "Couldn't check you in."), "error");
@@ -55,7 +55,12 @@ export function CheckIn({ pub }) {
           setBusy(false);
         }
       },
-      () => { setBusy(false); toast("Couldn't get your location. Allow location to check in.", "error"); },
+      error => {
+        setBusy(false);
+        toast(error?.code === 1
+          ? "Location is blocked for this site. Allow it in your browser settings to check in."
+          : "Couldn't find your location. Try again in a moment.", "error");
+      },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
     );
   }

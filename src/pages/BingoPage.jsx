@@ -119,7 +119,7 @@ export default function BingoPage() {
   if (!userId) {
     return <SignInPrompt title="Pub Bingo challenge card">Sign in to play. Your card is saved to your account, and some tiles complete automatically as you report prices, favourite pubs and share photos.</SignInPrompt>;
   }
-  if (error) return <ErrorState message={error} onRetry={() => setRetry(r => r + 1)} />;
+  if (error) return <ErrorState title="Couldn't load your bingo card" message={error} onRetry={() => setRetry(r => r + 1)} />;
   if (!progress) return <Loading label="Loading your card…" />;
 
   const inLine = new Set(lines.flat());

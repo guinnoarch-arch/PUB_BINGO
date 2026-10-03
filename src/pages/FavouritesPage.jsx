@@ -16,7 +16,7 @@ export default function FavouritesPage() {
     return <SignInPrompt title="Your favourite pubs">Sign in to save favourites. They're kept with your account, so they follow you to any device.</SignInPrompt>;
   }
   if (pubsStatus === "loading") return <Loading />;
-  if (pubsStatus === "error") return <ErrorState message={pubsError} onRetry={() => reloadPubs()} />;
+  if (pubsStatus === "error") return <ErrorState title="Couldn't load pubs and prices" message={pubsError} onRetry={() => reloadPubs()} />;
 
   const list = pubs.filter(pub => favourites.has(pub.id));
   return (

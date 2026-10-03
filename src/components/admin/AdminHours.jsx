@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useApp } from "../../lib/AppContext.jsx";
 import { friendlyError } from "../../lib/api/errors.js";
 import { WEEKDAYS } from "../../data/features.js";
+import { FormError } from "../ui/FormErrors.jsx";
 
 const ORDER = [1, 2, 3, 4, 5, 6, 0];
 
@@ -54,7 +55,7 @@ export default function AdminHours({ pub, onSaved }) {
         </tbody>
       </table>
       </div>
-      {error && <p className="form-error" role="alert">{error}</p>}
+      <FormError>{error}</FormError>
       <div className="row-actions">
         <button type="button" className="primary-button" onClick={() => save(false)} disabled={saving}>{saving ? "Saving…" : "Save hours"}</button>
         {pub.opening_hours && <button type="button" className="text-button danger" onClick={() => save(true)} disabled={saving}>Clear hours</button>}

@@ -7,6 +7,20 @@ const BUCKET = "pub-photos";
 const SUBMISSIONS = "menu-submissions";
 const SUBMISSION_SELECT = "*, pub:pubs(id, name, area), sender:profiles!menu_submissions_submitted_by_fkey(username)";
 
+// Requests give up after this long so a slow connection shows "taking too long" and a retry
+// button instead of an endless spinner. File uploads get longer.
+const REQUEST_TIMEOUT_MS = 20000;
+const UPLOAD_TIMEOUT_MS = 120000;
+
+function fetchWithTimeout(input, init = {}) {
+  const url = String(input?.url || input);
+  const method = String(init.method || input?.method || "GET").toUpperCase();
+  const isUpload = url.includes("/storage/v1/object") && method !== "GET";
+  const timeout = AbortSignal.timeout(isUpload ? UPLOAD_TIMEOUT_MS : REQUEST_TIMEOUT_MS);
+  const signal = init.signal && AbortSignal.any ? AbortSignal.any([init.signal, timeout]) : init.signal || timeout;
+  return fetch(input, { ...init, signal });
+}
+
 function unwrap({ data, error }, fallback) {
   if (error) throw new ApiError(error, fallback);
   return data;
@@ -14,7 +28,8 @@ function unwrap({ data, error }, fallback) {
 
 export function createSupabaseApi(url, anonKey) {
   const supabase = createClient(url, anonKey, {
-    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+    global: { fetch: fetchWithTimeout }
   });
 
   const api = {

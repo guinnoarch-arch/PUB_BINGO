@@ -1,3 +1,5 @@
+import { CircleAlert } from "lucide-react";
+
 export function Loading({ label = "Loading…" }) {
   return (
     <div className="state-box" role="status" aria-live="polite">
@@ -7,11 +9,13 @@ export function Loading({ label = "Loading…" }) {
   );
 }
 
-export function ErrorState({ message, onRetry }) {
+// title says what didn't work ("Couldn't load the feed"); message says why and what to do.
+export function ErrorState({ title = "This didn't load", message, onRetry }) {
   return (
     <div className="state-box error" role="alert">
-      <strong>Something went wrong</strong>
-      <span>{message}</span>
+      <CircleAlert className="state-icon" aria-hidden="true" />
+      <strong>{title}</strong>
+      {message && <span>{message}</span>}
       {onRetry && <button type="button" className="secondary-button" onClick={onRetry}>Try again</button>}
     </div>
   );

@@ -36,7 +36,7 @@ export default function LiveFeed({ limit = 30, compact = false }) {
   });
 
   if (status === "loading") return <Loading label="Loading reports…" />;
-  if (status === "error") return <ErrorState message={error} onRetry={() => { setStatus("loading"); setRetry(r => r + 1); }} />;
+  if (status === "error") return <ErrorState title="Couldn't load the latest reports" message={error} onRetry={() => { setStatus("loading"); setRetry(r => r + 1); }} />;
   if (!reports.length) {
     return <EmptyState title="No community reports yet">Be the first: open a pub and report what you paid.</EmptyState>;
   }

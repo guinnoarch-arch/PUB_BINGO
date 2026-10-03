@@ -111,12 +111,14 @@ function ConfigErrorScreen() {
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    {configError ? <ConfigErrorScreen /> : (
-      <BrowserRouter>
-        <AppProvider api={api}>
-          <App />
-        </AppProvider>
-      </BrowserRouter>
-    )}
+    <ErrorBoundary fullPage>
+      {configError ? <ConfigErrorScreen /> : (
+        <BrowserRouter>
+          <AppProvider api={api}>
+            <App />
+          </AppProvider>
+        </BrowserRouter>
+      )}
+    </ErrorBoundary>
   </StrictMode>
 );

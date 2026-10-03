@@ -103,7 +103,7 @@ export default function WhatsOnPage() {
           ))}
         </div>
 
-        {error && <ErrorState message={error} onRetry={() => setRetry(r => r + 1)} />}
+        {error && <ErrorState title="Couldn't load events" message={error} onRetry={() => setRetry(r => r + 1)} />}
         {!error && (events === null || pubsStatus === "loading") && <Loading label="Loading what's on…" />}
         {!error && events !== null && pubsStatus === "ready" && groups.length === 0 && (
           <EmptyState title="Nothing listed for then yet">

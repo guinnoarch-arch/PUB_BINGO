@@ -16,15 +16,16 @@ export default function DrinkHistory({ drink }) {
   const { api, changeVersion, isAdmin, feature, toast, notifyChange } = useApp();
   const [rows, setRows] = useState(null);
   const [error, setError] = useState("");
+  const [retry, setRetry] = useState(0);
   const { run, isPending } = usePending();
 
   useEffect(() => {
     let active = true;
     api.getDrinkHistory(drink.id)
-      .then(data => active && setRows(data))
+      .then(data => { if (active) { setRows(data); setError(""); } })
       .catch(err => active && setError(friendlyError(err, "Couldn't load price history.")));
     return () => { active = false; };
-  }, [api, drink.id, changeVersion]);
+  }, [api, drink.id, changeVersion, retry]);
 
   const toggleHidden = report => run(report.id, async () => {
     try {
@@ -36,7 +37,7 @@ export default function DrinkHistory({ drink }) {
     }
   });
 
-  if (error) return <ErrorState message={error} />;
+  if (error) return <ErrorState title="Couldn't load the price history" message={error} onRetry={() => { setError(""); setRetry(r => r + 1); }} />;
   if (!rows) return <Loading label="Loading history…" />;
   const visible = rows.filter(r => !r.is_hidden);
   const stats = priceHistoryStats(visible);

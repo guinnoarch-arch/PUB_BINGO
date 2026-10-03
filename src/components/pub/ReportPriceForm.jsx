@@ -2,25 +2,43 @@ import { useId, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useApp } from "../../lib/AppContext.jsx";
 import { friendlyError } from "../../lib/api/errors.js";
+import { useValidation } from "../../lib/useValidation.js";
 import { CATEGORIES } from "../../data/seedPubs.js";
 import { LIMITS, MEASURES, formatPrice, measureLabel, validatePriceReport } from "../../lib/core/prices.js";
+import { ErrorSummary, FieldError, FormError, Required, RequiredHint } from "../ui/FormErrors.jsx";
 
 const NEW_DRINK = "__new__";
+// A price this far from the usual one is probably a typo (e.g. 65 instead of 6.50).
+const BIG_CHANGE = 0.5;
 
 export default function ReportPriceForm({ pub, drinks, initialDrinkId = "", onDone, onCancel }) {
   const { api, userId, feature, toast, notifyChange } = useApp();
   const receiptRef = useRef(null);
   const location = useLocation();
   const formId = useId();
-  const [drinkChoice, setDrinkChoice] = useState(initialDrinkId || (drinks.length ? drinks[0].id : NEW_DRINK));
-  const [drinkName, setDrinkName] = useState("");
-  const [category, setCategory] = useState("");
-  const [measure, setMeasure] = useState("pint");
-  const [price, setPrice] = useState("");
-  const [note, setNote] = useState("");
-  const [errors, setErrors] = useState({});
+  const [values, setValues] = useState({
+    drinkChoice: initialDrinkId || (drinks.length ? drinks[0].id : NEW_DRINK),
+    drinkName: "",
+    category: "",
+    measure: "pint",
+    price: "",
+    note: ""
+  });
+  const isNew = values.drinkChoice === NEW_DRINK;
+  const selected = drinks.find(d => d.id === values.drinkChoice);
+  const toInput = v => ({
+    pubId: pub.id,
+    drinkId: v.drinkChoice === NEW_DRINK ? null : v.drinkChoice,
+    drinkName: v.drinkChoice === NEW_DRINK ? v.drinkName : null,
+    category: v.drinkChoice === NEW_DRINK ? v.category : null,
+    measure: v.drinkChoice === NEW_DRINK ? v.measure : drinks.find(d => d.id === v.drinkChoice)?.measure,
+    price: v.price,
+    note: v.note
+  });
+  const { errors, checkField, validateAll, attempt } = useValidation(v => validatePriceReport(toInput(v)).errors, values);
   const [submitError, setSubmitError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const set = key => event => setValues(prev => ({ ...prev, [key]: event.target.value }));
 
   if (!userId) {
     return (
@@ -31,31 +49,23 @@ export default function ReportPriceForm({ pub, drinks, initialDrinkId = "", onDo
     );
   }
 
-  const isNew = drinkChoice === NEW_DRINK;
-  const selected = drinks.find(d => d.id === drinkChoice);
   const fieldId = name => `${formId}-${name}`;
-  const errorProps = name => (errors[name] ? { "aria-invalid": true, "aria-describedby": fieldId(`${name}-error`) } : {});
-  const FieldError = ({ name }) => (errors[name] ? <span id={fieldId(`${name}-error`)} className="field-error">{errors[name]}</span> : null);
+  const fieldIds = { drinkName: fieldId("drinkName"), category: fieldId("category"), price: fieldId("price"), note: fieldId("note") };
+  const errorProps = name => ({
+    onBlur: () => checkField(name),
+    "aria-invalid": Boolean(errors[name]),
+    "aria-describedby": errors[name] ? fieldId(`${name}-error`) : undefined
+  });
 
   async function handleSubmit(event) {
     event.preventDefault();
     setSubmitError("");
-    const result = validatePriceReport({
-      pubId: pub.id,
-      drinkId: isNew ? null : drinkChoice,
-      drinkName: isNew ? drinkName : null,
-      category: isNew ? category : null,
-      measure: isNew ? measure : selected?.measure,
-      price,
-      note
-    });
-    setErrors(result.errors);
-    if (!result.ok) return;
+    if (!validateAll()) return;
+    const result = validatePriceReport(toInput(values));
 
-    // Double-check big jumps, which are usually typos (e.g. 65 instead of 6.50).
     const usual = selected ? Number(selected.regular_price ?? selected.current_price) : null;
-    if (selected && Math.abs(result.value.price - usual) / usual > 0.5) {
-      const ok = window.confirm(`${formatPrice(result.value.price)} is very different from the current ${formatPrice(usual)}. Submit anyway?`);
+    if (selected && Math.abs(result.value.price - usual) / usual > BIG_CHANGE) {
+      const ok = window.confirm(`${formatPrice(result.value.price)} is very different from the current ${formatPrice(usual)}. Is that what you paid?`);
       if (!ok) return;
     }
 
@@ -68,15 +78,16 @@ export default function ReportPriceForm({ pub, drinks, initialDrinkId = "", onDo
         try {
           await api.uploadReceipt(userId, report.id, receipt);
         } catch (err) {
-          toast(friendlyError(err, "Your price was saved, but the receipt couldn't be added."), "error");
+          toast(friendlyError(err, "Your price was saved, but the receipt couldn't be added. You can report again with the receipt later."), "error");
         }
       }
       toast(report?.held
-        ? `Thanks! ${formatPrice(result.value.price)} is quite different from the current price, so an admin will check it before it goes live.`
-        : `Thanks! ${name} at ${pub.name} is now ${formatPrice(result.value.price)}.`, "success");
+        ? `${formatPrice(result.value.price)} is well away from the current price, so an admin will check it before it goes live.`
+        : `${name} at ${pub.name} is now ${formatPrice(result.value.price)}.`, "success");
       notifyChange();
       onDone?.();
     } catch (error) {
+      // Everything typed stays in the form so it can be fixed and sent again.
       setSubmitError(friendlyError(error, "Couldn't save your price."));
     } finally {
       setSubmitting(false);
@@ -85,8 +96,10 @@ export default function ReportPriceForm({ pub, drinks, initialDrinkId = "", onDo
 
   return (
     <form className="report-form" onSubmit={handleSubmit} noValidate>
-      <label htmlFor={fieldId("drink")}>Drink</label>
-      <select id={fieldId("drink")} value={drinkChoice} onChange={event => setDrinkChoice(event.target.value)}>
+      <ErrorSummary errors={errors} fieldIds={fieldIds} attempt={attempt} />
+      <RequiredHint />
+      <label htmlFor={fieldId("drink")}>Drink<Required /></label>
+      <select id={fieldId("drink")} value={values.drinkChoice} onChange={set("drinkChoice")} aria-required="true">
         {drinks.map(drink => (
           <option key={drink.id} value={drink.id}>
             {drink.name}{drink.measure !== "pint" ? ` (${measureLabel(drink.measure, drink.volume_ml)})` : ""}: now {formatPrice(drink.regular_price ?? drink.current_price)}
@@ -98,21 +111,21 @@ export default function ReportPriceForm({ pub, drinks, initialDrinkId = "", onDo
       {isNew && (
         <div className="form-grid">
           <div className="field">
-            <label htmlFor={fieldId("name")}>Drink name</label>
-            <input id={fieldId("name")} value={drinkName} maxLength={LIMITS.drinkName.max} onChange={e => setDrinkName(e.target.value)} placeholder="e.g. Camden Hells" autoComplete="off" {...errorProps("drinkName")} />
-            <FieldError name="drinkName" />
+            <label htmlFor={fieldIds.drinkName}>Drink name<Required /></label>
+            <input id={fieldIds.drinkName} value={values.drinkName} maxLength={LIMITS.drinkName.max} onChange={set("drinkName")} placeholder="e.g. Camden Hells" autoComplete="off" aria-required="true" {...errorProps("drinkName")} />
+            <FieldError id={fieldId("drinkName-error")}>{errors.drinkName}</FieldError>
           </div>
           <div className="field">
-            <label htmlFor={fieldId("category")}>Category</label>
-            <select id={fieldId("category")} value={category} onChange={e => setCategory(e.target.value)} {...errorProps("category")}>
+            <label htmlFor={fieldIds.category}>Category<Required /></label>
+            <select id={fieldIds.category} value={values.category} onChange={set("category")} aria-required="true" {...errorProps("category")}>
               <option value="">Choose…</option>
               {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
-            <FieldError name="category" />
+            <FieldError id={fieldId("category-error")}>{errors.category}</FieldError>
           </div>
           <div className="field">
-            <label htmlFor={fieldId("measure")}>Measure</label>
-            <select id={fieldId("measure")} value={measure} onChange={e => setMeasure(e.target.value)}>
+            <label htmlFor={fieldId("measure")}>Measure<Required /></label>
+            <select id={fieldId("measure")} value={values.measure} onChange={set("measure")} aria-required="true">
               {MEASURES.map(m => <option key={m} value={m}>{m}</option>)}
             </select>
           </div>
@@ -121,29 +134,29 @@ export default function ReportPriceForm({ pub, drinks, initialDrinkId = "", onDo
 
       <div className="form-grid">
         <div className="field">
-          <label htmlFor={fieldId("price")}>Price paid{selected && selected.measure !== "pint" ? ` (per ${measureLabel(selected.measure, selected.volume_ml)})` : ""}</label>
+          <label htmlFor={fieldIds.price}>Price paid{selected && selected.measure !== "pint" ? ` (per ${measureLabel(selected.measure, selected.volume_ml)})` : ""}<Required /></label>
           <div className="price-input">
             <span aria-hidden="true">£</span>
-            <input id={fieldId("price")} inputMode="decimal" value={price} onChange={e => setPrice(e.target.value)} placeholder="6.20" autoComplete="off" {...errorProps("price")} />
+            <input id={fieldIds.price} inputMode="decimal" value={values.price} onChange={set("price")} placeholder="6.20" autoComplete="off" aria-required="true" {...errorProps("price")} />
           </div>
-          <FieldError name="price" />
+          <FieldError id={fieldId("price-error")}>{errors.price}</FieldError>
         </div>
         <div className="field grow">
-          <label htmlFor={fieldId("note")}>Note <span className="muted">(optional)</span></label>
-          <input id={fieldId("note")} value={note} maxLength={LIMITS.note.max} onChange={e => setNote(e.target.value)} placeholder="e.g. happy hour price" {...errorProps("note")} />
-          <FieldError name="note" />
+          <label htmlFor={fieldIds.note}>Note <span className="muted">(optional)</span></label>
+          <input id={fieldIds.note} value={values.note} maxLength={LIMITS.note.max} onChange={set("note")} placeholder="e.g. happy hour price" {...errorProps("note")} />
+          <FieldError id={fieldId("note-error")}>{errors.note}</FieldError>
         </div>
       </div>
 
       {feature("receipts") && (
         <div className="field">
-          <label htmlFor={fieldId("receipt")}>🧾 Receipt photo <span className="muted">(optional, only admins see it)</span></label>
+          <label htmlFor={fieldId("receipt")}>Receipt photo <span className="muted">(optional, only admins see it)</span></label>
           <input id={fieldId("receipt")} ref={receiptRef} type="file" accept="image/*" />
           <span className="muted small-text">Adds a “Receipt” badge to your report. Cover any card numbers first.</span>
         </div>
       )}
 
-      {submitError && <p className="form-error" role="alert">{submitError}</p>}
+      <FormError>{submitError}</FormError>
       <div className="row-actions">
         <button type="submit" className="primary-button" disabled={submitting}>{submitting ? "Saving…" : "Submit price"}</button>
         {onCancel && <button type="button" className="secondary-button" onClick={onCancel}>Cancel</button>}

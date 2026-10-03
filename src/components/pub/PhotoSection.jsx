@@ -7,12 +7,14 @@ import { cleanText } from "../../lib/core/prices.js";
 import PubImage, { hasCover } from "./PubImage.jsx";
 import { PUB_COVERS } from "../../data/pubCovers.js";
 import { usePending } from "../../lib/usePending.js";
+import { FieldError, FormError } from "../ui/FormErrors.jsx";
 
 export default function PhotoSection({ pub, photos, onChanged }) {
   const { api, userId, isAdmin, toast } = useApp();
   const fileRef = useRef(null);
   const [caption, setCaption] = useState("");
   const [busy, setBusy] = useState(false);
+  const [fileError, setFileError] = useState("");
   const [error, setError] = useState("");
   const [pausedView, setPausedView] = useState(pub.uploads_paused);
   const { run: runPending, isPending } = usePending();
@@ -23,11 +25,12 @@ export default function PhotoSection({ pub, photos, onChanged }) {
     setError("");
     const file = fileRef.current?.files?.[0];
     const problem = validatePhotoFile(file);
-    if (problem) { setError(problem); return; }
+    setFileError(problem || "");
+    if (problem) { document.getElementById("photo-file")?.focus(); return; }
     setBusy(true);
     try {
       await api.uploadPhoto(userId, pub.id, file, cleanText(caption).slice(0, 140));
-      toast("Photo uploaded. Thanks!", "success");
+      toast(`Photo added to ${pub.name}.`, "success");
       setCaption("");
       fileRef.current.value = "";
       onChanged();
@@ -103,12 +106,13 @@ export default function PhotoSection({ pub, photos, onChanged }) {
       ) : userId ? (
         <form className="upload-form" onSubmit={upload}>
           <label htmlFor="photo-file">Add a photo</label>
-          <input id="photo-file" ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" />
+          <input id="photo-file" ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={() => setFileError("")} aria-invalid={Boolean(fileError)} aria-describedby={fileError ? "photo-file-error" : undefined} />
+          <FieldError id="photo-file-error">{fileError}</FieldError>
           <label htmlFor="photo-caption" className="sr-only">Caption</label>
           <input id="photo-caption" value={caption} maxLength={140} onChange={e => setCaption(e.target.value)} placeholder="Caption (optional)" />
           <button type="submit" className="primary-button" disabled={busy}>{busy ? "Uploading…" : "Upload"}</button>
           <p className="muted small-text">JPEG, PNG or WebP. Photos are resized, and location data is removed before upload.</p>
-          {error && <p className="form-error" role="alert">{error}</p>}
+          <FormError>{error}</FormError>
         </form>
       ) : (
         <p className="muted"><Link to={`/account?next=/pubs/${pub.id}`}>Sign in</Link> to add photos.</p>

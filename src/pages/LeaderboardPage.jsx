@@ -63,7 +63,7 @@ export default function LeaderboardPage() {
 
       <section className="card">
         {pubsStatus === "loading" && <Loading />}
-        {pubsStatus === "error" && <ErrorState message={pubsError} onRetry={() => reloadPubs()} />}
+        {pubsStatus === "error" && <ErrorState title="Couldn't load pubs and prices" message={pubsError} onRetry={() => reloadPubs()} />}
         {pubsStatus === "ready" && rows.length === 0 && (
           <EmptyState title="No confirmed prices yet">
             {category ? `Nobody has confirmed a ${category} price yet. ` : ""}Open a pub and report what you paid to get on the board.

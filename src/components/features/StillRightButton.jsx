@@ -16,7 +16,7 @@ export default function StillRightButton({ drink }) {
     try {
       await api.confirmPrice(drink.id);
       setDone(true);
-      toast(`Thanks! ${drink.name} at ${formatPrice(drink.regular_price ?? drink.current_price)} confirmed.`, "success");
+      toast(`Confirmed: ${drink.name} is still ${formatPrice(drink.regular_price ?? drink.current_price)}.`, "success");
       notifyChange();
     } catch (err) {
       toast(friendlyError(err, "Couldn't confirm the price."), "error");

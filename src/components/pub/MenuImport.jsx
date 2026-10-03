@@ -6,6 +6,8 @@ import { buildImportRows, parseMenuLines } from "../../lib/core/menuImport.js";
 import { extractPdfLines, validateMenuFile } from "../../lib/pdfText.js";
 import { formatPrice, parsePrice } from "../../lib/core/prices.js";
 import { timeAgo } from "../../lib/core/time.js";
+import { CircleAlert } from "lucide-react";
+import { FormError } from "../ui/FormErrors.jsx";
 
 // Admin: upload a PDF drinks menu, read the prices from it, review, then save them as
 // "Pub website" prices that link back to the uploaded PDF.
@@ -16,6 +18,7 @@ export default function MenuImport({ pub, submission = null, onImported }) {
   const fileRef = useRef(null);
   const [stage, setStage] = useState("idle"); // idle | reading | review | saving
   const [error, setError] = useState("");
+  const [failures, setFailures] = useState(null); // { saved, rows: [{ key, name, message }] } after a partial save
   const [menu, setMenu] = useState(null);
   const [lines, setLines] = useState([]);
   const [rows, setRows] = useState([]);
@@ -52,6 +55,7 @@ export default function MenuImport({ pub, submission = null, onImported }) {
 
   async function process(file, store) {
     setError("");
+    setFailures(null);
     setStage("reading");
     try {
       const { lines: found } = await extractPdfLines(file);
@@ -68,7 +72,7 @@ export default function MenuImport({ pub, submission = null, onImported }) {
       setStage("review");
       setReloadKey(k => k + 1);
     } catch (err) {
-      setError(friendlyError(err, "Couldn't read that PDF."));
+      setError(friendlyError(err, "Couldn't read that PDF. It may be damaged or password-protected. Enter the prices by hand with “Set price” instead."));
       setStage("idle");
     }
   }
@@ -79,11 +83,12 @@ export default function MenuImport({ pub, submission = null, onImported }) {
 
   async function save() {
     setStage("saving");
+    setFailures(null);
     let saved = 0;
     const failures = [];
     for (const row of selected) {
       const price = parsePrice(String(row.price));
-      if (price == null) { failures.push(`${row.name}: price isn't a number`); continue; }
+      if (price == null) { failures.push({ key: row.key, name: row.name, message: `the price “${row.price}” isn't a number. Fix it in the table, like 6.20.` }); continue; }
       const sent = menu.submission;
       try {
         await api.admin.setDrinkPrice({
@@ -100,7 +105,7 @@ export default function MenuImport({ pub, submission = null, onImported }) {
         });
         saved += 1;
       } catch (err) {
-        failures.push(`${row.name}: ${friendlyError(err)}`);
+        failures.push({ key: row.key, name: row.name, message: friendlyError(err, "didn't save.") });
       }
     }
     if (menu.submission) {
@@ -112,8 +117,10 @@ export default function MenuImport({ pub, submission = null, onImported }) {
     onImported?.();
     setReloadKey(k => k + 1);
     if (failures.length) {
-      setError(`Saved ${saved}. Not saved: ${failures.join("; ")}`);
-      setRows(prev => prev.filter(r => !r.selected || failures.some(f => f.startsWith(`${r.name}:`))));
+      setError("");
+      setFailures({ saved, rows: failures });
+      // Keep the rows that failed (and anything not ticked) so they can be fixed and saved again.
+      setRows(prev => prev.filter(r => !r.selected || failures.some(f => f.key === r.key)));
       setStage("review");
     } else {
       toast(`${saved} price${saved === 1 ? "" : "s"} imported from ${menu.file_name}.`, "success");
@@ -141,7 +148,17 @@ export default function MenuImport({ pub, submission = null, onImported }) {
           <p className="muted small-text">The menu is saved with the pub, and each imported price links to it. You'll check every price before anything is saved.</p>
         </form>
       )}
-      {error && <p className="form-error" role="alert">{error}</p>}
+      <FormError>{error}</FormError>
+      {failures && (
+        <div className="form-error" role="alert">
+          <CircleAlert className="error-icon" aria-hidden="true" />
+          <div>
+            <p>{failures.saved} price{failures.saved === 1 ? "" : "s"} saved. {failures.rows.length} didn't save:</p>
+            <ul>{failures.rows.map(f => <li key={f.key}><strong>{f.name}</strong>: {f.message}</li>)}</ul>
+            <p>They're still ticked in the table below. Fix them and save again.</p>
+          </div>
+        </div>
+      )}
 
       {(stage === "review" || stage === "saving") && (
         <div className="import-review">
@@ -239,7 +256,7 @@ export default function MenuImport({ pub, submission = null, onImported }) {
             <button type="button" className="primary-button" disabled={!selected.length || stage === "saving"} onClick={save}>
               {stage === "saving" ? "Saving…" : `Save ${selected.length} price${selected.length === 1 ? "" : "s"}`}
             </button>
-            <button type="button" className="secondary-button" disabled={stage === "saving"} onClick={() => { setStage("idle"); setRows([]); setError(""); }}>Cancel</button>
+            <button type="button" className="secondary-button" disabled={stage === "saving"} onClick={() => { setStage("idle"); setRows([]); setError(""); setFailures(null); }}>Cancel</button>
           </div>
           <details className="menu-text">
             <summary>Show all text found in the PDF ({lines.length} lines)</summary>

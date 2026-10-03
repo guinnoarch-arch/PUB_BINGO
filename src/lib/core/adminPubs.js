@@ -106,6 +106,30 @@ export function adminTotals(rows) {
 }
 
 // Turns a pub name into a URL-safe id, e.g. "The Lamb & Flag" -> "the-lamb-and-flag".
+const PUB_ID_RE = /^[a-z0-9-]{2,80}$/;
+const URL_RE = /^https?:\/\/\S+\.\S+/i;
+
+// Checks the admin "Pub details" form before saving. Returns { field: "message" } for each problem.
+// The database checks these too; this catches them next to the right field first.
+export function validatePubDetails(form, { isNew = false, year = new Date().getFullYear() } = {}) {
+  const errors = {};
+  const text = value => String(value ?? "").trim();
+  if (!text(form.name)) errors.name = "Enter the pub's name.";
+  if (isNew && !PUB_ID_RE.test(text(form.id))) errors.id = "Use 2 to 80 lowercase letters, numbers or dashes, like the-lamb-holborn.";
+  if (!text(form.area)) errors.area = "Enter the area, like Soho.";
+  const lat = text(form.lat);
+  const lng = text(form.lng);
+  if (lat && !(Number.isFinite(Number(lat)) && Math.abs(Number(lat)) <= 90)) errors.lat = "Enter latitude as a number, like 51.5132.";
+  if (lng && !(Number.isFinite(Number(lng)) && Math.abs(Number(lng)) <= 180)) errors.lng = "Enter longitude as a number, like -0.1275.";
+  if (Boolean(lat) !== Boolean(lng)) errors[lat ? "lng" : "lat"] = "Enter both latitude and longitude, or neither.";
+  const opened = text(form.opened_year);
+  if (opened && !(/^\d{3,4}$/.test(opened) && Number(opened) <= year)) errors.opened_year = `Enter a year like 1772, no later than ${year}.`;
+  for (const key of ["website", "drinks_menu_url", "food_menu_url"]) {
+    if (text(form[key]) && !URL_RE.test(text(form[key]))) errors[key] = "Enter a full link starting with https://";
+  }
+  return errors;
+}
+
 export function slugify(name) {
   return String(name || "")
     .normalize("NFKD").replace(/[̀-ͯ]/g, "")

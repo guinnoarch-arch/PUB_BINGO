@@ -184,11 +184,22 @@ input, select, textarea {
 }
 input[type="checkbox"] { width: auto; min-height: 0; accent-color: var(--primary); }
 input[type="file"] { padding: 8px; }
-input[aria-invalid="true"], select[aria-invalid="true"] { border-color: var(--red); }
+/* Errors: red border, icon and text together, never colour alone. */
+input[aria-invalid="true"], select[aria-invalid="true"], textarea[aria-invalid="true"] { border: 2px solid var(--red); }
 .field { display: grid; gap: 4px; min-width: 0; }
 .field label, .report-form > label { font-weight: 700; font-size: 0.9rem; }
-.field-error, .form-error { color: var(--red); font-size: 0.85rem; font-weight: 600; }
-.form-error { margin: 0; }
+.field-error, .form-error { display: flex; align-items: flex-start; gap: 6px; color: var(--red); font-size: 0.85rem; font-weight: 600; }
+.form-error { margin: 0; padding: 10px 12px; border: 1px solid var(--red); border-left-width: 4px; border-radius: 10px; background: var(--card); }
+.form-error p, .form-error ul { margin: 0 0 4px; }
+.form-error ul { padding-left: 18px; font-weight: 500; }
+.error-icon { width: 16px; height: 16px; flex-shrink: 0; margin-top: 2px; }
+.error-summary { padding: 12px 16px; border: 2px solid var(--red); border-radius: 12px; background: var(--card); }
+.error-summary:focus { outline: 3px solid var(--accent); outline-offset: 2px; }
+.error-summary-title { display: flex; gap: 6px; align-items: center; margin: 0 0 6px; color: var(--red); font-weight: 700; }
+.error-summary ul { margin: 0; padding-left: 22px; }
+.error-summary a { color: var(--red) !important; font-weight: 600; }
+.required-mark { color: var(--red); font-weight: 700; }
+.required-hint { margin: 0; }
 .checkbox-label { display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; font-weight: 600; }
 
 .status-message { margin: 8px 0 0; padding: 9px 12px; border-radius: 12px; background: rgba(var(--primary-rgb), 0.08); font-size: 0.9rem; }
@@ -197,6 +208,7 @@ input[aria-invalid="true"], select[aria-invalid="true"] { border-color: var(--re
 .state-box { display: grid; gap: 8px; justify-items: center; text-align: center; padding: 28px 12px; color: var(--muted); }
 .state-box strong { color: var(--text); }
 .state-box.error strong { color: var(--red); }
+.state-icon { width: 28px; height: 28px; color: var(--red); }
 .spinner { width: 26px; height: 26px; border-radius: 50%; border: 3px solid var(--line); border-top-color: var(--primary); animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 3s; } * { scroll-behavior: auto !important; } }

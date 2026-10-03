@@ -65,3 +65,25 @@ export function describeDeal(deal) {
   const what = deal.deal_price != null ? `£${Number(deal.deal_price).toFixed(2)}` : `${deal.discount_pct}% off`;
   return { what, when: formatSchedule({ schedule: "weekly", weekdays: deal.days, start_time: deal.start_time, end_time: deal.end_time }) };
 }
+
+const LINK_RE = /^https?:\/\/\S+$/i;
+
+// Checks the admin happy-hour form (mirrors the deals table's rules). Returns { field: "message" }.
+// form.kind is "price" (fixed price) or "pct" (% off).
+export function validateDeal(form) {
+  const errors = {};
+  const title = String(form.title || "").trim();
+  if (title.length < 3 || title.length > 80) errors.title = "Enter a title of 3 to 80 characters, like “Happy hour: £5 pints”.";
+  if (!(form.days || []).length) errors.days = "Choose at least one day.";
+  if (!form.start_time || !form.end_time) errors.end_time = "Enter both a start and an end time.";
+  else if (form.start_time === form.end_time) errors.end_time = "The end time must be different from the start time.";
+  if (form.kind === "price") {
+    const price = Number(String(form.deal_price ?? "").replace(/^£/, ""));
+    if (!(price >= 1 && price <= 25)) errors.deal_price = "Enter a price between £1 and £25, like 5.00.";
+  } else {
+    const pct = Number(form.discount_pct);
+    if (!(Number.isInteger(pct) && pct >= 5 && pct <= 75)) errors.discount_pct = "Enter a whole number between 5 and 75.";
+  }
+  if (String(form.source_url || "").trim() && !LINK_RE.test(String(form.source_url).trim())) errors.source_url = "Enter a full link starting with https://, or leave it empty.";
+  return errors;
+}

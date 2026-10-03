@@ -12,6 +12,7 @@ export default function TopReporters() {
   const [range, setRange] = useState("month");
   const [rows, setRows] = useState(null);
   const [error, setError] = useState("");
+  const [retry, setRetry] = useState(0);
   const now = londonNow();
   const monthStart = `${now.dateKey.slice(0, 7)}-01T00:00:00Z`;
 
@@ -21,7 +22,7 @@ export default function TopReporters() {
       .then(r => { if (active) { setRows(r); setError(""); } })
       .catch(err => active && setError(friendlyError(err, "Couldn't load the reporters.")));
     return () => { active = false; };
-  }, [api, range, monthStart, changeVersion]);
+  }, [api, range, monthStart, changeVersion, retry]);
 
   return (
     <>
@@ -29,7 +30,7 @@ export default function TopReporters() {
         <button type="button" className={range === "month" ? "active" : ""} aria-pressed={range === "month"} onClick={() => setRange("month")}>{MONTHS[Number(now.dateKey.slice(5, 7)) - 1]}</button>
         <button type="button" className={range === "all" ? "active" : ""} aria-pressed={range === "all"} onClick={() => setRange("all")}>All time</button>
       </div>
-      {error && <ErrorState message={error} />}
+      {error && <ErrorState title="Couldn't load the top reporters" message={error} onRetry={() => { setError(""); setRows(null); setRetry(r => r + 1); }} />}
       {!error && rows === null && <Loading />}
       {rows && rows.length === 0 && <EmptyState title="No reporters yet">Report a price to top the board.</EmptyState>}
       {rows && rows.length > 0 && (

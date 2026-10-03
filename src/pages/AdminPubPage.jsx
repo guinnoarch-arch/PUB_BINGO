@@ -3,8 +3,8 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { useApp } from "../lib/AppContext.jsx";
 import { friendlyError } from "../lib/api/errors.js";
 import { AREAS, CATEGORIES, TAGS } from "../data/seedPubs.js";
-import { PRICES_ONLINE_LABELS, canPublish, missingInfo, one, slugify } from "../lib/core/adminPubs.js";
-import { MEASURES, formatPrice, isDraught, measureLabel, parsePrice, pintPrice } from "../lib/core/prices.js";
+import { PRICES_ONLINE_LABELS, canPublish, missingInfo, one, slugify, validatePubDetails } from "../lib/core/adminPubs.js";
+import { MAX_PRICE, MEASURES, MIN_PRICE, formatPrice, isDraught, measureLabel, parsePrice, pintPrice } from "../lib/core/prices.js";
 import { timeAgo } from "../lib/core/time.js";
 import { SourceBadge } from "../components/ui/Badges.jsx";
 import { EmptyState, ErrorState, Loading } from "../components/ui/States.jsx";
@@ -17,6 +17,8 @@ import NotLaunched from "../components/ui/NotLaunched.jsx";
 import { SubmissionDetails, SubmissionFile, SubmissionReview, formatSeenOn } from "../components/suggestions/AdminMenus.jsx";
 import { londonToday, validateSeenOn } from "../lib/api/menuFiles.js";
 import { usePending } from "../lib/usePending.js";
+import { useValidation } from "../lib/useValidation.js";
+import { ErrorSummary, FieldError, FormError, Required, RequiredHint } from "../components/ui/FormErrors.jsx";
 
 const EMPTY_PUB = {
   id: "", name: "", area: "Soho", address: "", lat: "", lng: "", opened_year: "", tags: [], description: "",
@@ -39,12 +41,26 @@ function splitCoordinates(value) {
   return match ? { lat: match[1], lng: match[2] } : null;
 }
 
+const PUB_FIELD_IDS = {
+  name: "pub-name", id: "pub-id", area: "pub-area", lat: "pub-lat", lng: "pub-lng", opened_year: "pub-year",
+  website: "pub-website", drinks_menu_url: "pub-menu", food_menu_url: "pub-food-menu"
+};
+
 function PubDetailsForm({ pub, isNew, onSaved }) {
   const { api, toast, reloadPubs } = useApp();
   const [form, setForm] = useState(() => toForm(pub || EMPTY_PUB));
   const [idTouched, setIdTouched] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const { errors, checkField, validateAll, attempt } = useValidation(values => validatePubDetails(values, { isNew }), form);
+  // Shared props for a validated text field: blur check, red border and the error text link.
+  const check = key => ({
+    id: PUB_FIELD_IDS[key],
+    onBlur: () => checkField(key),
+    "aria-invalid": Boolean(errors[key]),
+    "aria-describedby": errors[key] ? `${PUB_FIELD_IDS[key]}-error` : undefined
+  });
+  const fieldError = key => <FieldError id={`${PUB_FIELD_IDS[key]}-error`}>{errors[key]}</FieldError>;
   const set = key => event => {
     const value = event.target.type === "checkbox" ? event.target.checked : event.target.value;
     setForm(prev => {
@@ -65,6 +81,7 @@ function PubDetailsForm({ pub, isNew, onSaved }) {
   async function save(event) {
     event.preventDefault();
     setError("");
+    if (!validateAll()) return;
     setSaving(true);
     try {
       const saved = await api.admin.savePub({
@@ -99,6 +116,7 @@ function PubDetailsForm({ pub, isNew, onSaved }) {
 
   return (
     <form className="admin-form" onSubmit={save} noValidate>
+      <ErrorSummary errors={errors} fieldIds={PUB_FIELD_IDS} attempt={attempt} />
       <div className={`publish-box ${form.is_published ? "live" : "hidden"}`}>
         <label className="admin-toggle">
           <input type="checkbox" checked={form.is_published} onChange={set("is_published")} disabled={!publishable && !form.is_published} />
@@ -110,16 +128,19 @@ function PubDetailsForm({ pub, isNew, onSaved }) {
 
       <div className="form-grid">
         <div className="field">
-          <label htmlFor="pub-name">Pub name</label>
-          <input id="pub-name" value={form.name} onChange={set("name")} maxLength={100} required />
+          <label htmlFor="pub-name">Pub name<Required /></label>
+          <input {...check("name")} value={form.name} onChange={set("name")} maxLength={100} aria-required="true" />
+          {fieldError("name")}
         </div>
         <div className="field">
-          <label htmlFor="pub-id">ID (used in the link)</label>
-          <input id="pub-id" value={form.id} onChange={e => { setIdTouched(true); set("id")(e); }} readOnly={!isNew} pattern="[a-z0-9-]+" />
+          <label htmlFor="pub-id">ID (used in the link){isNew && <Required />}</label>
+          <input {...check("id")} value={form.id} onChange={e => { setIdTouched(true); set("id")(e); }} readOnly={!isNew} aria-required={isNew} />
+          {fieldError("id")}
         </div>
         <div className="field">
-          <label htmlFor="pub-area">Area</label>
-          <input id="pub-area" list="area-options" value={form.area} onChange={set("area")} maxLength={40} />
+          <label htmlFor="pub-area">Area<Required /></label>
+          <input {...check("area")} list="area-options" value={form.area} onChange={set("area")} maxLength={40} aria-required="true" />
+          {fieldError("area")}
           <datalist id="area-options">{AREAS.map(a => <option key={a} value={a} />)}</datalist>
         </div>
         <div className="field">
@@ -136,15 +157,18 @@ function PubDetailsForm({ pub, isNew, onSaved }) {
       <div className="form-grid">
         <div className="field">
           <label htmlFor="pub-lat">Latitude</label>
-          <input id="pub-lat" inputMode="decimal" value={form.lat} onChange={set("lat")} placeholder="51.5132" />
+          <input {...check("lat")} inputMode="decimal" value={form.lat} onChange={set("lat")} placeholder="51.5132" />
+          {fieldError("lat")}
         </div>
         <div className="field">
           <label htmlFor="pub-lng">Longitude</label>
-          <input id="pub-lng" inputMode="decimal" value={form.lng} onChange={set("lng")} placeholder="-0.1275" />
+          <input {...check("lng")} inputMode="decimal" value={form.lng} onChange={set("lng")} placeholder="-0.1275" />
+          {fieldError("lng")}
         </div>
         <div className="field">
           <label htmlFor="pub-year">Opened (year)</label>
-          <input id="pub-year" inputMode="numeric" value={form.opened_year} onChange={set("opened_year")} placeholder="e.g. 1772" />
+          <input {...check("opened_year")} inputMode="numeric" value={form.opened_year} onChange={set("opened_year")} placeholder="e.g. 1772" />
+          {fieldError("opened_year")}
         </div>
       </div>
       <p className="muted small-text">
@@ -155,15 +179,18 @@ function PubDetailsForm({ pub, isNew, onSaved }) {
       <div className="form-grid">
         <div className="field">
           <label htmlFor="pub-website">Website</label>
-          <input id="pub-website" type="url" value={form.website} onChange={set("website")} placeholder="https://" />
+          <input {...check("website")} type="url" value={form.website} onChange={set("website")} placeholder="https://" />
+          {fieldError("website")}
         </div>
         <div className="field">
           <label htmlFor="pub-menu">Drinks menu link</label>
-          <input id="pub-menu" type="url" value={form.drinks_menu_url} onChange={set("drinks_menu_url")} placeholder="https://" />
+          <input {...check("drinks_menu_url")} type="url" value={form.drinks_menu_url} onChange={set("drinks_menu_url")} placeholder="https://" />
+          {fieldError("drinks_menu_url")}
         </div>
         <div className="field">
           <label htmlFor="pub-food-menu">Food menu link</label>
-          <input id="pub-food-menu" type="url" value={form.food_menu_url} onChange={set("food_menu_url")} placeholder="https://" />
+          <input {...check("food_menu_url")} type="url" value={form.food_menu_url} onChange={set("food_menu_url")} placeholder="https://" />
+          {fieldError("food_menu_url")}
         </div>
       </div>
 
@@ -182,10 +209,10 @@ function PubDetailsForm({ pub, isNew, onSaved }) {
         ))}
       </fieldset>
 
-      {error && <p className="form-error" role="alert">{error}</p>}
+      <RequiredHint />
+      <FormError>{error}</FormError>
       <div className="row-actions wrap">
-        <button type="submit" className="primary-button" disabled={saving || !form.id || !form.name}>{saving ? "Saving…" : isNew ? "Create pub" : "Save pub details"}</button>
-        {(!form.id || !form.name) && <span className="muted small-text">Add a pub name{isNew ? " and ID" : ""} to save.</span>}
+        <button type="submit" className="primary-button" disabled={saving}>{saving ? "Saving…" : isNew ? "Create pub" : "Save pub details"}</button>
         {!isNew && form.is_published && <Link className="secondary-button" to={`/pubs/${form.id}`}>View public page</Link>}
         {!isNew && !form.is_published && <Link className="secondary-button" to={`/pubs/${form.id}`}>Preview page</Link>}
       </div>
@@ -200,9 +227,11 @@ function ResearchNotes({ pub, onSaved }) {
   const [notes, setNotes] = useState(admin.notes || "");
   const [markChecked, setMarkChecked] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
   async function save(event) {
     event.preventDefault();
+    setError("");
     setSaving(true);
     try {
       const saved = await api.admin.savePubAdmin(pub.id, { pricesOnline, notes, markChecked });
@@ -212,7 +241,7 @@ function ResearchNotes({ pub, onSaved }) {
       setMarkChecked(false);
       onSaved();
     } catch (err) {
-      toast(friendlyError(err, "Couldn't save notes."), "error");
+      setError(friendlyError(err, "Couldn't save the notes. Your text is still here, so try again."));
     } finally {
       setSaving(false);
     }
@@ -235,7 +264,7 @@ function ResearchNotes({ pub, onSaved }) {
         </div>
         <div className="field">
           <span className="field-label">Prices last checked</span>
-          <span>{admin.prices_checked_at ? `${timeAgo(admin.prices_checked_at)} (${new Date(admin.prices_checked_at).toLocaleDateString("en-GB")})` : "Never"}</span>
+          <span>{admin.prices_checked_at ? `${timeAgo(admin.prices_checked_at)} (${new Date(admin.prices_checked_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/London" })})` : "Never"}</span>
         </div>
       </div>
       <div className="field">
@@ -246,52 +275,80 @@ function ResearchNotes({ pub, onSaved }) {
         <input type="checkbox" checked={markChecked} onChange={e => setMarkChecked(e.target.checked)} />
         I've checked this pub's prices today
       </label>
+      <FormError>{error}</FormError>
       <div><button type="submit" className="primary-button" disabled={saving}>{saving ? "Saving…" : "Save notes"}</button></div>
     </form>
   );
 }
 
 // priceDefaults: set when working from a menu someone sent in (its date and a note saying so).
+function validateSetPrice(v, { isNew, today }) {
+  const e = {};
+  if (isNew) {
+    if (v.name.trim().length < 2) e.name = "Enter the drink's name, like London Pride.";
+    if (!v.category) e.category = "Choose a category.";
+  }
+  const value = parsePrice(v.price);
+  if (value == null) e.price = v.price.trim() ? "Enter the price as a number, like 6.20." : "Enter the price.";
+  else if (value < MIN_PRICE || value > MAX_PRICE) e.price = `Enter a price between ${formatPrice(MIN_PRICE)} and ${formatPrice(MAX_PRICE)}.`;
+  if (v.source === "website" && !/^https?:\/\/\S+/i.test(v.sourceUrl.trim())) e.sourceUrl = "Add the link to the page the price came from, starting with https://";
+  else if (v.sourceUrl.trim() && !/^https?:\/\/\S+/i.test(v.sourceUrl.trim())) e.sourceUrl = "Enter a full link starting with https://, or leave it empty.";
+  const dateProblem = validateSeenOn(v.seenOn, today);
+  if (dateProblem) e.seenOn = v.seenOn ? dateProblem : "Enter the date you saw this price.";
+  return e;
+}
+
 function SetPriceForm({ pub, drink, priceDefaults, onDone, onCancel }) {
   const { api, toast, notifyChange } = useApp();
   const isNew = !drink;
   const today = londonToday();
-  const [name, setName] = useState("");
-  const [category, setCategory] = useState("");
-  const [measure, setMeasure] = useState(drink?.measure || "pint");
-  const [price, setPrice] = useState(drink ? String(drink.current_price) : "");
-  const [source, setSource] = useState(priceDefaults ? "admin" : pub.drinks_menu_url || pub.website ? "website" : "admin");
-  const [sourceUrl, setSourceUrl] = useState(priceDefaults ? "" : pub.drinks_menu_url || pub.website || "");
-  const [note, setNote] = useState(priceDefaults?.note || "");
-  const [seenOn, setSeenOn] = useState(priceDefaults?.observedOn || today);
+  const key = drink?.id || "new";
+  const ids = { name: `new-drink-name`, category: `new-drink-category`, price: `price-${key}`, sourceUrl: `url-${key}`, seenOn: `seen-${key}` };
+  const [values, setValues] = useState(() => ({
+    name: "",
+    category: "",
+    measure: drink?.measure || "pint",
+    price: drink ? String(drink.current_price) : "",
+    source: priceDefaults ? "admin" : pub.drinks_menu_url || pub.website ? "website" : "admin",
+    sourceUrl: priceDefaults ? "" : pub.drinks_menu_url || pub.website || "",
+    note: priceDefaults?.note || "",
+    seenOn: priceDefaults?.observedOn || today
+  }));
+  const { errors, checkField, validateAll, attempt } = useValidation(v => validateSetPrice(v, { isNew, today }), values);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const set = field => event => setValues(prev => ({ ...prev, [field]: event.target.value }));
+  const check = field => ({
+    id: ids[field],
+    onBlur: () => checkField(field),
+    "aria-invalid": Boolean(errors[field]),
+    "aria-describedby": errors[field] ? `${ids[field]}-error` : undefined
+  });
+  const fieldError = field => <FieldError id={`${ids[field]}-error`}>{errors[field]}</FieldError>;
 
   async function save(event) {
     event.preventDefault();
     setError("");
-    const value = parsePrice(price);
-    if (value == null) { setError("Enter a price like 6.20"); return; }
-    const dateProblem = validateSeenOn(seenOn, today);
-    if (dateProblem) { setError(dateProblem.replace("the menu", "the price")); return; }
+    if (!validateAll()) return;
+    const value = parsePrice(values.price);
     setSaving(true);
     try {
       const report = await api.admin.setDrinkPrice({
         pubId: pub.id,
         drinkId: drink?.id || null,
-        drinkName: isNew ? name : null,
-        category: isNew ? category : null,
-        measure: isNew ? measure : null,
+        drinkName: isNew ? values.name : null,
+        category: isNew ? values.category : null,
+        measure: isNew ? values.measure : null,
         price: value,
-        source,
-        sourceUrl: source === "website" ? sourceUrl.trim() : sourceUrl.trim() || null,
-        note: note.trim() || null,
-        observedOn: seenOn
+        source: values.source,
+        sourceUrl: values.sourceUrl.trim() || null,
+        note: values.note.trim() || null,
+        observedOn: values.seenOn
       });
       const olderThanCurrent = drink && drink.source !== "seed" && drink.last_updated_at && report?.reported_at < drink.last_updated_at;
       toast(olderThanCurrent
         ? `${drink.name}: ${formatPrice(value)} added to the history. The current price is newer, so it stays.`
-        : `${isNew ? name : drink.name}: ${formatPrice(value)} saved.`, "success");
+        : `${isNew ? values.name : drink.name}: ${formatPrice(value)} saved.`, "success");
       notifyChange();
       onDone();
     } catch (err) {
@@ -303,22 +360,25 @@ function SetPriceForm({ pub, drink, priceDefaults, onDone, onCancel }) {
 
   return (
     <form className="set-price-form" onSubmit={save} noValidate>
+      <ErrorSummary errors={errors} fieldIds={ids} attempt={attempt} />
       {isNew && (
         <div className="form-grid">
           <div className="field">
-            <label htmlFor="new-drink-name">Drink name</label>
-            <input id="new-drink-name" value={name} onChange={e => setName(e.target.value)} maxLength={60} placeholder="e.g. London Pride" />
+            <label htmlFor={ids.name}>Drink name<Required /></label>
+            <input {...check("name")} value={values.name} onChange={set("name")} maxLength={60} placeholder="e.g. London Pride" aria-required="true" />
+            {fieldError("name")}
           </div>
           <div className="field">
-            <label htmlFor="new-drink-category">Category</label>
-            <select id="new-drink-category" value={category} onChange={e => setCategory(e.target.value)}>
+            <label htmlFor={ids.category}>Category<Required /></label>
+            <select {...check("category")} value={values.category} onChange={set("category")} aria-required="true">
               <option value="">Choose…</option>
               {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
+            {fieldError("category")}
           </div>
           <div className="field">
-            <label htmlFor="new-drink-measure">Measure</label>
-            <select id="new-drink-measure" value={measure} onChange={e => setMeasure(e.target.value)}>
+            <label htmlFor="new-drink-measure">Measure<Required /></label>
+            <select id="new-drink-measure" value={values.measure} onChange={set("measure")} aria-required="true">
               {MEASURES.map(m => <option key={m} value={m}>{m}</option>)}
             </select>
           </div>
@@ -326,30 +386,33 @@ function SetPriceForm({ pub, drink, priceDefaults, onDone, onCancel }) {
       )}
       <div className="form-grid">
         <div className="field">
-          <label htmlFor={`price-${drink?.id || "new"}`}>Price{drink && drink.measure !== "pint" ? ` per ${measureLabel(drink.measure, drink.volume_ml)}` : ""}</label>
-          <div className="price-input"><span aria-hidden="true">£</span><input id={`price-${drink?.id || "new"}`} inputMode="decimal" value={price} onChange={e => setPrice(e.target.value)} /></div>
+          <label htmlFor={ids.price}>Price{drink && drink.measure !== "pint" ? ` per ${measureLabel(drink.measure, drink.volume_ml)}` : ""}<Required /></label>
+          <div className="price-input"><span aria-hidden="true">£</span><input {...check("price")} inputMode="decimal" value={values.price} onChange={set("price")} aria-required="true" /></div>
+          {fieldError("price")}
         </div>
         <div className="field">
-          <label htmlFor={`source-${drink?.id || "new"}`}>Where's it from?</label>
-          <select id={`source-${drink?.id || "new"}`} value={source} onChange={e => setSource(e.target.value)}>
+          <label htmlFor={`source-${key}`}>Where's it from?<Required /></label>
+          <select id={`source-${key}`} value={values.source} onChange={set("source")} aria-required="true">
             <option value="website">The pub's website / menu</option>
             <option value="admin">I checked it (in person, by phone, or a dated menu/photo)</option>
           </select>
         </div>
         <div className="field grow">
-          <label htmlFor={`url-${drink?.id || "new"}`}>{source === "website" ? "Link to the page" : "Link (optional)"}</label>
-          <input id={`url-${drink?.id || "new"}`} type="url" value={sourceUrl} onChange={e => setSourceUrl(e.target.value)} placeholder="https://" />
+          <label htmlFor={ids.sourceUrl}>{values.source === "website" ? <>Link to the page<Required /></> : "Link (optional)"}</label>
+          <input {...check("sourceUrl")} type="url" value={values.sourceUrl} onChange={set("sourceUrl")} placeholder="https://" aria-required={values.source === "website"} />
+          {fieldError("sourceUrl")}
         </div>
         <div className="field">
-          <label htmlFor={`seen-${drink?.id || "new"}`}>Date seen</label>
-          <input id={`seen-${drink?.id || "new"}`} type="date" value={seenOn} max={today} onChange={e => setSeenOn(e.target.value)} />
+          <label htmlFor={ids.seenOn}>Date seen<Required /></label>
+          <input {...check("seenOn")} type="date" value={values.seenOn} max={today} onChange={set("seenOn")} aria-required="true" />
+          {fieldError("seenOn")}
         </div>
       </div>
       <div className="field">
-        <label htmlFor={`note-${drink?.id || "new"}`}>Note (optional, shown in history)</label>
-        <input id={`note-${drink?.id || "new"}`} value={note} onChange={e => setNote(e.target.value)} maxLength={200} placeholder="e.g. from menu dated Sept 2026" />
+        <label htmlFor={`note-${key}`}>Note (optional, shown in history)</label>
+        <input id={`note-${key}`} value={values.note} onChange={set("note")} maxLength={200} placeholder="e.g. from menu dated Sept 2026" />
       </div>
-      {error && <p className="form-error" role="alert">{error}</p>}
+      <FormError>{error}</FormError>
       <div className="row-actions">
         <button type="submit" className="primary-button" disabled={saving}>{saving ? "Saving…" : isNew ? "Add drink" : "Save price"}</button>
         <button type="button" className="secondary-button" onClick={onCancel}>Cancel</button>
@@ -364,33 +427,40 @@ function EditDrinkForm({ drink, onDone, onCancel }) {
   const [category, setCategory] = useState(drink.category);
   const [measure, setMeasure] = useState(drink.measure);
   const [volume, setVolume] = useState(drink.volume_ml ? String(drink.volume_ml) : "");
+  const [fieldErrors, setFieldErrors] = useState({});
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
   async function save(event) {
     event.preventDefault();
     setError("");
+    const found = {};
+    if (name.trim().length < 2) found.name = "Enter the drink's name.";
     const volumeMl = !isDraught(measure) && volume.trim() ? Number(volume) : null;
-    if (volumeMl !== null && !(volumeMl >= 100 && volumeMl <= 2000)) { setError("Enter a size between 100 and 2000 ml."); return; }
+    if (volumeMl !== null && !(volumeMl >= 100 && volumeMl <= 2000)) found.volume = "Enter a size between 100 and 2000 ml, like 330.";
+    setFieldErrors(found);
+    if (Object.keys(found).length) return;
     setSaving(true);
     try {
       await api.admin.updateDrink(drink.id, { name, category, measure, volumeMl });
-      toast("Drink updated.", "success");
+      toast(`${name.trim()} updated.`, "success");
       notifyChange();
       onDone();
     } catch (err) {
-      setError(friendlyError(err, "Couldn't save the drink. Try again."));
+      setError(friendlyError(err, "Couldn't save the drink."));
     } finally {
       setSaving(false);
     }
   }
 
   return (
-    <form className="set-price-form" onSubmit={save}>
+    <form className="set-price-form" onSubmit={save} noValidate>
       <div className="form-grid">
         <div className="field">
-          <label htmlFor={`edit-name-${drink.id}`}>Name</label>
-          <input id={`edit-name-${drink.id}`} value={name} onChange={e => setName(e.target.value)} maxLength={60} />
+          <label htmlFor={`edit-name-${drink.id}`}>Name<Required /></label>
+          <input id={`edit-name-${drink.id}`} value={name} onChange={e => setName(e.target.value)} maxLength={60} aria-required="true"
+            aria-invalid={Boolean(fieldErrors.name)} aria-describedby={fieldErrors.name ? `edit-name-${drink.id}-error` : undefined} />
+          <FieldError id={`edit-name-${drink.id}-error`}>{fieldErrors.name}</FieldError>
         </div>
         <div className="field">
           <label htmlFor={`edit-cat-${drink.id}`}>Category</label>
@@ -407,11 +477,13 @@ function EditDrinkForm({ drink, onDone, onCancel }) {
         {!isDraught(measure) && (
           <div className="field">
             <label htmlFor={`edit-volume-${drink.id}`}>Size (ml)</label>
-            <input id={`edit-volume-${drink.id}`} inputMode="numeric" value={volume} onChange={e => setVolume(e.target.value)} placeholder="e.g. 330" />
+            <input id={`edit-volume-${drink.id}`} inputMode="numeric" value={volume} onChange={e => setVolume(e.target.value)} placeholder="e.g. 330"
+              aria-invalid={Boolean(fieldErrors.volume)} aria-describedby={fieldErrors.volume ? `edit-volume-${drink.id}-error` : undefined} />
+            <FieldError id={`edit-volume-${drink.id}-error`}>{fieldErrors.volume}</FieldError>
           </div>
         )}
       </div>
-      {error && <p className="form-error" role="alert">{error}</p>}
+      <FormError>{error}</FormError>
       <div className="row-actions">
         <button type="submit" className="primary-button" disabled={saving}>{saving ? "Saving…" : "Save"}</button>
         <button type="button" className="secondary-button" onClick={onCancel}>Cancel</button>
@@ -556,7 +628,7 @@ export default function AdminPubPage() {
   if (!authReady) return <Loading />;
   if (!isAdmin) return <section className="card"><EmptyState title="Admins only"><Link to="/">Back to search</Link></EmptyState></section>;
   if (status === "loading") return <Loading label="Loading pub…" />;
-  if (status === "error") return <ErrorState message={error} onRetry={reload} />;
+  if (status === "error") return <ErrorState title="Couldn't load this pub" message={error} onRetry={reload} />;
   if (status === "missing") return <section className="card"><EmptyState title="Pub not found"><Link to="/admin">Back to all pubs</Link></EmptyState></section>;
 
   // Optimistic: the switch moves straight away and rolls back if saving fails.
