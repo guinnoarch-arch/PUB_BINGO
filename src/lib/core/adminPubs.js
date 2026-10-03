@@ -1,9 +1,8 @@
 // Summaries for the admin pubs table. Pure functions so they can be unit tested.
 
 export const PRICES_ONLINE_LABELS = { yes: "Yes", partial: "Partly", no: "No", unknown: "Not checked" };
-export const SOURCE_LABELS = { seed: "Seed estimate", community: "Community", website: "Pub website", admin: "Checked by admin" };
 // Sources we treat as real prices rather than guesses.
-export const VERIFIED_SOURCES = new Set(["community", "website", "admin"]);
+const VERIFIED_SOURCES = new Set(["community", "website", "admin"]);
 
 // PostgREST returns a one-to-one embed as an object, but older setups can return an array.
 export function one(value) {

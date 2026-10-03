@@ -3,9 +3,9 @@ import { useApp } from "../../lib/AppContext.jsx";
 import { friendlyError } from "../../lib/api/errors.js";
 import { EVENT_CATEGORIES, WEEKDAYS } from "../../data/features.js";
 import { formatSchedule, validateEvent } from "../../lib/core/events.js";
-import { ErrorSummary, FieldError, FormError, Required } from "../ui/FormErrors.jsx";
+import { ErrorSummary, FormError, Required, fieldErrorBinding } from "../ui/FormErrors.jsx";
 import { categoryInfo } from "./EventItem.jsx";
-import { usePending } from "../../lib/usePending.js";
+import { usePending } from "../../lib/hooks/usePending.js";
 import { ErrorState, Loading } from "../ui/States.jsx";
 
 const MONDAY_FIRST = [1, 2, 3, 4, 5, 6, 0];
@@ -34,8 +34,7 @@ function EventForm({ pub, event, onDone, onCancel }) {
   const toggleDay = day => setForm(prev => ({ ...prev, weekdays: prev.weekdays.includes(day) ? prev.weekdays.filter(d => d !== day) : [...prev.weekdays, day] }));
   const idPrefix = `ev-${event?.id || "new"}`;
   const fieldIds = { title: `${idPrefix}-title`, weekdays: `${idPrefix}-day-1`, event_date: `${idPrefix}-date`, end_time: `${idPrefix}-end`, description: `${idPrefix}-desc`, source_url: `${idPrefix}-url` };
-  const invalid = key => ({ "aria-invalid": Boolean(errors[key]), "aria-describedby": errors[key] ? `${fieldIds[key]}-error` : undefined });
-  const fieldError = key => <FieldError id={`${fieldIds[key]}-error`}>{errors[key]}</FieldError>;
+  const { props: invalid, message: fieldError } = fieldErrorBinding(errors, fieldIds);
 
   async function save(e) {
     e.preventDefault();

@@ -1,12 +1,24 @@
 import { Link, useLocation } from "react-router-dom";
 
-export default function SignInPrompt({ title, children }) {
+// "Sign in to …" with a button that brings you back here afterwards.
+// inline: for use inside an existing card (no card or heading of its own).
+export default function SignInPrompt({ title, children, inline = false }) {
   const location = useLocation();
+  const next = encodeURIComponent(location.pathname + location.search);
+  const button = <Link className="primary-button" to={`/account?next=${next}`}>Sign in or create account</Link>;
+  if (inline) {
+    return (
+      <div className="sign-in-prompt">
+        <p className="muted">{children}</p>
+        {button}
+      </div>
+    );
+  }
   return (
     <section className="card sign-in-prompt">
       <h2>{title}</h2>
       <p className="muted">{children}</p>
-      <Link className="primary-button" to={`/account?next=${encodeURIComponent(location.pathname)}`}>Sign in or create account</Link>
+      {button}
     </section>
   );
 }

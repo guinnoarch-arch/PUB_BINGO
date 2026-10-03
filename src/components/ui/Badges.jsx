@@ -1,4 +1,4 @@
-import { isStale, timeAgo } from "../../lib/core/time.js";
+import { formatDateTime, isStale, timeAgo } from "../../lib/core/time.js";
 import { formatPrice, isDraught, measureLabel } from "../../lib/core/prices.js";
 
 const SOURCES = {
@@ -25,7 +25,7 @@ export function UpdatedAgo({ value }) {
   const stale = isStale(value);
   return (
     <span className={`updated ${stale ? "stale" : ""}`}>
-      <time dateTime={value} title={new Date(value).toLocaleString("en-GB")}>Updated {timeAgo(value)}</time>
+      <time dateTime={value} title={formatDateTime(value)}>Updated {timeAgo(value)}</time>
       {stale && <span className="sr-only"> (may be out of date)</span>}
     </span>
   );

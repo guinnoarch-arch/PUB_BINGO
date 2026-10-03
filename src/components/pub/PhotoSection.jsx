@@ -6,7 +6,8 @@ import { validatePhotoFile } from "../../lib/api/photos.js";
 import { cleanText } from "../../lib/core/prices.js";
 import PubImage, { hasCover } from "./PubImage.jsx";
 import { PUB_COVERS } from "../../data/pubCovers.js";
-import { usePending } from "../../lib/usePending.js";
+import UploadsPausedToggle from "./UploadsPausedToggle.jsx";
+import { usePending } from "../../lib/hooks/usePending.js";
 import { FieldError, FormError } from "../ui/FormErrors.jsx";
 
 export default function PhotoSection({ pub, photos, onChanged }) {
@@ -58,19 +59,7 @@ export default function PhotoSection({ pub, photos, onChanged }) {
       <div className="section-header">
         <h2 id="photos-heading" className="section-title">Photos</h2>
         {isAdmin && (
-          <label className="admin-toggle">
-            <input
-              type="checkbox"
-              checked={pausedView}
-              onChange={event => {
-                const paused = event.target.checked;
-                setPausedView(paused);
-                run(() => api.admin.setUploadsPaused(pub.id, paused), paused ? "Uploads paused for this pub." : "Uploads re-opened.")
-                  .then(ok => { if (!ok) setPausedView(!paused); });
-              }}
-            />
-            Pause uploads
-          </label>
+          <UploadsPausedToggle pubId={pub.id} paused={pausedView} label="Pause uploads" onChange={paused => { setPausedView(paused); onChanged(); }} />
         )}
       </div>
 

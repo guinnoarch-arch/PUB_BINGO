@@ -18,7 +18,7 @@ const REWORDED = [
 // Raw database or programming errors that must never reach the screen.
 const TECHNICAL = /duplicate key|violates|constraint|syntax error|column|relation|null value|function .* does not exist|undefined|cannot read prop|typeerror|unexpected token|json/i;
 
-export function isOffline() {
+function isOffline() {
   return typeof navigator !== "undefined" && navigator.onLine === false;
 }
 

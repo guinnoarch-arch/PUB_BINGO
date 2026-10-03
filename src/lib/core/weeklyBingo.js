@@ -67,7 +67,7 @@ export function weeklyCard(start) {
 }
 
 // activity: { reports, checkins, pourRatings: [{created_at}], menus: [{created_at}] } (all-time; filtered here)
-export function weeklyActivity(activity, start, pubsById = {}) {
+function weeklyActivity(activity, start, pubsById = {}) {
   const reports = (activity.reports || []).filter(r => inWeek(r.reported_at, start));
   return {
     pubsById,

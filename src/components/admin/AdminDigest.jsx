@@ -3,8 +3,9 @@ import { Link } from "react-router-dom";
 import { useApp } from "../../lib/AppContext.jsx";
 import { needsChecking } from "../../lib/core/checking.js";
 import { FEATURES } from "../../lib/featureList.js";
+import { DAY_MS } from "../../lib/core/time.js";
 
-const WEEK = 7 * 86400000;
+const WEEK = 7 * DAY_MS;
 
 // What's happened in the last 7 days, and what's waiting for you. (The weekly email version needs
 // an email service; see Features.)

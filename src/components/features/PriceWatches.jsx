@@ -7,7 +7,9 @@ import { formatPrice, parsePrice } from "../../lib/core/prices.js";
 import { AREAS } from "../../data/seedPubs.js";
 import NotLaunched from "../ui/NotLaunched.jsx";
 import { ErrorSummary, FieldError, FormError } from "../ui/FormErrors.jsx";
-import { usePending } from "../../lib/usePending.js";
+import { usePending } from "../../lib/hooks/usePending.js";
+
+const MATCHES_SHOWN = 5;
 
 export function useWatchMatches() {
   const { livePubs, priceWatches, feature } = useApp();
@@ -104,7 +106,7 @@ export default function PriceWatches() {
               </div>
               {matches.length === 0 ? <span className="muted small-text">No matches right now.</span> : (
                 <ul className="match-list">
-                  {matches.slice(0, 5).map(m => (
+                  {matches.slice(0, MATCHES_SHOWN).map(m => (
                     <li key={m.drink.id}>🎯 <Link to={`/pubs/${m.pub.id}`}>{m.drink.name} at {m.pub.name}</Link> <strong>{formatPrice(m.pintPrice)}</strong>{m.drink.deal ? ` (until ${m.drink.deal.until})` : ""}</li>
                   ))}
                 </ul>

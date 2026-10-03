@@ -2,8 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useApp } from "../../lib/AppContext.jsx";
 import { friendlyError } from "../../lib/api/errors.js";
 import { londonToday, validateMenuSubmissionFile, validateSeenOn } from "../../lib/api/menuFiles.js";
-import { formatDate } from "../../lib/core/events.js";
-import { timeAgo } from "../../lib/core/time.js";
+import { formatDay, timeAgo } from "../../lib/core/time.js";
 import { ErrorSummary, FieldError, FormError, Required, RequiredHint } from "../ui/FormErrors.jsx";
 
 const OTHER = "__other__";
@@ -146,7 +145,7 @@ export function MyMenus({ reloadKey }) {
             <li key={m.id}>
               <span aria-hidden="true">{m.file_kind === "pdf" ? "📄" : "📷"}</span>{" "}
               <strong>{m.pub?.name || m.pub_name || "A pub"}</strong>
-              <span className="muted small-text"> · seen {formatDate(m.seen_on)} · sent {timeAgo(m.created_at)}</span>{" "}
+              <span className="muted small-text"> · seen {formatDay(m.seen_on)} · sent {timeAgo(m.created_at)}</span>{" "}
               <span className={`suggestion-status ${status.tone}`}>{status.label}{m.status === "used" && m.prices_imported ? ` (${m.prices_imported})` : ""}</span>
               {m.admin_note && <div className="suggestion-reply"><strong>Reply from Pub Bingo:</strong> {m.admin_note}</div>}
             </li>

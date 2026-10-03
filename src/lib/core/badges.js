@@ -1,7 +1,7 @@
 // Badges, worked out from what you've done in the app.
 const count = (list, test) => (list || []).filter(test).length;
 
-export const BADGES = [
+const BADGES = [
   { id: "first-round", icon: "🍺", title: "First round", detail: "Report your first price", goal: 1, progress: a => a.reports.length },
   { id: "regular", icon: "🪑", title: "Regular", detail: "Report 10 prices", goal: 10, progress: a => a.reports.length },
   { id: "centurion", icon: "💯", title: "Centurion", detail: "Report 100 prices", goal: 100, progress: a => a.reports.length },
@@ -36,4 +36,10 @@ export function computeBadges(activity = {}, pubsById = {}) {
     const value = badge.progress(a);
     return { ...badge, value: Math.min(value, badge.goal), earned: value >= badge.goal };
   });
+}
+
+// Top reporters score: a point per price report or "still right" check, more for a menu that gets used.
+export const MENU_USED_POINTS = 3;
+export function reporterPoints({ reports = 0, confirms = 0, menus_used = 0 } = {}) {
+  return reports + confirms + MENU_USED_POINTS * menus_used;
 }

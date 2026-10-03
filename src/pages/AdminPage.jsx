@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useUrlParams } from "../lib/hooks/useUrlParam.js";
 import { useApp } from "../lib/AppContext.jsx";
 import { friendlyError } from "../lib/api/errors.js";
 import { PRICES_ONLINE_LABELS, adminTotals, filterRows, sortRows, summarisePub, toCsv } from "../lib/core/adminPubs.js";
@@ -10,6 +11,9 @@ import AdminFeatures from "../components/admin/AdminFeatures.jsx";
 import AdminDigest from "../components/admin/AdminDigest.jsx";
 import HeldReports from "../components/admin/HeldReports.jsx";
 import { EmptyState, ErrorState, Loading } from "../components/ui/States.jsx";
+import Segmented from "../components/ui/Segmented.jsx";
+
+const FEED_SIZE = 50;
 
 const COLUMNS = [
   ["name", "Pub"],
@@ -162,9 +166,9 @@ const TABS = [
 
 export default function AdminPage() {
   const { api, authReady, isAdmin } = useApp();
-  const [params, setParams] = useSearchParams();
+  const [params, setParam] = useUrlParams();
   const tab = TABS.some(([key]) => key === params.get("tab")) ? params.get("tab") : "pubs";
-  const setTab = useCallback(next => setParams(next === "pubs" ? {} : { tab: next }, { replace: true }), [setParams]);
+  const setTab = next => setParam("tab", next === "pubs" ? "" : next);
   const [menus, setMenus] = useState(null);
   const [menusError, setMenusError] = useState("");
   const [menusKey, setMenusKey] = useState(0);
@@ -192,13 +196,15 @@ export default function AdminPage() {
           <p className="eyebrow">Admin</p>
           <h2>{TABS.find(([key]) => key === tab)[1]}</h2>
         </div>
-        <div className="segmented" role="tablist" aria-label="Admin sections">
-          {TABS.map(([key, , short]) => (
-            <button key={key} type="button" role="tab" aria-selected={tab === key} className={tab === key ? "active" : ""} onClick={() => setTab(key)}>
-              {short}{key === "menus" && newMenus > 0 && <span className="tab-count" aria-label={`${newMenus} new`}>{newMenus}</span>}
-            </button>
-          ))}
-        </div>
+        <Segmented
+          label="Admin sections"
+          value={tab}
+          onChange={setTab}
+          options={TABS.map(([key, , short]) => ({
+            value: key,
+            label: <>{short}{key === "menus" && newMenus > 0 && <span className="tab-count" aria-label={`${newMenus} new`}>{newMenus}</span>}</>
+          }))}
+        />
       </div>
 
       {tab === "pubs" && <section className="card"><PubsTable /></section>}
@@ -216,7 +222,7 @@ export default function AdminPage() {
         <section className="card" aria-labelledby="reports-heading">
           <h2 id="reports-heading" className="section-title">Recent price reports</h2>
           <p className="muted small-text">Hiding a report removes it from public view and puts the drink back to its previous price.</p>
-          <LiveFeed limit={50} />
+          <LiveFeed limit={FEED_SIZE} />
         </section>
       )}
     </>

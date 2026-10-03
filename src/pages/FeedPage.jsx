@@ -4,6 +4,8 @@ import LiveFeed from "../components/LiveFeed.jsx";
 import { needsChecking } from "../lib/core/checking.js";
 import NotLaunched from "../components/ui/NotLaunched.jsx";
 
+const FEED_SIZE = 50;
+
 export default function FeedPage() {
   const { liveStatus, feature, pubs } = useApp();
   const toCheck = feature("needs_checking") ? needsChecking(pubs).filter(r => !r.estimate) : [];
@@ -29,7 +31,7 @@ export default function FeedPage() {
         </section>
       )}
       <section className="card">
-        <LiveFeed limit={50} />
+        <LiveFeed limit={FEED_SIZE} />
       </section>
     </>
   );

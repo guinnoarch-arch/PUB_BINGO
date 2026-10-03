@@ -1,5 +1,5 @@
 // Menus and price photos sent in by users (Suggestions → Menu or price). Only admins see them.
-export const MENU_FILE_MAX_BYTES = 10 * 1024 * 1024;
+const MENU_FILE_MAX_BYTES = 10 * 1024 * 1024;
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 // Menus need to stay readable, so photos are kept bigger than pub photos.
 const MAX_DIMENSION = 2400;

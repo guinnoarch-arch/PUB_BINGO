@@ -1,16 +1,14 @@
 import { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useApp } from "../lib/AppContext.jsx";
-import { cheapestByPub, cheapestCrawl, orderRoute, walkMinutes, WALK_FACTOR } from "../lib/core/crawl.js";
-import { distanceMetres } from "../lib/core/geo.js";
+import { cheapestByPub, cheapestCrawl, crawlSummary, orderRoute, walkMinutes, WALK_FACTOR } from "../lib/core/crawl.js";
 import { formatPrice } from "../lib/core/prices.js";
 import FeaturePage from "../components/features/FeaturePage.jsx";
 import RouteMap from "../components/map/RouteMap.jsx";
 import NotLaunched from "../components/ui/NotLaunched.jsx";
 import { ErrorState, Loading } from "../components/ui/States.jsx";
-import { useGeolocation } from "../lib/useGeolocation.js";
-
-const d = (a, b) => distanceMetres({ lat: Number(a.lat), lng: Number(a.lng) }, { lat: Number(b.lat), lng: Number(b.lng) }) ?? 0;
+import { useGeolocation } from "../lib/hooks/useGeolocation.js";
+import Segmented from "../components/ui/Segmented.jsx";
 
 function Crawl() {
   const { livePubs, pubsStatus, pubsError, reloadPubs, toast } = useApp();
@@ -30,10 +28,7 @@ function Crawl() {
     return orderRoute(pubs.filter(p => picked.has(p.id)), start);
   }, [mode, pubs, start, count, query, picked]);
 
-  const legs = route.map((pub, i) => (i === 0 ? (start ? d(start, pub) : 0) : d(route[i - 1], pub)));
-  const walk = legs.reduce((a, b) => a + b, 0);
-  const total = route.reduce((sum, pub) => sum + (best.get(pub.id)?.pintPrice || 0), 0);
-  const unpriced = route.filter(pub => !best.get(pub.id)).length;
+  const { legs, walk, total, unpriced } = crawlSummary(route, start, best);
 
 
   async function share() {
@@ -66,10 +61,7 @@ function Crawl() {
       </div>
 
       <section className="card">
-        <div className="segmented" role="group" aria-label="How to plan">
-          <button type="button" className={mode === "cheapest" ? "active" : ""} aria-pressed={mode === "cheapest"} onClick={() => setMode("cheapest")}>Cheapest crawl</button>
-          <button type="button" className={mode === "pick" ? "active" : ""} aria-pressed={mode === "pick"} onClick={() => setMode("pick")}>Pick my pubs</button>
-        </div>
+        <Segmented label="How to plan" value={mode} onChange={setMode} options={[{ value: "cheapest", label: "Cheapest crawl" }, { value: "pick", label: "Pick my pubs" }]} />
         <div className="form-grid crawl-options">
           <div className="field">
             <label htmlFor="crawl-drink">Drink (optional)</label>

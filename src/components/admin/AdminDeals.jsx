@@ -4,8 +4,8 @@ import { friendlyError } from "../../lib/api/errors.js";
 import { CATEGORIES } from "../../data/seedPubs.js";
 import { WEEKDAYS } from "../../data/features.js";
 import { describeDeal, validateDeal } from "../../lib/core/deals.js";
-import { ErrorSummary, FieldError, FormError, Required } from "../ui/FormErrors.jsx";
-import { usePending } from "../../lib/usePending.js";
+import { ErrorSummary, FormError, Required, errorIdFor, fieldErrorBinding } from "../ui/FormErrors.jsx";
+import { usePending } from "../../lib/hooks/usePending.js";
 
 const EMPTY = { title: "", days: [1, 2, 3, 4, 5], start_time: "16:00", end_time: "19:00", drink_id: "", category: "", kind: "price", deal_price: "", discount_pct: "", source_url: "", is_published: false };
 const ORDER = [1, 2, 3, 4, 5, 6, 0];
@@ -18,8 +18,7 @@ function DealForm({ pub, deal, onDone, onCancel }) {
   const [errors, setErrors] = useState({});
   const [attempt, setAttempt] = useState(0);
   const [saving, setSaving] = useState(false);
-  const invalid = key => ({ "aria-invalid": Boolean(errors[key]), "aria-describedby": errors[key] ? `${DEAL_FIELD_IDS[key]}-error` : undefined });
-  const fieldError = key => <FieldError id={`${DEAL_FIELD_IDS[key]}-error`}>{errors[key]}</FieldError>;
+  const { props: invalid, message: fieldError } = fieldErrorBinding(errors, DEAL_FIELD_IDS);
   const set = key => e => setForm(prev => ({ ...prev, [key]: e.target.type === "checkbox" ? e.target.checked : e.target.value }));
   const toggleDay = d => setForm(prev => ({ ...prev, days: prev.days.includes(d) ? prev.days.filter(x => x !== d) : [...prev.days, d] }));
 
@@ -55,7 +54,7 @@ function DealForm({ pub, deal, onDone, onCancel }) {
         <div className="field"><label htmlFor="deal-start">From<Required /></label><input id="deal-start" type="time" value={form.start_time} onChange={set("start_time")} aria-required="true" /></div>
         <div className="field"><label htmlFor="deal-end">Until<Required /></label><input id="deal-end" type="time" value={form.end_time} onChange={set("end_time")} aria-required="true" {...invalid("end_time")} />{fieldError("end_time")}</div>
       </div>
-      <fieldset className="day-picker" aria-describedby={errors.days ? "deal-day-1-error" : undefined}>
+      <fieldset className="day-picker" aria-describedby={errors.days ? errorIdFor(DEAL_FIELD_IDS.days) : undefined}>
         <legend>Days<Required /></legend>
         {ORDER.map(d => (
           <label key={d} className={`chip ${form.days.includes(d) ? "active" : ""}`}>

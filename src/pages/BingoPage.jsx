@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "react-router-dom";
 import { useApp } from "../lib/AppContext.jsx";
 import { friendlyError } from "../lib/api/errors.js";
 import { buildCardState, completedLines, evaluateAutoTiles, isFullHouse } from "../lib/core/bingo.js";
@@ -8,6 +7,8 @@ import SignInPrompt from "../components/SignInPrompt.jsx";
 import NotLaunched from "../components/ui/NotLaunched.jsx";
 import { weekStart, weeklyCardState, weeklyStreak } from "../lib/core/weeklyBingo.js";
 import { addDays, formatDate } from "../lib/core/events.js";
+import { useUrlParams } from "../lib/hooks/useUrlParam.js";
+import Segmented from "../components/ui/Segmented.jsx";
 
 function heroText({ fullHouse, lineCount }) {
   if (fullHouse) return { heading: "Full house", body: "Every tile is done." };
@@ -40,9 +41,9 @@ function BingoTile({ tile, inLine, saving, onToggle }) {
 export default function BingoPage() {
   const { api, userId, authReady, pubsById, favourites, changeVersion, toast, feature, clock } = useApp();
   const weeklyOn = feature("weekly_bingo");
-  const [params, setParams] = useSearchParams();
+  const [params, setParam] = useUrlParams();
   const mode = params.get("card") === "classic" ? "classic" : "week";
-  const setMode = next => setParams(next === "week" ? {} : { card: next }, { replace: true });
+  const setMode = next => setParam("card", next === "week" ? "" : next);
   const showWeek = weeklyOn && mode === "week";
   const start = weekStart(clock);
   const [progress, setProgress] = useState(null);
@@ -129,10 +130,7 @@ export default function BingoPage() {
     <>
       {weeklyOn && (
         <div className="tab-row">
-          <div className="segmented" role="group" aria-label="Bingo cards">
-            <button type="button" aria-pressed={mode === "week"} className={mode === "week" ? "active" : ""} onClick={() => setMode("week")}>This week</button>
-            <button type="button" aria-pressed={mode === "classic"} className={mode === "classic" ? "active" : ""} onClick={() => setMode("classic")}>Classic card</button>
-          </div>
+          <Segmented label="Bingo cards" value={mode} onChange={setMode} options={[{ value: "week", label: "This week" }, { value: "classic", label: "Classic card" }]} />
           <NotLaunched feature="weekly_bingo" />
         </div>
       )}

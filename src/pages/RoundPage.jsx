@@ -7,7 +7,9 @@ import { formatPrice } from "../lib/core/prices.js";
 import FeaturePage from "../components/features/FeaturePage.jsx";
 import NotLaunched from "../components/ui/NotLaunched.jsx";
 import { ErrorState, Loading } from "../components/ui/States.jsx";
-import { useGeolocation } from "../lib/useGeolocation.js";
+import { useGeolocation } from "../lib/hooks/useGeolocation.js";
+
+const PUBS_SHOWN = 20;
 
 const QUICK = ["Guinness", "any lager", "IPA", "cider", "real ale"];
 
@@ -61,7 +63,7 @@ function Round() {
         <h2 id="round-results" className="section-title">{people} drink{people === 1 ? "" : "s"}: cheapest first</h2>
         {rows.length === 0 ? <p className="muted">No pubs with confirmed prices for these yet.</p> : (
           <ol className="round-results">
-            {rows.slice(0, 20).map((row, index) => (
+            {rows.slice(0, PUBS_SHOWN).map((row, index) => (
               <li key={row.pub.id} className={row.complete ? "" : "incomplete"}>
                 <span className={`rank ${index < 3 && row.complete ? `top top-${index + 1}` : ""}`}>{index + 1}</span>
                 <div className="result-main">

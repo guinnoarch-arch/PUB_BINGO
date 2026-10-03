@@ -8,6 +8,10 @@ const AppContext = createContext(null);
 const TOAST_MS = 4500;
 const TOAST_WITH_ACTION_MS = 8000;
 const MAX_TOASTS = 3;
+// London time is re-read this often, so happy hours start and stop on time.
+const CLOCK_TICK_MS = 60000;
+// Several live changes in a burst cause one reload of the pubs, not one each.
+const LIVE_RELOAD_DELAY_MS = 400;
 
 export function useApp() {
   const value = useContext(AppContext);
@@ -95,7 +99,7 @@ export function AppProvider({ api, children }) {
 
   // London time, ticking each minute, so happy-hour prices start and stop on time.
   useEffect(() => {
-    const timer = window.setInterval(() => setClock(londonNow()), 60000);
+    const timer = window.setInterval(() => setClock(londonNow()), CLOCK_TICK_MS);
     return () => window.clearInterval(timer);
   }, []);
 
@@ -114,7 +118,7 @@ export function AppProvider({ api, children }) {
       }
       setChangeVersion(v => v + 1);
       window.clearTimeout(reloadTimer.current);
-      reloadTimer.current = window.setTimeout(() => reloadPubs({ quiet: true }), 400);
+      reloadTimer.current = window.setTimeout(() => reloadPubs({ quiet: true }), LIVE_RELOAD_DELAY_MS);
     });
     return () => {
       window.clearTimeout(reloadTimer.current);

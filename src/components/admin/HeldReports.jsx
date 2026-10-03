@@ -5,9 +5,9 @@ import { friendlyError } from "../../lib/api/errors.js";
 import { formatPrice } from "../../lib/core/prices.js";
 import { timeAgo } from "../../lib/core/time.js";
 import NotLaunched from "../ui/NotLaunched.jsx";
-import { usePending } from "../../lib/usePending.js";
+import { usePending } from "../../lib/hooks/usePending.js";
 
-export function ReceiptLink({ path }) {
+function ReceiptLink({ path }) {
   const { api, toast } = useApp();
   const [url, setUrl] = useState("");
   async function open() {

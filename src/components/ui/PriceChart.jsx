@@ -1,11 +1,12 @@
 import { useMemo, useState } from "react";
 import { formatPrice } from "../../lib/core/prices.js";
+import { formatDay } from "../../lib/core/time.js";
 
 const W = 320;
 const H = 120;
 const PAD = { top: 12, right: 12, bottom: 22, left: 40 };
 
-const shortDate = t => new Date(t).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+const shortDate = t => formatDay(t, { year: false });
 
 // A small line chart of a drink's price over time (one series, so no legend). Hover or tap a point
 // for its value; the history list below is the table view.

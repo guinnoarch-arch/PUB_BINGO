@@ -1,6 +1,6 @@
 import { itemsToLines } from "./core/menuImport.js";
 
-export const MENU_MAX_BYTES = 10 * 1024 * 1024;
+const MENU_MAX_BYTES = 10 * 1024 * 1024;
 const MAX_PAGES = 20;
 
 export function validateMenuFile(file) {

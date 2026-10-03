@@ -2,15 +2,10 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useApp } from "../../lib/AppContext.jsx";
 import { friendlyError } from "../../lib/api/errors.js";
-import { timeAgo } from "../../lib/core/time.js";
+import { formatDay, timeAgo } from "../../lib/core/time.js";
 import { EmptyState } from "../ui/States.jsx";
 import { MENU_STATUS } from "./MenuSubmit.jsx";
 import { FormError } from "../ui/FormErrors.jsx";
-
-export function formatSeenOn(dateKey) {
-  const d = new Date(`${dateKey}T12:00:00Z`);
-  return d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
-}
 
 // Private files: admins get a short-lived link. Photos show as a thumbnail.
 export function SubmissionFile({ item, large = false }) {
@@ -42,7 +37,7 @@ export function SubmissionDetails({ item }) {
   return (
     <div className="submission-details">
       <p>
-        <strong>Seen on {formatSeenOn(item.seen_on)}</strong>
+        <strong>Seen on {formatDay(item.seen_on, { weekday: true })}</strong>
         <span className="muted small-text"> · sent by {item.sender?.username ? `@${item.sender.username}` : "someone"} {timeAgo(item.created_at)}</span>
       </p>
       {item.note && <p className="submission-note">“{item.note}”</p>}

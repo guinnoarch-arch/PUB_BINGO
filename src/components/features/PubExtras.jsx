@@ -6,8 +6,12 @@ import { openStatus, todayHoursText } from "../../lib/core/hours.js";
 import { WEEKDAYS } from "../../data/features.js";
 import { formatTime } from "../../lib/core/events.js";
 import NotLaunched from "../ui/NotLaunched.jsx";
+import { useGeolocation } from "../../lib/hooks/useGeolocation.js";
 
-export function hasGuinness(pub) {
+// Check-in needs to know you're at the pub now, so a cached position must be recent.
+const CHECK_IN_MAX_AGE_MS = 30000;
+
+function hasGuinness(pub) {
   return (pub.drinks || []).some(d => /guinness/i.test(d.name));
 }
 
@@ -35,34 +39,26 @@ export function PubHours({ pub }) {
 
 export function CheckIn({ pub }) {
   const { api, userId, feature, extras, toast, notifyChange } = useApp();
-  const [busy, setBusy] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const { locate, locating } = useGeolocation({ maxAgeMs: CHECK_IN_MAX_AGE_MS });
   if (!feature("check_ins")) return null;
   const people = extras.busy.get(pub.id) || 0;
+  const busy = locating || saving;
 
   function checkIn() {
     if (!userId) { toast("Sign in to check in."); return; }
-    if (!navigator.geolocation) { toast("This browser can't share your location, which check-in needs. Try another browser.", "error"); return; }
-    setBusy(true);
-    navigator.geolocation.getCurrentPosition(
-      async pos => {
-        try {
-          await api.checkIn(pub.id, pos.coords.latitude, pos.coords.longitude);
-          toast(`Checked in at ${pub.name}.`, "success");
-          notifyChange();
-        } catch (err) {
-          toast(friendlyError(err, "Couldn't check you in."), "error");
-        } finally {
-          setBusy(false);
-        }
-      },
-      error => {
-        setBusy(false);
-        toast(error?.code === 1
-          ? "Location is blocked for this site. Allow it in your browser settings to check in."
-          : "Couldn't find your location. Try again in a moment.", "error");
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
-    );
+    locate(async point => {
+      setSaving(true);
+      try {
+        await api.checkIn(pub.id, point.lat, point.lng);
+        toast(`Checked in at ${pub.name}.`, "success");
+        notifyChange();
+      } catch (err) {
+        toast(friendlyError(err, "Couldn't check you in."), "error");
+      } finally {
+        setSaving(false);
+      }
+    });
   }
 
   return (

@@ -4,6 +4,14 @@ import { CircleAlert } from "lucide-react";
 // Errors are never shown by colour alone: each has an icon and text, and the field gets a red border
 // through aria-invalid (see global.css).
 
+// The id of a field's error message, for aria-describedby.
+export const errorIdFor = fieldId => `${fieldId}-error`;
+
+// Props that link a field to its error: red border via aria-invalid, and the message read out.
+function fieldErrorProps(fieldId, error) {
+  return { "aria-invalid": Boolean(error), "aria-describedby": error ? errorIdFor(fieldId) : undefined };
+}
+
 // The error under one field. id must match the field's aria-describedby.
 export function FieldError({ id, children }) {
   if (!children) return null;
@@ -13,6 +21,15 @@ export function FieldError({ id, children }) {
       <span>{children}</span>
     </span>
   );
+}
+
+// For a form with several fields: props(key) links a field to its error, message(key) renders it.
+// fieldIds: { fieldKey: "dom-id" }
+export function fieldErrorBinding(errors, fieldIds) {
+  return {
+    props: key => fieldErrorProps(fieldIds[key], errors[key]),
+    message: key => <FieldError id={errorIdFor(fieldIds[key])}>{errors[key]}</FieldError>
+  };
 }
 
 // A form-level error, e.g. "Can't reach Pub Bingo" after submitting.

@@ -3,7 +3,7 @@ const EARTH_RADIUS_M = 6371000;
 // Where the map starts before the pubs load (central London).
 export const AREA_CENTRE = { lat: 51.5132, lng: -0.1275 };
 
-export function isValidPoint(point) {
+function isValidPoint(point) {
   return Boolean(point) && Number.isFinite(point.lat) && Number.isFinite(point.lng)
     && Math.abs(point.lat) <= 90 && Math.abs(point.lng) <= 180;
 }

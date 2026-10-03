@@ -4,6 +4,10 @@ import { friendlyError } from "../../lib/api/errors.js";
 import { londonNow } from "../../lib/core/events.js";
 import { EmptyState, ErrorState, Loading } from "../ui/States.jsx";
 import ReporterName from "../ui/ReporterName.jsx";
+import { MENU_USED_POINTS, reporterPoints } from "../../lib/core/badges.js";
+import Segmented from "../ui/Segmented.jsx";
+
+const TOP_REPORTERS_SHOWN = 20;
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
@@ -26,16 +30,13 @@ export default function TopReporters() {
 
   return (
     <>
-      <div className="segmented" role="group" aria-label="Time range">
-        <button type="button" className={range === "month" ? "active" : ""} aria-pressed={range === "month"} onClick={() => setRange("month")}>{MONTHS[Number(now.dateKey.slice(5, 7)) - 1]}</button>
-        <button type="button" className={range === "all" ? "active" : ""} aria-pressed={range === "all"} onClick={() => setRange("all")}>All time</button>
-      </div>
+      <Segmented label="Time range" value={range} onChange={setRange} options={[{ value: "month", label: MONTHS[Number(now.dateKey.slice(5, 7)) - 1] }, { value: "all", label: "All time" }]} />
       {error && <ErrorState title="Couldn't load the top reporters" message={error} onRetry={() => { setError(""); setRows(null); setRetry(r => r + 1); }} />}
       {!error && rows === null && <Loading />}
       {rows && rows.length === 0 && <EmptyState title="No reporters yet">Report a price to top the board.</EmptyState>}
       {rows && rows.length > 0 && (
         <ol className="leaderboard">
-          {rows.slice(0, 20).map((r, i) => (
+          {rows.slice(0, TOP_REPORTERS_SHOWN).map((r, i) => (
             <li key={r.username}>
               <span className={`rank ${i < 3 ? `top top-${i + 1}` : ""}`}>{i + 1}</span>
               <div className="result-main">
@@ -45,12 +46,12 @@ export default function TopReporters() {
                   {r.menus_used ? ` · ${r.menus_used} menu${r.menus_used === 1 ? "" : "s"}` : ""}{r.receipts ? ` · ${r.receipts} 🧾` : ""}
                 </span>
               </div>
-              <span className="price-tag large"><strong>{r.reports + r.confirms + 3 * r.menus_used}</strong><small> pts</small></span>
+              <span className="price-tag large"><strong>{reporterPoints(r)}</strong><small> pts</small></span>
             </li>
           ))}
         </ol>
       )}
-      <p className="muted small-text">1 point per price report or “still right” check, 3 per menu that gets used.</p>
+      <p className="muted small-text">1 point per price report or “still right” check, {MENU_USED_POINTS} per menu that gets used.</p>
     </>
   );
 }

@@ -1,26 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useLocation, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { useApp } from "../lib/AppContext.jsx";
 import { friendlyError } from "../lib/api/errors.js";
 import { timeAgo } from "../lib/core/time.js";
 import { EmptyState, ErrorState, Loading } from "../components/ui/States.jsx";
-import { MenuSubmitForm, MyMenus } from "../components/suggestions/MenuSubmit.jsx";
-import { FieldError, FormError } from "../components/ui/FormErrors.jsx";
+import { MyMenus } from "../components/suggestions/MenuSubmit.jsx";
+import SignInPrompt from "../components/SignInPrompt.jsx";
+import SuggestionForm from "../components/suggestions/SuggestionForm.jsx";
+import SuggestionAdminControls from "../components/suggestions/SuggestionAdminControls.jsx";
+import { SUGGESTION_STATUS, SUGGESTION_TYPES } from "../data/suggestions.js";
 
-export const SUGGESTION_TYPES = [
-  { key: "idea", label: "Idea", icon: "💡", placeholder: "What would make Pub Bingo better?" },
-  { key: "pub", label: "Add a pub", icon: "🍺", placeholder: "Which pub, and where? Anything we should know (website, prices, events)?" },
-  { key: "problem", label: "Something's wrong", icon: "⚠️", placeholder: "What went wrong, or which price/detail is out of date?" },
-  { key: "other", label: "Other", icon: "💬", placeholder: "Anything else on your mind?" }
-];
-const STATUS = {
-  new: { label: "New", tone: "new" },
-  reviewed: { label: "Seen", tone: "seen" },
-  planned: { label: "Planned", tone: "planned" },
-  in_progress: { label: "In progress", tone: "planned" },
-  done: { label: "Done", tone: "done" },
-  rejected: { label: "Not doing", tone: "rejected" }
-};
 const FILTERS = [
   ["all", "All", () => true],
   ["open", "Open", s => ["new", "reviewed"].includes(s.status)],
@@ -28,126 +17,9 @@ const FILTERS = [
   ["done", "Done", s => s.status === "done"],
   ["mine", "Mine", s => s.is_mine]
 ];
-const MAX = 1000;
-const MIN_LENGTH = 3;
-
-// Menus go privately to admins, so they're a separate form rather than a public suggestion.
-const MENU_TYPE = { key: "menu", label: "Menu or price", icon: "📄" };
-
-function SuggestionForm({ onSent, initialType = "idea", initialPubId = "" }) {
-  const { api, toast } = useApp();
-  const [type, setType] = useState(initialType);
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
-  const [serverError, setServerError] = useState("");
-  const [sending, setSending] = useState(false);
-  const current = SUGGESTION_TYPES.find(t => t.key === type) || SUGGESTION_TYPES[0];
-
-  async function send(event) {
-    event.preventDefault();
-    setError("");
-    setServerError("");
-    if (message.trim().length < MIN_LENGTH) {
-      setError(message.trim() ? "Write a little more so we know what you mean." : "Write your suggestion first.");
-      document.getElementById("suggestion-text")?.focus();
-      return;
-    }
-    setSending(true);
-    try {
-      await api.submitSuggestion(type, message);
-      setMessage("");
-      toast("Suggestion sent.", "success");
-      onSent();
-    } catch (err) {
-      // The message stays in the box so it can be sent again.
-      setServerError(friendlyError(err, "Couldn't send your suggestion."));
-    } finally {
-      setSending(false);
-    }
-  }
-
-  const chips = (
-    <div className="chip-row" role="radiogroup" aria-label="Type of suggestion">
-      {[...SUGGESTION_TYPES, MENU_TYPE].map(t => (
-        <button key={t.key} type="button" role="radio" aria-checked={type === t.key} className={`chip ${type === t.key ? "active" : ""}`} onClick={() => { setType(t.key); setError(""); setServerError(""); }}>
-          <span aria-hidden="true">{t.icon}</span> {t.label}
-        </button>
-      ))}
-    </div>
-  );
-
-  if (type === MENU_TYPE.key) {
-    return <div className="suggestion-form">{chips}<MenuSubmitForm initialPubId={initialPubId} onSent={onSent} /></div>;
-  }
-
-  return (
-    <form className="suggestion-form" onSubmit={send} noValidate>
-      {chips}
-      <label htmlFor="suggestion-text" className="sr-only">Your suggestion</label>
-      <textarea id="suggestion-text" rows={4} maxLength={MAX} value={message} onChange={e => { setMessage(e.target.value); if (error && e.target.value.trim().length >= MIN_LENGTH) setError(""); }} placeholder={current.placeholder}
-        aria-required="true" aria-invalid={Boolean(error)} aria-describedby={error ? "suggestion-error suggestion-help" : "suggestion-help"} />
-      <FieldError id="suggestion-error">{error}</FieldError>
-      <div className="suggestion-form-footer">
-        <span id="suggestion-help" className="muted small-text">{message.length}/{MAX} · Everyone can see suggestions and vote on them.</span>
-        <button type="submit" className="primary-button" disabled={sending}>{sending ? "Sending…" : "Send suggestion"}</button>
-      </div>
-      <FormError>{serverError}</FormError>
-    </form>
-  );
-}
-
-function AdminControls({ item, onChanged }) {
-  const { api, toast } = useApp();
-  const [status, setStatus] = useState(item.status);
-  const [note, setNote] = useState(item.admin_note || "");
-  const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [error, setError] = useState("");
-
-  async function save() {
-    setSaving(true);
-    setError("");
-    try {
-      await api.admin.updateSuggestion(item.id, status, note);
-      toast(`Marked “${STATUS[status]?.label || status}”${note.trim() ? " and reply saved" : ""}.`, "success");
-      onChanged();
-    } catch (err) {
-      setError(friendlyError(err, "Couldn't save the status and reply. Your reply is still here, so try again."));
-    } finally {
-      setSaving(false);
-    }
-  }
-  async function remove() {
-    if (!window.confirm("Delete this suggestion?")) return;
-    setDeleting(true);
-    try {
-      await api.admin.deleteSuggestion(item.id);
-      toast("Suggestion deleted.", "success");
-      onChanged();
-    } catch (err) {
-      toast(friendlyError(err, "Couldn't delete the suggestion. Try again."), "error");
-      setDeleting(false);
-    }
-  }
-
-  return (
-    <div className="suggestion-admin">
-      <label className="sr-only" htmlFor={`status-${item.id}`}>Status</label>
-      <select id={`status-${item.id}`} value={status} onChange={e => setStatus(e.target.value)}>
-        {Object.entries(STATUS).map(([key, s]) => <option key={key} value={key}>{s.label}</option>)}
-      </select>
-      <label className="sr-only" htmlFor={`note-${item.id}`}>Reply</label>
-      <input id={`note-${item.id}`} value={note} maxLength={1000} onChange={e => setNote(e.target.value)} placeholder="Reply (shown to everyone)" />
-      <button type="button" className="secondary-button small" onClick={save} disabled={saving}>{saving ? "Saving…" : "Save"}</button>
-      <button type="button" className="text-button danger" onClick={remove} disabled={deleting}>{deleting ? "Deleting…" : "Delete"}</button>
-      <FormError>{error}</FormError>
-    </div>
-  );
-}
 
 export default function SuggestionsPage() {
   const { api, userId, isAdmin, authReady, toast } = useApp();
-  const location = useLocation();
   const [params] = useSearchParams();
   const menuPubId = params.get("menu");
   const [items, setItems] = useState(null);
@@ -211,10 +83,7 @@ export default function SuggestionsPage() {
             <MyMenus reloadKey={reloadKey} />
           </>
         ) : (
-          <div className="sign-in-prompt">
-            <p className="muted">Sign in to send suggestions, menus and price photos, and to vote. Ideas, pubs to add, or anything that's wrong: it all helps.</p>
-            <Link className="primary-button" to={`/account?next=${encodeURIComponent(location.pathname + location.search)}`}>Sign in or create account</Link>
-          </div>
+          <SignInPrompt inline>Sign in to send suggestions, menus and price photos, and to vote. Ideas, pubs to add, or anything that's wrong: it all helps.</SignInPrompt>
         )}
       </section>
 
@@ -238,7 +107,7 @@ export default function SuggestionsPage() {
         <ul className="suggestion-list">
           {shown.map(item => {
             const type = SUGGESTION_TYPES.find(t => t.key === item.category) || SUGGESTION_TYPES[0];
-            const status = STATUS[item.status] || STATUS.new;
+            const status = SUGGESTION_STATUS[item.status] || SUGGESTION_STATUS.new;
             const score = item.up_votes - item.down_votes;
             return (
               <li key={item.id} className="suggestion">
@@ -258,7 +127,7 @@ export default function SuggestionsPage() {
                   {item.admin_note && (
                     <div className="suggestion-reply"><strong>Reply from Pub Bingo:</strong> {item.admin_note}</div>
                   )}
-                  {isAdmin && <AdminControls key={`${item.id}-${item.status}-${item.admin_note}`} item={item} onChanged={reload} />}
+                  {isAdmin && <SuggestionAdminControls key={`${item.id}-${item.status}-${item.admin_note}`} item={item} onChanged={reload} />}
                 </div>
               </li>
             );

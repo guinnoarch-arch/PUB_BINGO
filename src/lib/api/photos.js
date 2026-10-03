@@ -1,5 +1,5 @@
-export const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
-export const PHOTO_MAX_BYTES = 5 * 1024 * 1024;
+const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const PHOTO_MAX_BYTES = 5 * 1024 * 1024;
 const MAX_DIMENSION = 1600;
 
 export function validatePhotoFile(file) {

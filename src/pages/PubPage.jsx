@@ -3,7 +3,8 @@ import { Link, useLocation, useParams } from "react-router-dom";
 import { useApp } from "../lib/AppContext.jsx";
 import { friendlyError } from "../lib/api/errors.js";
 import { CATEGORIES } from "../data/seedPubs.js";
-import { isDraught, pintPrice } from "../lib/core/prices.js";
+import { pintPrice } from "../lib/core/prices.js";
+import { sortDrinksForMenu } from "../lib/core/search.js";
 import FavouriteButton from "../components/ui/FavouriteButton.jsx";
 import { PriceTag, SourceBadge, UpdatedAgo } from "../components/ui/Badges.jsx";
 import { EmptyState, ErrorState, Loading } from "../components/ui/States.jsx";
@@ -59,11 +60,7 @@ export default function PubPage() {
 
   // Happy-hour prices apply here too while a deal is on.
   const livePub = useMemo(() => (pub && feature("happy_hours") ? applyDeals([pub], deals, clock)[0] : pub), [pub, feature, deals, clock]);
-  const drinks = useMemo(() => [...(livePub?.drinks || [])].sort((a, b) =>
-    CATEGORIES.indexOf(a.category) - CATEGORIES.indexOf(b.category)
-    || Number(isDraught(b.measure)) - Number(isDraught(a.measure))
-    || Number(a.current_price) - Number(b.current_price)
-  ), [livePub]);
+  const drinks = useMemo(() => sortDrinksForMenu(livePub?.drinks, { by: "price", categories: CATEGORIES }), [livePub]);
 
   function startReport(drinkId) {
     setReportDrinkId(drinkId ?? "");

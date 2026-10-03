@@ -5,7 +5,7 @@ export const MIN_PRICE = 1;
 export const MAX_PRICE = 25;
 export const MEASURES = ["pint", "half", "two-thirds", "schooner", "bottle", "can"];
 // Draught measures (poured at the bar). Bottles and cans are packaged and never count as "a pint".
-export const DRAUGHT_MEASURES = ["pint", "half", "two-thirds", "schooner"];
+const DRAUGHT_MEASURES = ["pint", "half", "two-thirds", "schooner"];
 const MEASURE_TO_PINT = { pint: 1, half: 2, "two-thirds": 1.5, schooner: 1.5 };
 const PINT_ML = 568;
 
@@ -51,6 +51,8 @@ export function formatPrice(value) {
 }
 
 export function cleanText(value) {
+  // Control characters are what this removes, so the regex has to name them.
+  // eslint-disable-next-line no-control-regex
   return String(value ?? "").replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim();
 }
 

@@ -84,7 +84,7 @@ code { background: rgba(var(--primary-rgb), 0.1); padding: 1px 5px; border-radiu
 .app-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 14px; }
 .brand { display: flex; gap: 12px; align-items: center; text-decoration: none; color: var(--text) !important; min-width: 0; }
 .brand > span:last-child { display: grid; min-width: 0; }
-.brand-title { font-size: 1.35rem; font-weight: 800; }
+.brand-title { font-size: 1.35rem; font-weight: 800; white-space: nowrap; }
 .brand-subtitle { color: var(--muted); font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .brand-icon { width: 46px; height: 46px; border-radius: 16px; overflow: hidden; flex-shrink: 0; background: var(--primary); }
 .brand-icon img { width: 100%; height: 100%; display: block; }
@@ -255,7 +255,7 @@ input[aria-invalid="true"], select[aria-invalid="true"], textarea[aria-invalid="
 .pub-map { height: 460px; width: 100%; background: #e8e4dc; }
 [data-theme="dark"] .pub-map .leaflet-tile-pane { filter: brightness(0.75) contrast(1.1) saturate(0.8); }
 .results-card { max-height: 640px; display: flex; flex-direction: column; }
-.result-list, .mini-list, .feed-list, .leaderboard, .drink-list, .admin-list { list-style: none; padding: 0; margin: 0; }
+.result-list, .mini-list, .feed-list, .leaderboard, .drink-list { list-style: none; padding: 0; margin: 0; }
 .result-list { overflow-y: auto; min-height: 0; }
 .result-row, .leaderboard li { display: flex; gap: 12px; align-items: center; padding: 12px 4px; border-bottom: 1px solid var(--line); }
 .result-row:last-child, .leaderboard li:last-child { border-bottom: 0; }
@@ -373,7 +373,6 @@ div.bingo-cell { cursor: default; }
 /* ---------- Account / admin ---------- */
 .account-card { max-width: 480px; width: 100%; justify-self: center; }
 .account-form { display: grid; gap: 12px; }
-.admin-list li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); }
 
 /* ---------- Responsive + phone mode ---------- */
 @media (max-width: 900px) {
@@ -552,7 +551,6 @@ textarea { width: 100%; padding: 10px 12px; border-radius: 12px; border: 1px sol
 .suggestion-admin select { width: auto; min-height: 36px; padding: 6px 8px; }
 .suggestion-admin input { flex: 1 1 200px; min-height: 36px; padding: 6px 10px; }
 .pill.warn { background: rgba(217, 119, 6, 0.14); color: var(--orange); }
-.brand-title { white-space: nowrap; }
 
 /* Menus sent in (Suggestions → Menu or price; Admin → Menus) */
 .menu-submit-form { gap: 12px; }
@@ -631,7 +629,6 @@ textarea { width: 100%; padding: 10px 12px; border-radius: 12px; border: 1px sol
 .chart-tip text { fill: var(--card); font-size: 10px; font-weight: 700; }
 .check-teaser p { margin: 6px 0 10px; }
 .route-pin { min-width: 30px; text-align: center; background: var(--accent) !important; color: #1c1917 !important; }
-.field-label { font-weight: 700; font-size: 0.9rem; }
 .crawl-options { margin-top: 12px; }
 .crawl-total { margin: 4px 0 10px; }
 .crawl-list, .round-results { list-style: none; margin: 0; padding: 0; }

@@ -9,15 +9,15 @@ import { ErrorState, Loading } from "../ui/States.jsx";
 import PriceChart from "../ui/PriceChart.jsx";
 import ReporterName from "../ui/ReporterName.jsx";
 import NotLaunched from "../ui/NotLaunched.jsx";
-import { usePending } from "../../lib/usePending.js";
+import { useHideReport } from "../../lib/hooks/useHideReport.js";
 
 // Full price history for one drink: every report is kept so trends can be shown.
 export default function DrinkHistory({ drink }) {
-  const { api, changeVersion, isAdmin, feature, toast, notifyChange } = useApp();
+  const { api, changeVersion, isAdmin, feature } = useApp();
   const [rows, setRows] = useState(null);
   const [error, setError] = useState("");
   const [retry, setRetry] = useState(0);
-  const { run, isPending } = usePending();
+  const { toggleHidden, isHiding } = useHideReport();
 
   useEffect(() => {
     let active = true;
@@ -27,15 +27,6 @@ export default function DrinkHistory({ drink }) {
     return () => { active = false; };
   }, [api, drink.id, changeVersion, retry]);
 
-  const toggleHidden = report => run(report.id, async () => {
-    try {
-      await api.admin.setReportHidden(report.id, !report.is_hidden);
-      toast(report.is_hidden ? "Report restored." : "Report hidden. Current price recalculated.", "success");
-      notifyChange();
-    } catch (err) {
-      toast(friendlyError(err, "Couldn't change the report. Try again."), "error");
-    }
-  });
 
   if (error) return <ErrorState title="Couldn't load the price history" message={error} onRetry={() => { setError(""); setRetry(r => r + 1); }} />;
   if (!rows) return <Loading label="Loading history…" />;
@@ -73,7 +64,7 @@ export default function DrinkHistory({ drink }) {
             </span>
             {report.note && report.kind !== "confirm" && <span className="feed-note">“{report.note}”</span>}
             {isAdmin && report.source === "community" && (
-              <button type="button" className="text-button danger" disabled={isPending(report.id)} onClick={() => toggleHidden(report)}>{report.is_hidden ? "Unhide" : "Hide"}</button>
+              <button type="button" className="text-button danger" disabled={isHiding(report.id)} onClick={() => toggleHidden(report)}>{report.is_hidden ? "Unhide" : "Hide"}</button>
             )}
           </li>
         ))}

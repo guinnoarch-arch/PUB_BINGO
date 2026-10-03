@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { useUrlParams } from "../lib/hooks/useUrlParam.js";
 import { useApp } from "../lib/AppContext.jsx";
 import { CATEGORIES } from "../data/seedPubs.js";
 import { cheapestPints } from "../lib/core/search.js";
@@ -9,23 +10,21 @@ import DealNote from "../components/features/DealNote.jsx";
 import TopReporters from "../components/features/TopReporters.jsx";
 import AreaAverages from "../components/features/AreaAverages.jsx";
 import NotLaunched from "../components/ui/NotLaunched.jsx";
+import Segmented from "../components/ui/Segmented.jsx";
+
+const LEADERBOARD_SIZE = 20;
 
 export default function LeaderboardPage() {
   const { livePubs: pubs, pubsStatus, pubsError, reloadPubs, liveStatus, feature } = useApp();
   // The tab and category live in the URL, so refresh and back keep them.
-  const [params, setParams] = useSearchParams();
+  const [params, updateParam] = useUrlParams();
   const tab = params.get("view") === "people" ? "people" : "pints";
   const category = CATEGORIES.includes(params.get("cat")) ? params.get("cat") : null;
-  const updateParam = (key, value) => {
-    const next = new URLSearchParams(params);
-    if (value) next.set(key, value); else next.delete(key);
-    setParams(next, { replace: true });
-  };
   const setTab = value => updateParam("view", value === "people" ? "people" : "");
   const setCategory = value => updateParam("cat", value || "");
   const [onePerPub, setOnePerPub] = useState(true);
   // Confirmed prices only: starting estimates never appear on the leaderboard.
-  const rows = useMemo(() => cheapestPints(pubs, { limit: 20, category, onePerPub, realOnly: true }), [pubs, category, onePerPub]);
+  const rows = useMemo(() => cheapestPints(pubs, { limit: LEADERBOARD_SIZE, category, onePerPub, realOnly: true }), [pubs, category, onePerPub]);
 
   return (
     <>
@@ -38,10 +37,7 @@ export default function LeaderboardPage() {
       </div>
       {feature("top_reporters") && (
         <div className="tab-row">
-          <div className="segmented" role="group" aria-label="Leaderboards">
-            <button type="button" aria-pressed={tab === "pints"} className={tab === "pints" ? "active" : ""} onClick={() => setTab("pints")}>Cheapest pints</button>
-            <button type="button" aria-pressed={tab === "people"} className={tab === "people" ? "active" : ""} onClick={() => setTab("people")}>Top reporters</button>
-          </div>
+          <Segmented label="Leaderboards" value={tab} onChange={setTab} options={[{ value: "pints", label: "Cheapest pints" }, { value: "people", label: "Top reporters" }]} />
           <NotLaunched feature="top_reporters" />
         </div>
       )}

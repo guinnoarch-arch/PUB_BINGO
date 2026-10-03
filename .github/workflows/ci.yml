@@ -25,6 +25,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Lint (ESLint, and knip for unused files and exports)
+        run: npm run lint
       - name: Seed SQL is up to date
         run: npm run seed:sql && git diff --exit-code supabase/seed.sql
       - run: npm test

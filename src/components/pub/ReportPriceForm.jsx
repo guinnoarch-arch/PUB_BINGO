@@ -1,11 +1,11 @@
 import { useId, useRef, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
 import { useApp } from "../../lib/AppContext.jsx";
 import { friendlyError } from "../../lib/api/errors.js";
-import { useValidation } from "../../lib/useValidation.js";
+import { useValidation } from "../../lib/hooks/useValidation.js";
 import { CATEGORIES } from "../../data/seedPubs.js";
 import { LIMITS, MEASURES, formatPrice, measureLabel, validatePriceReport } from "../../lib/core/prices.js";
-import { ErrorSummary, FieldError, FormError, Required, RequiredHint } from "../ui/FormErrors.jsx";
+import SignInPrompt from "../SignInPrompt.jsx";
+import { ErrorSummary, FormError, Required, RequiredHint, fieldErrorBinding } from "../ui/FormErrors.jsx";
 
 const NEW_DRINK = "__new__";
 // A price this far from the usual one is probably a typo (e.g. 65 instead of 6.50).
@@ -14,7 +14,6 @@ const BIG_CHANGE = 0.5;
 export default function ReportPriceForm({ pub, drinks, initialDrinkId = "", onDone, onCancel }) {
   const { api, userId, feature, toast, notifyChange } = useApp();
   const receiptRef = useRef(null);
-  const location = useLocation();
   const formId = useId();
   const [values, setValues] = useState({
     drinkChoice: initialDrinkId || (drinks.length ? drinks[0].id : NEW_DRINK),
@@ -41,21 +40,13 @@ export default function ReportPriceForm({ pub, drinks, initialDrinkId = "", onDo
   const set = key => event => setValues(prev => ({ ...prev, [key]: event.target.value }));
 
   if (!userId) {
-    return (
-      <div className="sign-in-prompt">
-        <p>Sign in to report a price. Reports are shared with everyone and help keep prices accurate.</p>
-        <Link className="primary-button" to={`/account?next=${encodeURIComponent(location.pathname)}`}>Sign in or create account</Link>
-      </div>
-    );
+    return <SignInPrompt inline>Sign in to report a price. Reports are shared with everyone and help keep prices accurate.</SignInPrompt>;
   }
 
   const fieldId = name => `${formId}-${name}`;
   const fieldIds = { drinkName: fieldId("drinkName"), category: fieldId("category"), price: fieldId("price"), note: fieldId("note") };
-  const errorProps = name => ({
-    onBlur: () => checkField(name),
-    "aria-invalid": Boolean(errors[name]),
-    "aria-describedby": errors[name] ? fieldId(`${name}-error`) : undefined
-  });
+  const { props: linkError, message: fieldError } = fieldErrorBinding(errors, fieldIds);
+  const errorProps = name => ({ onBlur: () => checkField(name), ...linkError(name) });
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -113,7 +104,7 @@ export default function ReportPriceForm({ pub, drinks, initialDrinkId = "", onDo
           <div className="field">
             <label htmlFor={fieldIds.drinkName}>Drink name<Required /></label>
             <input id={fieldIds.drinkName} value={values.drinkName} maxLength={LIMITS.drinkName.max} onChange={set("drinkName")} placeholder="e.g. Camden Hells" autoComplete="off" aria-required="true" {...errorProps("drinkName")} />
-            <FieldError id={fieldId("drinkName-error")}>{errors.drinkName}</FieldError>
+            {fieldError("drinkName")}
           </div>
           <div className="field">
             <label htmlFor={fieldIds.category}>Category<Required /></label>
@@ -121,7 +112,7 @@ export default function ReportPriceForm({ pub, drinks, initialDrinkId = "", onDo
               <option value="">Choose…</option>
               {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
-            <FieldError id={fieldId("category-error")}>{errors.category}</FieldError>
+            {fieldError("category")}
           </div>
           <div className="field">
             <label htmlFor={fieldId("measure")}>Measure<Required /></label>
@@ -139,12 +130,12 @@ export default function ReportPriceForm({ pub, drinks, initialDrinkId = "", onDo
             <span aria-hidden="true">£</span>
             <input id={fieldIds.price} inputMode="decimal" value={values.price} onChange={set("price")} placeholder="6.20" autoComplete="off" aria-required="true" {...errorProps("price")} />
           </div>
-          <FieldError id={fieldId("price-error")}>{errors.price}</FieldError>
+          {fieldError("price")}
         </div>
         <div className="field grow">
           <label htmlFor={fieldIds.note}>Note <span className="muted">(optional)</span></label>
           <input id={fieldIds.note} value={values.note} maxLength={LIMITS.note.max} onChange={set("note")} placeholder="e.g. happy hour price" {...errorProps("note")} />
-          <FieldError id={fieldId("note-error")}>{errors.note}</FieldError>
+          {fieldError("note")}
         </div>
       </div>
 

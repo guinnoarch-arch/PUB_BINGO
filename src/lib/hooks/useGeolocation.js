@@ -1,12 +1,15 @@
 import { useCallback, useState } from "react";
-import { useApp } from "./AppContext.jsx";
+import { useApp } from "../AppContext.jsx";
 
 const LOCATE_TIMEOUT_MS = 10000;
 const PERMISSION_DENIED = 1;
 
+const DEFAULT_MAX_AGE_MS = 60000;
+
 // Asks the browser for the user's position. Shows a specific message when it can't, with
-// `fallback` saying what to do instead (e.g. "Tap the map instead.").
-export function useGeolocation({ fallback = "" } = {}) {
+// `fallback` saying what to do instead (e.g. "Tap the map instead."). maxAgeMs: how old a cached
+// position may be (check-in wants a fresh one).
+export function useGeolocation({ fallback = "", maxAgeMs = DEFAULT_MAX_AGE_MS } = {}) {
   const { toast } = useApp();
   const [locating, setLocating] = useState(false);
 
@@ -28,9 +31,9 @@ export function useGeolocation({ fallback = "" } = {}) {
           ? `Location is blocked for this site. Allow it in your browser settings and try again.${instead}`
           : `Couldn't find your location. Try again in a moment.${instead}`, "error");
       },
-      { enableHighAccuracy: true, timeout: LOCATE_TIMEOUT_MS, maximumAge: 60000 }
+      { enableHighAccuracy: true, timeout: LOCATE_TIMEOUT_MS, maximumAge: maxAgeMs }
     );
-  }, [toast, fallback]);
+  }, [toast, fallback, maxAgeMs]);
 
   return { locate, locating };
 }

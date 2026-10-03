@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { useApp } from "../lib/AppContext.jsx";
-import InlineQrCode from "./common/InlineQrCode.jsx";
+import InlineQrCode from "./ui/InlineQrCode.jsx";
 import { useWatchMatches } from "./features/PriceWatches.jsx";
 
 function IconButton({ label, active = false, onClick, children }) {

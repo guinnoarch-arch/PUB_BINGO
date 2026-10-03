@@ -14,14 +14,14 @@ export function dealIsActive(deal, now = londonNow()) {
 }
 
 // Which drinks a deal covers: one drink, or all draught drinks (optionally of one category).
-export function dealApplies(deal, drink) {
+function dealApplies(deal, drink) {
   if (deal.drink_id) return deal.drink_id === drink.id;
   if (!isDraught(drink.measure)) return false;
   if (deal.deal_price != null && (drink.measure || "pint") !== "pint") return false; // "£5 pints" means pints
   return !deal.category || deal.category === drink.category;
 }
 
-export function dealPriceFor(deal, drink) {
+function dealPriceFor(deal, drink) {
   const regular = Number(drink.current_price);
   if (deal.deal_price != null) return Number(deal.deal_price);
   return Math.round(regular * (1 - Number(deal.discount_pct) / 100) * 100) / 100;

@@ -2,10 +2,11 @@ import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useApp } from "../lib/AppContext.jsx";
 import { friendlyError } from "../lib/api/errors.js";
-import { useValidation } from "../lib/useValidation.js";
+import { useValidation } from "../lib/hooks/useValidation.js";
 import { Loading } from "../components/ui/States.jsx";
-import { ErrorSummary, FieldError, FormError, Required, RequiredHint } from "../components/ui/FormErrors.jsx";
+import { ErrorSummary, FormError, Required, RequiredHint, fieldErrorBinding } from "../components/ui/FormErrors.jsx";
 import AccountExtras from "../components/features/AccountExtras.jsx";
+import Segmented from "../components/ui/Segmented.jsx";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const USERNAME_RE = /^[A-Za-z0-9_]{3,24}$/;
@@ -123,6 +124,7 @@ export default function AccountPage() {
     }
   }
 
+  const fieldErrors = fieldErrorBinding(errors, FIELD_IDS);
   const field = (key, label, props = {}) => (
     <div className="field">
       <label htmlFor={FIELD_IDS[key]}>{label}<Required /></label>
@@ -132,20 +134,16 @@ export default function AccountPage() {
         onChange={set(key)}
         onBlur={() => checkField(key)}
         aria-required="true"
-        aria-invalid={Boolean(errors[key])}
-        aria-describedby={errors[key] ? `${FIELD_IDS[key]}-error` : undefined}
+        {...fieldErrors.props(key)}
         {...props}
       />
-      <FieldError id={`${FIELD_IDS[key]}-error`}>{errors[key]}</FieldError>
+      {fieldErrors.message(key)}
     </div>
   );
 
   return (
     <section className="card account-card">
-      <div className="segmented wide" role="group" aria-label="Account">
-        <button type="button" aria-pressed={mode === "signin"} className={mode === "signin" ? "active" : ""} onClick={() => switchMode("signin")}>Sign in</button>
-        <button type="button" aria-pressed={mode === "signup"} className={mode === "signup" ? "active" : ""} onClick={() => switchMode("signup")}>Create account</button>
-      </div>
+      <Segmented wide label="Account" value={mode === "signup" ? "signup" : "signin"} onChange={switchMode} options={[{ value: "signin", label: "Sign in" }, { value: "signup", label: "Create account" }]} />
       <p className="muted">Browsing is open to everyone. An account lets you report prices, save favourites, upload photos and play the bingo card.</p>
 
       <form onSubmit={submit} noValidate className="account-form">

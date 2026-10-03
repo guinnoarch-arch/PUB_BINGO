@@ -1,31 +1,28 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { listParam, useUrlParams } from "../lib/hooks/useUrlParam.js";
 import { useApp } from "../lib/AppContext.jsx";
 import { friendlyError } from "../lib/api/errors.js";
 import { EVENT_CATEGORIES, FEATURES } from "../data/features.js";
-import { WHEN_OPTIONS, groupByDay, londonNow, pubsWithFeatures, upcoming } from "../lib/core/events.js";
+import { WHEN_OPTIONS, groupByDay, pubsWithFeatures, upcoming } from "../lib/core/events.js";
 import EventItem from "../components/events/EventItem.jsx";
 import FavouriteButton from "../components/ui/FavouriteButton.jsx";
 import { EmptyState, ErrorState, Loading } from "../components/ui/States.jsx";
-
-const listParam = value => (value ? value.split(",").filter(Boolean) : []);
+import Segmented from "../components/ui/Segmented.jsx";
 
 export default function WhatsOnPage() {
-  const { api, pubs, pubsById, pubsStatus, changeVersion } = useApp();
-  const [params, setParams] = useSearchParams();
+  const { api, pubs, pubsById, pubsStatus, changeVersion, clock } = useApp();
+  const [params, update] = useUrlParams();
   const when = WHEN_OPTIONS.some(o => o.key === params.get("when")) ? params.get("when") : "week";
-  const types = listParam(params.get("type")).filter(t => EVENT_CATEGORIES.some(c => c.key === t));
-  const features = listParam(params.get("has")).filter(t => FEATURES.some(f => f.tag === t));
+  // Keyed by the raw text so the lists only change when the address does.
+  const typeText = params.get("type") || "";
+  const featureText = params.get("has") || "";
+  const types = useMemo(() => listParam(typeText).filter(t => EVENT_CATEGORIES.some(c => c.key === t)), [typeText]);
+  const features = useMemo(() => listParam(featureText).filter(t => FEATURES.some(f => f.tag === t)), [featureText]);
   const [events, setEvents] = useState(null);
   const [error, setError] = useState("");
   const [retry, setRetry] = useState(0);
 
-  const update = (key, values) => {
-    const next = new URLSearchParams(params);
-    const value = Array.isArray(values) ? values.join(",") : values;
-    if (value) next.set(key, value); else next.delete(key);
-    setParams(next, { replace: true });
-  };
   const toggle = (key, list, item) => update(key, list.includes(item) ? list.filter(x => x !== item) : [...list, item]);
 
   useEffect(() => {
@@ -36,15 +33,15 @@ export default function WhatsOnPage() {
     return () => { active = false; };
   }, [api, changeVersion, retry]);
 
-  const now = londonNow();
   // Only events at pubs the public can see (hidden pubs aren't in the pubs list).
   const visibleEvents = useMemo(() => (events || []).filter(e => pubsById[e.pub_id]), [events, pubsById]);
   const featurePubIds = useMemo(() => (features.length ? new Set(pubsWithFeatures(pubs, features).map(p => p.id)) : null), [pubs, features]);
+  // The app clock ticks each minute, so "tonight" and "tomorrow" stay right without a reload.
   const list = useMemo(
-    () => upcoming(visibleEvents, { when, categories: types, pubIds: featurePubIds, now }),
-    [visibleEvents, when, types.join(), featurePubIds, now.dateKey, Math.floor(now.minutes / 15)]
+    () => upcoming(visibleEvents, { when, categories: types, pubIds: featurePubIds, now: clock }),
+    [visibleEvents, when, types, featurePubIds, clock]
   );
-  const groups = groupByDay(list, now.dateKey);
+  const groups = groupByDay(list, clock.dateKey);
   const matchingPubs = pubsWithFeatures(pubs, features);
 
   return (
@@ -88,11 +85,7 @@ export default function WhatsOnPage() {
       <section className="card" aria-labelledby="events-heading">
         <div className="section-header">
           <h2 id="events-heading" className="section-title">Events</h2>
-          <div className="segmented" role="group" aria-label="When">
-            {WHEN_OPTIONS.map(o => (
-              <button key={o.key} type="button" className={when === o.key ? "active" : ""} aria-pressed={when === o.key} onClick={() => update("when", o.key === "week" ? "" : o.key)}>{o.label}</button>
-            ))}
-          </div>
+          <Segmented label="When" value={when} onChange={key => update("when", key === "week" ? "" : key)} options={WHEN_OPTIONS.map(o => ({ value: o.key, label: o.label }))} />
         </div>
         <div className="chip-row scroll-row" role="group" aria-label="Event type">
           <button type="button" className={`chip ${!types.length ? "active" : ""}`} aria-pressed={!types.length} onClick={() => update("type", [])}>All</button>
