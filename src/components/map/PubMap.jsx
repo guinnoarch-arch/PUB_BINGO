@@ -4,6 +4,7 @@ import "leaflet/dist/leaflet.css";
 import { AREA_CENTRE, nearestPubs } from "../../lib/core/geo.js";
 import { formatPrice, measureLabel } from "../../lib/core/prices.js";
 import { pointMarkerStyle } from "./mapColors.js";
+import { prefersReducedMotion } from "../../lib/motion.js";
 
 // Leaflet map of all pubs. Pins show the cheapest matching price. Clicking the map sets the
 // "search from here" point. Built with plain Leaflet; pin/popup content is built with DOM
@@ -21,7 +22,8 @@ export default function PubMap({ pubs, pricesByPub, unconfirmedIds, origin, onPi
   handlersRef.current = { onPickOrigin, onOpenPub };
 
   useEffect(() => {
-    const map = L.map(containerRef.current, { zoomControl: true, scrollWheelZoom: false, tap: true })
+    const still = prefersReducedMotion();
+    const map = L.map(containerRef.current, { zoomControl: true, scrollWheelZoom: false, tap: true, zoomAnimation: !still, fadeAnimation: !still, markerZoomAnimation: !still })
       .setView([AREA_CENTRE.lat, AREA_CENTRE.lng], 15);
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,

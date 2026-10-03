@@ -31,7 +31,7 @@ export default function LeaderboardPage() {
       <div className="page-title-row">
         <div>
           <p className="eyebrow">{pubs.length ? `Across all ${pubs.length} pubs` : "Across all pubs"}</p>
-          <h2>{tab === "people" ? "Top reporters" : "Cheapest pint right now"}</h2>
+          <h1>{tab === "people" ? "Top reporters" : "Cheapest pint right now"}</h1>
         </div>
         <span className={`live-pill ${liveStatus}`}>{liveStatus === "live" ? "● Live" : liveStatus === "offline" ? "Offline" : "Connecting…"}</span>
       </div>

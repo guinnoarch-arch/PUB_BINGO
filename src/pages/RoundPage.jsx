@@ -30,7 +30,7 @@ function Round() {
       <div className="page-title-row">
         <div>
           <p className="eyebrow">Your round</p>
-          <h2>Round calculator</h2>
+          <h1>Round calculator</h1>
         </div>
         <NotLaunched feature="round_calculator" />
       </div>

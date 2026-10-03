@@ -16,7 +16,7 @@ export default function SignInPrompt({ title, children, inline = false }) {
   }
   return (
     <section className="card sign-in-prompt">
-      <h2>{title}</h2>
+      <h1 className="section-title">{title}</h1>
       <p className="muted">{children}</p>
       {button}
     </section>

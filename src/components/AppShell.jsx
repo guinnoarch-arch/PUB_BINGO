@@ -1,17 +1,18 @@
-import { useEffect, useRef, useState } from "react";
+import { forwardRef, useEffect, useRef, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { useApp } from "../lib/AppContext.jsx";
 import InlineQrCode from "./ui/InlineQrCode.jsx";
 import { useWatchMatches } from "./features/PriceWatches.jsx";
 import { Lightbulb, Moon, QrCode, Sun, User } from "lucide-react";
 
-function IconButton({ label, active = false, onClick, children }) {
+// expanded: for a button that opens a panel (announced as expanded/collapsed).
+const IconButton = forwardRef(function IconButton({ label, onClick, expanded, children }, ref) {
   return (
-    <button type="button" className={`header-icon-button ${active ? "active" : ""}`} onClick={onClick} aria-label={label} title={label} aria-pressed={active}>
+    <button ref={ref} type="button" className={`header-icon-button ${expanded ? "active" : ""}`} onClick={onClick} aria-label={label} title={label} aria-expanded={expanded}>
       {children}
     </button>
   );
-}
+});
 
 const icons = {
   moon: <Moon aria-hidden="true" />,
@@ -30,14 +31,26 @@ export default function AppShell({ children, theme, onToggleTheme, isOnline }) {
   const { api, session, profile, isAdmin, toasts, dismissToast } = useApp();
   const [showShare, setShowShare] = useState(false);
   const shareRef = useRef(null);
+  const shareButtonRef = useRef(null);
+  const shareCloseRef = useRef(null);
+  const closeShare = ({ returnFocus = true } = {}) => {
+    setShowShare(false);
+    if (returnFocus) shareButtonRef.current?.focus();
+  };
   const watchHits = useWatchMatches().filter(r => r.matches.length).length;
   const url = shareUrl();
   const isLocal = ["localhost", "127.0.0.1"].includes(window.location.hostname);
 
-  // The "Open on phone" panel closes with Escape or a tap outside it.
+  // The "Open on phone" panel: focus moves into it when it opens, and back to its button when it
+  // closes with Escape or Close. A tap outside closes it without moving focus.
   useEffect(() => {
     if (!showShare) return undefined;
-    const onKey = event => { if (event.key === "Escape") setShowShare(false); };
+    shareCloseRef.current?.focus();
+    const onKey = event => {
+      if (event.key !== "Escape") return;
+      setShowShare(false);
+      shareButtonRef.current?.focus();
+    };
     const onPointer = event => { if (!shareRef.current?.contains(event.target)) setShowShare(false); };
     document.addEventListener("keydown", onKey);
     document.addEventListener("pointerdown", onPointer);
@@ -50,7 +63,7 @@ export default function AppShell({ children, theme, onToggleTheme, isOnline }) {
   // [path, label, short label for narrow screens]
   const nav = [
     ["/", "Find", "Find"],
-    ["/whats-on", "What's on", "What's on"],
+    ["/whats-on", "What's on", "Events"],
     ["/leaderboard", "Leaderboard", "Top"],
     ["/feed", "Feed", "Feed"],
     ["/bingo", "Bingo", "Bingo"],
@@ -61,8 +74,8 @@ export default function AppShell({ children, theme, onToggleTheme, isOnline }) {
   return (
     <div className="app-shell">
       <a className="skip-link" href="#main">Skip to content</a>
-      <div className="app-fixed-area">
-        <header className="app-header">
+      <header className="app-fixed-area">
+        <div className="app-header">
           <Link to="/" className="brand" aria-label="Pub Bingo home">
             <span className="brand-icon"><img src="/icons/pb-icon-192.png?v=2" alt="" /></span>
             <span>
@@ -74,12 +87,12 @@ export default function AppShell({ children, theme, onToggleTheme, isOnline }) {
             <NavLink to="/suggestions" className={({ isActive }) => `header-icon-button ${isActive ? "active" : ""}`} aria-label="Suggestions" title="Suggestions">{icons.bulb}</NavLink>
             <IconButton label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"} onClick={onToggleTheme}>{theme === "dark" ? icons.sun : icons.moon}</IconButton>
             <div className="device-share-wrapper" ref={shareRef}>
-              <IconButton label="Open on phone" active={showShare} onClick={() => setShowShare(v => !v)}>{icons.qr}</IconButton>
+              <IconButton ref={shareButtonRef} label="Open on phone" expanded={showShare} onClick={() => (showShare ? closeShare() : setShowShare(true))}>{icons.qr}</IconButton>
               {showShare && (
                 <div className="device-share-panel" role="dialog" aria-label="Open on your phone">
                   <div className="panel-header">
                     <strong>Open on phone</strong>
-                    <button type="button" className="text-button" onClick={() => setShowShare(false)}>Close</button>
+                    <button ref={shareCloseRef} type="button" className="text-button" onClick={() => closeShare()}>Close</button>
                   </div>
                   <div className="device-qr-card"><InlineQrCode value={url} size={220} /></div>
                   {isLocal && !import.meta.env.VITE_PUBLIC_APP_URL && (
@@ -94,7 +107,7 @@ export default function AppShell({ children, theme, onToggleTheme, isOnline }) {
               <span>{session ? (profile ? `@${profile.username}` : "Account") : "Sign in"}</span>
             </Link>
           </div>
-        </header>
+        </div>
 
         {api.mode === "demo" && (
           <div className="app-banner" role="note">Demo mode: prices and accounts live in this tab only and reset on reload. Connect Supabase for real shared data.</div>
@@ -104,16 +117,16 @@ export default function AppShell({ children, theme, onToggleTheme, isOnline }) {
         <nav className="top-nav" aria-label="Main">
           {nav.map(([to, label, short]) => (
             <NavLink key={to} to={to} end={to === "/"} className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}>
-              {short !== label ? <><span className="nav-label-long">{label}</span><span className="nav-label-short" aria-hidden="true">{short}</span></> : label}
+              {short !== label ? <><span className="nav-label-long">{label}</span><span className="nav-label-short">{short}</span></> : label}
               {to === "/favourites" && watchHits > 0 && <span className="tab-count" aria-label={`${watchHits} price watch${watchHits === 1 ? "" : "es"} matched`}>{watchHits}</span>}
             </NavLink>
           ))}
         </nav>
-      </div>
+      </header>
 
       <main id="main" className="page-content" tabIndex={-1}>{children}</main>
 
-      <div className="toast-region" aria-live="polite" aria-atomic="false">
+      <section className="toast-region" aria-label="Notifications" aria-live="polite" aria-atomic="false">
         {toasts.map(t => (
           <div key={t.id} className={`toast ${t.tone}`} role={t.tone === "error" ? "alert" : "status"}>
             <span>{t.message}</span>
@@ -122,7 +135,7 @@ export default function AppShell({ children, theme, onToggleTheme, isOnline }) {
             )}
           </div>
         ))}
-      </div>
+      </section>
     </div>
   );
 }

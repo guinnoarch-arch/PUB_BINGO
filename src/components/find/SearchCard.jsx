@@ -12,7 +12,7 @@ export default function SearchCard({ query, category, updateParam, filtersOn, fi
   return (
     <section className="card search-card">
       <form role="search" onSubmit={event => event.preventDefault()}>
-        <label htmlFor="pint-search" className="search-label">Find the cheapest pint of…</label>
+        <h1 className="search-label"><label htmlFor="pint-search">Find the cheapest pint of…</label></h1>
         <div className="search-row">
           <input
             id="pint-search"

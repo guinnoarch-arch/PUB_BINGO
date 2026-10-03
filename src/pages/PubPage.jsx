@@ -21,6 +21,7 @@ import ExternalLink from "../components/ui/ExternalLink.jsx";
 import { ChevronLeft } from "lucide-react";
 import { FileText } from "lucide-react";
 import { tagLabel } from "../data/features.js";
+import { scrollBehavior } from "../lib/motion.js";
 
 export default function PubPage() {
   const { pubId } = useParams();
@@ -58,7 +59,7 @@ export default function PubPage() {
   const { hash } = useLocation();
   useEffect(() => {
     if (status === "ready" && hash === "#report") {
-      window.requestAnimationFrame(() => reportRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+      window.requestAnimationFrame(() => reportRef.current?.scrollIntoView({ behavior: scrollBehavior(), block: "start" }));
     }
   }, [status, hash]);
 
@@ -68,13 +69,13 @@ export default function PubPage() {
 
   function startReport(drinkId) {
     setReportDrinkId(drinkId ?? "");
-    window.requestAnimationFrame(() => reportRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+    window.requestAnimationFrame(() => reportRef.current?.scrollIntoView({ behavior: scrollBehavior(), block: "start" }));
   }
 
   if (status === "loading") return <Loading label="Loading pub…" />;
   if (status === "error") return <ErrorState title="Couldn't load this pub" message={error} onRetry={() => { setStatus("loading"); reload(); }} />;
   if (status === "missing") {
-    return <section className="card"><EmptyState title="Pub not found">That pub isn't in Pub Bingo yet, or the link is wrong. <Link to="/">Search all pubs</Link></EmptyState></section>;
+    return <section className="card"><EmptyState asHeading title="Pub not found"><p>That pub isn't in Pub Bingo yet, or the link is wrong.</p><Link className="secondary-button" to="/">Search all pubs</Link></EmptyState></section>;
   }
 
   const age = pub.opened_year ? new Date().getFullYear() - pub.opened_year : null;
@@ -98,7 +99,7 @@ export default function PubPage() {
         </div>
         <div className="pub-hero-text">
           <p className="eyebrow">{pub.area}{pub.opened_year ? ` · Est. ${pub.opened_year}` : ""}{age ? ` (${age} years)` : ""}</p>
-          <h2 className="pub-name">{pub.name}</h2>
+          <h1 className="pub-name">{pub.name}</h1>
           {pub.address && <p>{Number.isFinite(pub.lat) ? <ExternalLink href={mapLink}>{pub.address}</ExternalLink> : pub.address}</p>}
           {(pub.website || pub.drinks_menu_url || pub.food_menu_url) && (
             <p className="pub-links">

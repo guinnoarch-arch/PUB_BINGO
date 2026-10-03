@@ -55,10 +55,10 @@ export default function AdminPubPage() {
   }, [api, pubId, isNew, isAdmin, changeVersion, reloadKey]);
 
   if (!authReady) return <Loading />;
-  if (!isAdmin) return <section className="card"><EmptyState title="Admins only"><Link to="/">Back to search</Link></EmptyState></section>;
+  if (!isAdmin) return <section className="card"><EmptyState asHeading title="Admins only"><p>This page is for Pub Bingo admins.</p><Link className="secondary-button" to="/">Back to search</Link></EmptyState></section>;
   if (status === "loading") return <Loading label="Loading pub…" />;
   if (status === "error") return <ErrorState title="Couldn't load this pub" message={error} onRetry={reload} />;
-  if (status === "missing") return <section className="card"><EmptyState title="Pub not found"><Link to="/admin">Back to all pubs</Link></EmptyState></section>;
+  if (status === "missing") return <section className="card"><EmptyState asHeading title="Pub not found"><p>There\'s no pub with that ID. It may have been renamed.</p><Link className="secondary-button" to="/admin">Back to all pubs</Link></EmptyState></section>;
 
   return (
     <>
@@ -66,7 +66,7 @@ export default function AdminPubPage() {
       <div className="page-title-row">
         <div>
           <p className="eyebrow">Admin · {isNew ? "New pub" : pub.area}</p>
-          <h2>{isNew ? "Add a pub" : pub.name}</h2>
+          <h1>{isNew ? "Add a pub" : pub.name}</h1>
         </div>
         {!isNew && <span className={`status-pill ${pub.is_published ? "live" : "hidden"}`}>{pub.is_published ? "Live" : "Hidden"}</span>}
       </div>

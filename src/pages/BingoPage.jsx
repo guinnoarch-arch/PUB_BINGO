@@ -138,7 +138,7 @@ export default function BingoPage() {
       <section className={`hero-card ${win ? "bingo" : ""}`} aria-labelledby="bingo-heading">
         <p className="eyebrow">{showWeek ? `Week of ${formatDate(start)} – ${formatDate(addDays(start, 6))}` : "Your challenge card"}</p>
         <div role="status" aria-live="polite">
-          <h2 id="bingo-heading">{win ? win.heading : `${doneCount} of ${card.length} done`}</h2>
+          <h1 id="bingo-heading">{win ? win.heading : `${doneCount} of ${card.length} done`}</h1>
           <p>{win ? win.body : "Complete a row, column or diagonal to get Bingo."}</p>
         </div>
         {showWeek && <p className="streak">Streak: <strong>{streak} week{streak === 1 ? "" : "s"}</strong> with a line. A new card starts every Monday.</p>}

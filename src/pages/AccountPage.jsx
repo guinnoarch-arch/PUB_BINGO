@@ -78,7 +78,7 @@ export default function AccountPage() {
       <>
         <section className="card account-card">
           <p className="eyebrow">Signed in</p>
-          <h2>{profile ? `@${profile.username}` : "Your account"}</h2>
+          <h1 className="page-heading">{profile ? `@${profile.username}` : "Your account"}</h1>
           <p className="muted">{session.user.email}{profile?.is_admin ? " · Admin" : ""}</p>
           <div className="row-actions wrap">
             <Link className="secondary-button" to="/favourites">Favourites</Link>
@@ -144,6 +144,7 @@ export default function AccountPage() {
   return (
     <section className="card account-card">
       <Segmented wide label="Account" value={mode === "signup" ? "signup" : "signin"} onChange={switchMode} options={[{ value: "signin", label: "Sign in" }, { value: "signup", label: "Create account" }]} />
+      <h1 className="sr-only">{mode === "signup" ? "Create an account" : mode === "reset" ? "Reset your password" : "Sign in"}</h1>
       <p className="muted">Browsing is open to everyone. An account lets you report prices, save favourites, upload photos and play the bingo card.</p>
 
       <form onSubmit={submit} noValidate className="account-form">

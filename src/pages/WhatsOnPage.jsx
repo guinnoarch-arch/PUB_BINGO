@@ -49,7 +49,7 @@ export default function WhatsOnPage() {
       <div className="page-title-row">
         <div>
           <p className="eyebrow">London</p>
-          <h2>What's on</h2>
+          <h1>What's on</h1>
         </div>
       </div>
 

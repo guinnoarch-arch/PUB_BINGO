@@ -24,7 +24,7 @@ export default function MenuImportTable({ rows, visibleRows, drinks, update }) {
             const diff = row.currentPrice != null && price != null ? price - row.currentPrice : null;
             return (
               <tr key={row.key} className={row.selected ? "row-selected" : ""}>
-                <td><input type="checkbox" aria-label={`Save ${row.name}`} checked={row.selected} onChange={e => update(row.key, { selected: e.target.checked })} /></td>
+                <td><label className="checkbox-cell"><input type="checkbox" aria-label={`Save ${row.name}`} checked={row.selected} onChange={e => update(row.key, { selected: e.target.checked })} /></label></td>
                 <td>
                   {row.drinkId ? (
                     <>

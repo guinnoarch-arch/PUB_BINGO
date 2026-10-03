@@ -3,6 +3,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { AREA_CENTRE } from "../../lib/core/geo.js";
 import { pointMarkerStyle, routeLineStyle } from "./mapColors.js";
+import { prefersReducedMotion } from "../../lib/motion.js";
 
 // Numbered stops joined by a line (straight lines between pubs, not street routes).
 export default function RouteMap({ stops, start, onPickStart }) {
@@ -13,7 +14,7 @@ export default function RouteMap({ stops, start, onPickStart }) {
   pickRef.current = onPickStart;
 
   useEffect(() => {
-    const map = L.map(containerRef.current, { scrollWheelZoom: false }).setView([AREA_CENTRE.lat, AREA_CENTRE.lng], 15);
+    const map = L.map(containerRef.current, { scrollWheelZoom: false, zoomAnimation: !prefersReducedMotion(), fadeAnimation: !prefersReducedMotion() }).setView([AREA_CENTRE.lat, AREA_CENTRE.lng], 15);
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

@@ -71,7 +71,7 @@ export default function SuggestionsPage() {
       <div className="page-title-row">
         <div>
           <p className="eyebrow">Help shape Pub Bingo</p>
-          <h2>Suggestions</h2>
+          <h1>Suggestions</h1>
         </div>
         {isAdmin && newCount > 0 && <span className="pill warn">{newCount} new</span>}
       </div>

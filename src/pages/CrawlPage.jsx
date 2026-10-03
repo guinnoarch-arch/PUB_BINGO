@@ -55,7 +55,7 @@ function Crawl() {
       <div className="page-title-row">
         <div>
           <p className="eyebrow">Plan a night out</p>
-          <h2>Pub crawl planner</h2>
+          <h1>Pub crawl planner</h1>
         </div>
         <NotLaunched feature="crawl_planner" />
       </div>

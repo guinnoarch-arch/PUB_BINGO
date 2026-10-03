@@ -188,7 +188,7 @@ export default function AdminPage() {
 
   if (!authReady) return <Loading />;
   if (!isAdmin) {
-    return <section className="card"><EmptyState title="Admins only">This page is for Pub Bingo admins. <Link to="/">Back to search</Link></EmptyState></section>;
+    return <section className="card"><EmptyState asHeading title="Admins only"><p>This page is for Pub Bingo admins. Sign in with an admin account to use it.</p><Link className="secondary-button" to="/">Back to search</Link></EmptyState></section>;
   }
 
   return (
@@ -196,7 +196,7 @@ export default function AdminPage() {
       <div className="page-title-row">
         <div>
           <p className="eyebrow">Admin</p>
-          <h2>{TABS.find(([key]) => key === tab)[1]}</h2>
+          <h1>{TABS.find(([key]) => key === tab)[1]}</h1>
         </div>
         <Segmented
           label="Admin sections"

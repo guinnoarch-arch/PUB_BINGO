@@ -14,7 +14,7 @@ export default function FeedPage() {
       <div className="page-title-row">
         <div>
           <p className="eyebrow">Community</p>
-          <h2>Latest price reports</h2>
+          <h1>Latest price reports</h1>
         </div>
         <span className={`live-pill ${liveStatus}`} aria-live="polite">
           {liveStatus === "live" ? "● Live" : liveStatus === "offline" ? "Offline: refresh to update" : "Connecting…"}

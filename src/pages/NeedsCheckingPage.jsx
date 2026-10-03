@@ -22,7 +22,7 @@ function NeedsChecking() {
       <div className="page-title-row">
         <div>
           <p className="eyebrow">Help keep prices real</p>
-          <h2>Needs checking</h2>
+          <h1>Needs checking</h1>
         </div>
         <NotLaunched feature="needs_checking" />
       </div>
@@ -39,7 +39,7 @@ function NeedsChecking() {
       ) : groups.map(({ pub, rows: items }) => (
         <section key={pub.id} className="card check-group">
           <div className="section-header">
-            <h3 className="section-title"><Link to={`/pubs/${pub.id}`}>{pub.name}</Link> <span className="muted small-text">{pub.area}</span></h3>
+            <h2 className="section-title"><Link to={`/pubs/${pub.id}`}>{pub.name}</Link> <span className="muted small-text">{pub.area}</span></h2>
             <span className="muted small-text">{items.length} to check</span>
           </div>
           <ul className="check-list">

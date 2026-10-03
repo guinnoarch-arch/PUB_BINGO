@@ -24,13 +24,13 @@ export default function FavouritesPage() {
       <div className="page-title-row">
         <div>
           <p className="eyebrow">Saved</p>
-          <h2>Favourites</h2>
+          <h1>Favourites</h1>
         </div>
       </div>
       <PriceWatches />
       {list.length === 0 ? (
         <section className="card">
-          <EmptyState title="No favourites yet">Tap the heart on any pub to save it here. <Link to="/">Find a pub</Link></EmptyState>
+          <EmptyState title="No favourites yet"><p>Tap the heart on any pub to save it here.</p><Link className="secondary-button" to="/">Find a pub</Link></EmptyState>
         </section>
       ) : (
         <div className="pub-card-grid">
