@@ -45,9 +45,15 @@ export function measureLabel(measure = "pint", volumeMl = null) {
   return measure || "pint";
 }
 
+const GBP = new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP" });
+
+// "£5.80". Rounds to pence first, so floating-point leftovers (5.799999…) never show. Negative
+// amounts read "−£0.20" with a true minus sign; a missing price shows an en dash.
 export function formatPrice(value) {
-  if (value == null || !Number.isFinite(Number(value))) return "–";
-  return `£${Number(value).toFixed(2)}`;
+  if (value == null || value === "" || !Number.isFinite(Number(value))) return "–";
+  const pence = Math.round(Number(value) * 100);
+  const text = GBP.format(Math.abs(pence) / 100);
+  return pence < 0 ? `−${text}` : text;
 }
 
 export function cleanText(value) {

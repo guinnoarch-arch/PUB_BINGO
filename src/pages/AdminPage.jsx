@@ -12,6 +12,8 @@ import AdminDigest from "../components/admin/AdminDigest.jsx";
 import HeldReports from "../components/admin/HeldReports.jsx";
 import { EmptyState, ErrorState, Loading } from "../components/ui/States.jsx";
 import Segmented from "../components/ui/Segmented.jsx";
+import ExternalLink from "../components/ui/ExternalLink.jsx";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 const FEED_SIZE = 50;
 
@@ -106,7 +108,7 @@ function PubsTable() {
                 {COLUMNS.map(([key, label]) => (
                   <th key={key} scope="col" aria-sort={sort.key === key ? (sort.direction === "asc" ? "ascending" : "descending") : "none"}>
                     <button type="button" onClick={() => toggleSort(key)}>
-                      {label}{sort.key === key ? (sort.direction === "asc" ? " ▲" : " ▼") : ""}
+                      {label}{sort.key === key && (sort.direction === "asc" ? <ChevronUp aria-hidden="true" /> : <ChevronDown aria-hidden="true" />)}
                     </button>
                   </th>
                 ))}
@@ -130,12 +132,12 @@ function PubsTable() {
                   <td>{row.lastPriceUpdate ? timeAgo(row.lastPriceUpdate) : "–"}</td>
                   <td>
                     {row.website
-                      ? <a href={row.website} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()}>Yes ↗</a>
+                      ? <ExternalLink href={row.website} onClick={e => e.stopPropagation()}>Yes</ExternalLink>
                       : <span className="muted">None</span>}
                   </td>
                   <td>
                     <span className={`prices-online ${row.pricesOnline}`}>{PRICES_ONLINE_LABELS[row.pricesOnline]}</span>
-                    {row.menuUrl && <a className="small-text" href={row.menuUrl} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()}> menu ↗</a>}
+                    {row.menuUrl && <> <ExternalLink className="small-text" href={row.menuUrl} onClick={e => e.stopPropagation()}>menu</ExternalLink></>}
                   </td>
                   <td className="num">
                     {row.eventCount}

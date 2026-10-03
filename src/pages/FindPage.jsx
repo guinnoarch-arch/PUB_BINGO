@@ -119,7 +119,7 @@ export default function FindPage() {
             </EmptyState>
           )}
           {pubsStatus === "ready" && results.length === 0 && filtering && unconfirmed.length > 0 && (
-            <p className="status-message">No confirmed prices for “{query || category || "these filters"}” yet. These pubs stock it. Know the price? Report it!</p>
+            <p className="status-message">No confirmed prices for “{query || category || "these filters"}” yet. These pubs stock it: if you know the price, report it from the pub's page.</p>
           )}
           {pubsStatus === "ready" && results.length === 0 && filtering && unconfirmed.length === 0 && (
             <EmptyState title={`No pubs found for “${query || category || "these filters"}”`}>
@@ -159,7 +159,7 @@ export default function FindPage() {
             <h2 id="cheapest-heading" className="section-title">Cheapest pint right now</h2>
             <Link to="/leaderboard" className="text-button">Full leaderboard</Link>
           </div>
-          {cheapestNow.length === 0 && <p className="muted">No confirmed prices yet. Be the first to report one!</p>}
+          {cheapestNow.length === 0 && <p className="muted">No confirmed prices yet. Open a pub and report what you paid.</p>}
           <ol className="mini-list">
             {cheapestNow.map((row, index) => (
               <li key={row.drink.id}>

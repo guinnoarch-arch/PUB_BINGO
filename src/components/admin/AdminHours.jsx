@@ -57,7 +57,7 @@ export default function AdminHours({ pub, onSaved }) {
       </div>
       <FormError>{error}</FormError>
       <div className="row-actions">
-        <button type="button" className="primary-button" onClick={() => save(false)} disabled={saving}>{saving ? "Saving…" : "Save hours"}</button>
+        <button type="button" className="secondary-button" onClick={() => save(false)} disabled={saving}>{saving ? "Saving…" : "Save hours"}</button>
         {pub.opening_hours && <button type="button" className="text-button danger" onClick={() => save(true)} disabled={saving}>Clear hours</button>}
       </div>
     </div>

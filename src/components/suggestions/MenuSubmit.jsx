@@ -4,6 +4,7 @@ import { friendlyError } from "../../lib/api/errors.js";
 import { londonToday, validateMenuSubmissionFile, validateSeenOn } from "../../lib/api/menuFiles.js";
 import { formatDay, timeAgo } from "../../lib/core/time.js";
 import { ErrorSummary, FieldError, FormError, Required, RequiredHint } from "../ui/FormErrors.jsx";
+import { Camera, FileText } from "lucide-react";
 
 const OTHER = "__other__";
 const FIELD_IDS = { pub: "menu-pub", pubName: "menu-pub-name", seenOn: "menu-seen-on", file: "menu-file" };
@@ -143,7 +144,7 @@ export function MyMenus({ reloadKey }) {
           const status = MENU_STATUS[m.status] || MENU_STATUS.new;
           return (
             <li key={m.id}>
-              <span aria-hidden="true">{m.file_kind === "pdf" ? "📄" : "📷"}</span>{" "}
+              {m.file_kind === "pdf" ? <FileText aria-hidden="true" /> : <Camera aria-hidden="true" />}
               <strong>{m.pub?.name || m.pub_name || "A pub"}</strong>
               <span className="muted small-text"> · seen {formatDay(m.seen_on)} · sent {timeAgo(m.created_at)}</span>{" "}
               <span className={`suggestion-status ${status.tone}`}>{status.label}{m.status === "used" && m.prices_imported ? ` (${m.prices_imported})` : ""}</span>

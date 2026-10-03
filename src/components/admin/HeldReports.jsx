@@ -6,6 +6,7 @@ import { formatPrice } from "../../lib/core/prices.js";
 import { timeAgo } from "../../lib/core/time.js";
 import NotLaunched from "../ui/NotLaunched.jsx";
 import { usePending } from "../../lib/hooks/usePending.js";
+import { Receipt } from "lucide-react";
 
 function ReceiptLink({ path }) {
   const { api, toast } = useApp();
@@ -19,7 +20,7 @@ function ReceiptLink({ path }) {
       toast(friendlyError(err, "Couldn't open the receipt. Try again in a moment."), "error");
     }
   }
-  return <button type="button" className="text-button" onClick={open}>🧾 View receipt</button>;
+  return <button type="button" className="text-button" onClick={open}><Receipt aria-hidden="true" />View receipt</button>;
 }
 
 // Prices that were far from the current one, from reporters who aren't trusted yet.

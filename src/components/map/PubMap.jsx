@@ -3,6 +3,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { AREA_CENTRE, nearestPubs } from "../../lib/core/geo.js";
 import { formatPrice, measureLabel } from "../../lib/core/prices.js";
+import { pointMarkerStyle } from "./mapColors.js";
 
 // Leaflet map of all pubs. Pins show the cheapest matching price. Clicking the map sets the
 // "search from here" point. Built with plain Leaflet; pin/popup content is built with DOM
@@ -48,9 +49,11 @@ export default function PubMap({ pubs, pricesByPub, unconfirmedIds, origin, onPi
       const unconfirmed = !row && Boolean(unconfirmedIds?.has(pub.id));
       const dimmed = pricesByPub && !row && !unconfirmed;
       const pin = document.createElement("div");
-      pin.className = `pub-pin${dimmed ? " dimmed" : ""}${unconfirmed ? " unconfirmed" : ""}${pub.id === selectedPubId ? " selected" : ""}`;
+      // A pub with no price to show is a small dot, so priced pubs stand out.
+      const dot = !row && !unconfirmed;
+      pin.className = `pub-pin${dimmed ? " dimmed" : ""}${unconfirmed ? " unconfirmed" : ""}${dot ? " dot" : ""}${pub.id === selectedPubId ? " selected" : ""}`;
       // Draught shows the price per pint; a pub with only bottles shows the bottle price, marked "btl".
-      pin.textContent = row ? (row.draught ? formatPrice(row.pintPrice) : `${formatPrice(row.price)} btl`) : unconfirmed ? "£?" : "🍺";
+      pin.textContent = row ? (row.draught ? formatPrice(row.pintPrice) : `${formatPrice(row.price)} btl`) : unconfirmed ? "£?" : "";
       const marker = L.marker([pub.lat, pub.lng], {
         icon: L.divIcon({ html: pin, className: "pub-pin-wrap", iconSize: null }),
         title: row ? `${pub.name}: ${row.drink.name} ${formatPrice(row.price)}` : unconfirmed ? `${pub.name}: price not confirmed yet` : pub.name,
@@ -70,7 +73,7 @@ export default function PubMap({ pubs, pricesByPub, unconfirmedIds, origin, onPi
       const link = document.createElement("button");
       link.type = "button";
       link.className = "popup-link";
-      link.textContent = "View pub →";
+      link.textContent = "View pub";
       link.addEventListener("click", () => handlersRef.current.onOpenPub?.(pub.id));
       popup.append(title, detail, link);
       marker.bindPopup(popup);
@@ -93,9 +96,7 @@ export default function PubMap({ pubs, pricesByPub, unconfirmedIds, origin, onPi
     originRef.current?.remove();
     originRef.current = null;
     if (origin) {
-      originRef.current = L.circleMarker([origin.lat, origin.lng], {
-        radius: 9, color: "#fff", weight: 3, fillColor: "#2563eb", fillOpacity: 1
-      }).bindTooltip("Searching from here", { direction: "top" }).addTo(map);
+      originRef.current = L.circleMarker([origin.lat, origin.lng], pointMarkerStyle()).bindTooltip("Searching from here", { direction: "top" }).addTo(map);
       // "Use my location" (or any point off-screen): zoom to it and its nearest pubs.
       // A point tapped on the map stays put, so the map doesn't jump under your finger.
       if (origin.fromDevice || !map.getBounds().contains([origin.lat, origin.lng])) {

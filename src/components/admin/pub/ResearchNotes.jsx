@@ -4,6 +4,7 @@ import { friendlyError } from "../../../lib/api/errors.js";
 import { PRICES_ONLINE_LABELS, one } from "../../../lib/core/adminPubs.js";
 import { formatDay, timeAgo } from "../../../lib/core/time.js";
 import { FormError } from "../../ui/FormErrors.jsx";
+import ExternalLink from "../../ui/ExternalLink.jsx";
 
 // Matches the limit in the database (pub_admin.notes).
 const NOTES_MAX_LENGTH = 8000;
@@ -38,10 +39,10 @@ export default function ResearchNotes({ pub, onSaved }) {
   return (
     <form className="admin-form" onSubmit={save}>
       <div className="row-actions wrap">
-        {pub.website && <a className="secondary-button small" href={pub.website} target="_blank" rel="noreferrer">Open website ↗</a>}
-        {pub.drinks_menu_url && <a className="secondary-button small" href={pub.drinks_menu_url} target="_blank" rel="noreferrer">Open drinks menu ↗</a>}
-        {pub.food_menu_url && <a className="secondary-button small" href={pub.food_menu_url} target="_blank" rel="noreferrer">Open food menu ↗</a>}
-        <a className="secondary-button small" href={`https://www.google.com/search?q=${encodeURIComponent(`${pub.name} ${pub.address || "London"} drinks menu prices`)}`} target="_blank" rel="noreferrer">Search the web ↗</a>
+        {pub.website && <ExternalLink className="secondary-button small" href={pub.website}>Open website</ExternalLink>}
+        {pub.drinks_menu_url && <ExternalLink className="secondary-button small" href={pub.drinks_menu_url}>Open drinks menu</ExternalLink>}
+        {pub.food_menu_url && <ExternalLink className="secondary-button small" href={pub.food_menu_url}>Open food menu</ExternalLink>}
+        <ExternalLink className="secondary-button small" href={`https://www.google.com/search?q=${encodeURIComponent(`${pub.name} ${pub.address || "London"} drinks menu prices`)}`}>Search the web</ExternalLink>
       </div>
       <div className="form-grid">
         <div className="field">
@@ -64,7 +65,7 @@ export default function ResearchNotes({ pub, onSaved }) {
         I've checked this pub's prices today
       </label>
       <FormError>{error}</FormError>
-      <div><button type="submit" className="primary-button" disabled={saving}>{saving ? "Saving…" : "Save notes"}</button></div>
+      <div><button type="submit" className="secondary-button" disabled={saving}>{saving ? "Saving…" : "Save notes"}</button></div>
     </form>
   );
 }

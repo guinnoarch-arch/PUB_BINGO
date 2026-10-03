@@ -7,6 +7,7 @@ import { timeAgo } from "../lib/core/time.js";
 import { EmptyState, ErrorState, Loading } from "./ui/States.jsx";
 import ReporterName from "./ui/ReporterName.jsx";
 import { useHideReport } from "../lib/hooks/useHideReport.js";
+import { Receipt } from "lucide-react";
 
 // The most recent community price reports. Refreshes when anyone reports a price.
 export default function LiveFeed({ limit = 30, compact = false }) {
@@ -40,12 +41,11 @@ export default function LiveFeed({ limit = 30, compact = false }) {
             <span>
               <strong><ReporterName username={report.reporter_profile?.username} /></strong>
               {report.kind === "confirm" ? " confirmed " : " paid "}
-              <strong>{formatPrice(report.price)}</strong>
-              {report.measure !== "pint" ? ` for a ${report.measure}` : ""}
-              {" for "}{report.drink_name}{" at "}
+              <strong className="feed-price">{formatPrice(report.price)}</strong>
+              {" for "}{report.measure !== "pint" ? `a ${report.measure} of ` : ""}{report.drink_name}{" at "}
               <Link to={`/pubs/${report.pub_id}`}>{report.pub?.name || "a pub"}</Link>
-              {report.kind === "confirm" && " is still right 👍"}
-              {report.receipt_path && feature("receipts") && <span className="badge badge-receipt"> 🧾</span>}
+              {report.kind === "confirm" && " is still right"}
+              {report.receipt_path && feature("receipts") && <span className="badge"><Receipt aria-hidden="true" />Receipt</span>}
               {report.held && <span className="badge badge-held">Waiting for review</span>}
             </span>
             {!compact && report.note && report.kind !== "confirm" && <span className="feed-note">“{report.note}”</span>}

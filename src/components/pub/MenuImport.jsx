@@ -4,10 +4,11 @@ import { friendlyError } from "../../lib/api/errors.js";
 import { buildImportRows, parseMenuLines } from "../../lib/core/menuImport.js";
 import { extractPdfLines, validateMenuFile } from "../../lib/pdfText.js";
 import { parsePrice } from "../../lib/core/prices.js";
-import { timeAgo } from "../../lib/core/time.js";
+import { formatDay, timeAgo } from "../../lib/core/time.js";
 import { CircleAlert } from "lucide-react";
 import { FormError } from "../ui/FormErrors.jsx";
 import MenuImportTable from "./MenuImportTable.jsx";
+import ExternalLink from "../ui/ExternalLink.jsx";
 
 // Admin: upload a PDF drinks menu, read the prices from it, review, then save them as
 // "Pub website" prices that link back to the uploaded PDF.
@@ -135,8 +136,8 @@ export default function MenuImport({ pub, submission = null, onImported }) {
     <div className="menu-import">
       {submission && stage !== "review" && stage !== "saving" && (
         <div className="inline-panel">
-          <p><strong>📄 {submission.file_name}</strong> <span className="muted small-text">sent in, seen {submission.seen_on}</span></p>
-          <button type="button" className="primary-button" onClick={readSubmission} disabled={stage === "reading"}>{stage === "reading" ? "Reading menu…" : "Read prices from the menu sent in"}</button>
+          <p><strong>{submission.file_name}</strong> <span className="muted small-text">sent in, seen {formatDay(submission.seen_on)}</span></p>
+          <button type="button" className="secondary-button" onClick={readSubmission} disabled={stage === "reading"}>{stage === "reading" ? "Reading menu…" : "Read prices from the menu sent in"}</button>
           <p className="muted small-text">Prices are saved as “Verified” with the menu's date. The file stays private.</p>
         </div>
       )}
@@ -144,7 +145,7 @@ export default function MenuImport({ pub, submission = null, onImported }) {
         <form className="upload-form" onSubmit={read}>
           <label htmlFor={`menu-file-${pub.id}`}>PDF drinks menu</label>
           <input id={`menu-file-${pub.id}`} ref={fileRef} type="file" accept="application/pdf,.pdf" />
-          <button type="submit" className="primary-button" disabled={stage === "reading"}>{stage === "reading" ? "Reading menu…" : "Upload and read prices"}</button>
+          <button type="submit" className="secondary-button" disabled={stage === "reading"}>{stage === "reading" ? "Reading menu…" : "Upload and read prices"}</button>
           <p className="muted small-text">The menu is saved with the pub, and each imported price links to it. You'll check every price before anything is saved.</p>
         </form>
       )}
@@ -164,7 +165,7 @@ export default function MenuImport({ pub, submission = null, onImported }) {
         <div className="import-review">
           <div className="section-header">
             <h3 className="section-title">Found {rows.length} price{rows.length === 1 ? "" : "s"} in {menu.file_name}</h3>
-            <a className="text-button" href={menu.viewUrl || menu.url} target="_blank" rel="noreferrer">Open PDF ↗</a>
+            <ExternalLink className="text-button" href={menu.viewUrl || menu.url}>Open PDF</ExternalLink>
           </div>
           <p className="muted small-text">
             Ticked rows will be saved. Matches to drinks already listed are ticked when the price has changed. New drinks start unticked: tick the ones you want to add. Check names and prices against the PDF.
@@ -182,7 +183,7 @@ export default function MenuImport({ pub, submission = null, onImported }) {
           )}
 
           <div className="row-actions wrap">
-            <button type="button" className="primary-button" disabled={!selected.length || stage === "saving"} onClick={save}>
+            <button type="button" className="secondary-button" disabled={!selected.length || stage === "saving"} onClick={save}>
               {stage === "saving" ? "Saving…" : `Save ${selected.length} price${selected.length === 1 ? "" : "s"}`}
             </button>
             <button type="button" className="secondary-button" disabled={stage === "saving"} onClick={() => { setStage("idle"); setRows([]); setError(""); setFailures(null); }}>Cancel</button>

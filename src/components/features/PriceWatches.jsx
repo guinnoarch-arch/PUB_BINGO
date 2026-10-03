@@ -71,7 +71,7 @@ export default function PriceWatches() {
   return (
     <section className="card" aria-labelledby="watch-heading">
       <div className="section-header">
-        <h2 id="watch-heading" className="section-title">🔔 Price watches</h2>
+        <h2 id="watch-heading" className="section-title">Price watches</h2>
         <NotLaunched feature="price_watch" />
       </div>
       <p className="muted small-text">Get told when a drink turns up under your price. Matches use confirmed pint prices (including happy hours while they're on).</p>
@@ -107,7 +107,7 @@ export default function PriceWatches() {
               {matches.length === 0 ? <span className="muted small-text">No matches right now.</span> : (
                 <ul className="match-list">
                   {matches.slice(0, MATCHES_SHOWN).map(m => (
-                    <li key={m.drink.id}>🎯 <Link to={`/pubs/${m.pub.id}`}>{m.drink.name} at {m.pub.name}</Link> <strong>{formatPrice(m.pintPrice)}</strong>{m.drink.deal ? ` (until ${m.drink.deal.until})` : ""}</li>
+                    <li key={m.drink.id}><Link to={`/pubs/${m.pub.id}`}>{m.drink.name} at {m.pub.name}</Link> <strong>{formatPrice(m.pintPrice)}</strong>{m.drink.deal ? ` (until ${m.drink.deal.until})` : ""}</li>
                   ))}
                 </ul>
               )}

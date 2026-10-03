@@ -17,6 +17,10 @@ import StillRightButton from "../components/features/StillRightButton.jsx";
 import DealNote from "../components/features/DealNote.jsx";
 import { CheckIn, PourScore, PubDeals, PubHours } from "../components/features/PubExtras.jsx";
 import { applyDeals } from "../lib/core/deals.js";
+import ExternalLink from "../components/ui/ExternalLink.jsx";
+import { ChevronLeft } from "lucide-react";
+import { FileText } from "lucide-react";
+import { tagLabel } from "../data/features.js";
 
 export default function PubPage() {
   const { pubId } = useParams();
@@ -79,7 +83,7 @@ export default function PubPage() {
   return (
     <>
       <nav className="breadcrumb" aria-label="Breadcrumb">
-        <Link to="/">← All pubs</Link>
+        <Link to="/"><ChevronLeft aria-hidden="true" />All pubs</Link>
         {isAdmin && <Link to={`/admin/pubs/${pub.id}`} className="admin-link">Edit in admin</Link>}
       </nav>
       {pub.is_published === false && (
@@ -95,25 +99,25 @@ export default function PubPage() {
         <div className="pub-hero-text">
           <p className="eyebrow">{pub.area}{pub.opened_year ? ` · Est. ${pub.opened_year}` : ""}{age ? ` (${age} years)` : ""}</p>
           <h2 className="pub-name">{pub.name}</h2>
-          {pub.address && <p>{Number.isFinite(pub.lat) ? <a href={mapLink} target="_blank" rel="noreferrer">{pub.address}</a> : pub.address}</p>}
+          {pub.address && <p>{Number.isFinite(pub.lat) ? <ExternalLink href={mapLink}>{pub.address}</ExternalLink> : pub.address}</p>}
           {(pub.website || pub.drinks_menu_url || pub.food_menu_url) && (
             <p className="pub-links">
               {[
-                pub.website && <a key="site" href={pub.website} target="_blank" rel="noreferrer">Pub website ↗</a>,
-                pub.drinks_menu_url && <a key="drinks" href={pub.drinks_menu_url} target="_blank" rel="noreferrer">Drinks menu ↗</a>,
-                pub.food_menu_url && <a key="food" href={pub.food_menu_url} target="_blank" rel="noreferrer">Food menu ↗</a>
-              ].filter(Boolean).reduce((all, link) => (all.length ? [...all, " · ", link] : [link]), [])}
+                pub.website && <ExternalLink key="site" href={pub.website}>Pub website</ExternalLink>,
+                pub.drinks_menu_url && <ExternalLink key="drinks" href={pub.drinks_menu_url}>Drinks menu</ExternalLink>,
+                pub.food_menu_url && <ExternalLink key="food" href={pub.food_menu_url}>Food menu</ExternalLink>
+              ].filter(Boolean)}
             </p>
           )}
           <PubHours pub={pub} />
           <ul className="tag-list" aria-label="Tags">
-            {(pub.tags || []).map(tag => <li key={tag} className="tag">{tag}</li>)}
+            {(pub.tags || []).map(tag => <li key={tag} className="tag">{tagLabel(tag)}</li>)}
           </ul>
           <p>{pub.description}</p>
           <div className="row-actions wrap">
             <FavouriteButton pub={pub} />
             <button type="button" className="secondary-button" onClick={() => startReport(drinks[0]?.id)}>Report a price</button>
-            <Link className="secondary-button" to={`/suggestions?menu=${encodeURIComponent(pub.id)}`}>📄 Send us the menu</Link>
+            <Link className="secondary-button" to={`/suggestions?menu=${encodeURIComponent(pub.id)}`}><FileText aria-hidden="true" />Send us the menu</Link>
             <CheckIn pub={pub} />
           </div>
         </div>

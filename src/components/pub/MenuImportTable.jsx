@@ -1,5 +1,6 @@
 import { CATEGORIES } from "../../data/seedPubs.js";
 import { formatPrice, parsePrice } from "../../lib/core/prices.js";
+import { ArrowDown, ArrowUp } from "lucide-react";
 
 // The review table for a PDF menu import: tick the prices to save, fix names and prices, or match a
 // new drink to one already listed. update(rowKey, changes) edits a row.
@@ -68,7 +69,7 @@ export default function MenuImportTable({ rows, visibleRows, drinks, update }) {
                 </td>
                 <td className="num">
                   {row.currentPrice != null ? formatPrice(row.currentPrice) : "–"}
-                  {diff != null && Math.abs(diff) >= 0.005 && <span className={diff > 0 ? "trend up" : "trend down"}> {diff > 0 ? "▲" : "▼"}{formatPrice(Math.abs(diff))}</span>}
+                  {diff != null && Math.abs(diff) >= 0.005 && <span className={diff > 0 ? "trend up" : "trend down"}> {diff > 0 ? <ArrowUp aria-hidden="true" /> : <ArrowDown aria-hidden="true" />}{diff > 0 ? "up " : "down "}{formatPrice(Math.abs(diff))}</span>}
                 </td>
                 <td className="small-text muted menu-raw">{row.raw}</td>
               </tr>

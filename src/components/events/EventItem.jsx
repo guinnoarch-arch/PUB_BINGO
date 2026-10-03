@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
 import { EVENT_CATEGORIES } from "../../data/features.js";
 import { formatSchedule, formatTimes } from "../../lib/core/events.js";
+import ExternalLink from "../ui/ExternalLink.jsx";
 
-export const categoryInfo = key => EVENT_CATEGORIES.find(c => c.key === key) || EVENT_CATEGORIES[EVENT_CATEGORIES.length - 1];
+const categoryInfo = key => EVENT_CATEGORIES.find(c => c.key === key) || EVENT_CATEGORIES[EVENT_CATEGORIES.length - 1];
 
 // One event line. showPub: include the pub name (What's on page); dated: show the time for a dated occurrence.
 export default function EventItem({ event, pub, showPub = true, dated = false }) {
@@ -10,7 +11,6 @@ export default function EventItem({ event, pub, showPub = true, dated = false })
   const times = formatTimes(event);
   return (
     <div className="event-item">
-      <span className="event-icon" aria-hidden="true">{cat.icon}</span>
       <div className="event-main">
         <strong>{event.title}</strong>
         <span className="muted small-text">
@@ -20,7 +20,7 @@ export default function EventItem({ event, pub, showPub = true, dated = false })
         {event.description && <span className="small-text">{event.description}</span>}
         <span className="event-meta">
           <span className="category-pill">{cat.label}</span>
-          {event.source_url && <a className="small-text" href={event.source_url} target="_blank" rel="noreferrer">Source ↗</a>}
+          {event.source_url && <ExternalLink className="small-text" href={event.source_url}>Source</ExternalLink>}
         </span>
       </div>
     </div>

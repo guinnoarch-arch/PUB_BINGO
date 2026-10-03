@@ -38,12 +38,12 @@ export default function TopReporters() {
         <ol className="leaderboard">
           {rows.slice(0, TOP_REPORTERS_SHOWN).map((r, i) => (
             <li key={r.username}>
-              <span className={`rank ${i < 3 ? `top top-${i + 1}` : ""}`}>{i + 1}</span>
+              <span className={`rank ${i < 3 ? "top" : ""}`}>{i + 1}</span>
               <div className="result-main">
                 <strong><ReporterName username={r.username} /></strong>
                 <span className="muted small-text">
                   {r.reports} report{r.reports === 1 ? "" : "s"} · {r.confirms} check{r.confirms === 1 ? "" : "s"}
-                  {r.menus_used ? ` · ${r.menus_used} menu${r.menus_used === 1 ? "" : "s"}` : ""}{r.receipts ? ` · ${r.receipts} 🧾` : ""}
+                  {r.menus_used ? ` · ${r.menus_used} menu${r.menus_used === 1 ? "" : "s"}` : ""}{r.receipts ? ` · ${r.receipts} receipt${r.receipts === 1 ? "" : "s"}` : ""}
                 </span>
               </div>
               <span className="price-tag large"><strong>{reporterPoints(r)}</strong><small> pts</small></span>

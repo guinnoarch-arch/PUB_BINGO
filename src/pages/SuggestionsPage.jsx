@@ -9,6 +9,7 @@ import SignInPrompt from "../components/SignInPrompt.jsx";
 import SuggestionForm from "../components/suggestions/SuggestionForm.jsx";
 import SuggestionAdminControls from "../components/suggestions/SuggestionAdminControls.jsx";
 import { SUGGESTION_STATUS, SUGGESTION_TYPES } from "../data/suggestions.js";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 const FILTERS = [
   ["all", "All", () => true],
@@ -112,13 +113,13 @@ export default function SuggestionsPage() {
             return (
               <li key={item.id} className="suggestion">
                 <div className="vote-box" role="group" aria-label={`Votes: ${score}`}>
-                  <button type="button" className={`vote-button ${item.my_vote === 1 ? "active" : ""}`} aria-pressed={item.my_vote === 1} aria-label="Vote up" disabled={voting.has(item.id)} onClick={() => vote(item, 1)}>▲</button>
+                  <button type="button" className={`vote-button ${item.my_vote === 1 ? "active" : ""}`} aria-pressed={item.my_vote === 1} aria-label="Vote up" disabled={voting.has(item.id)} onClick={() => vote(item, 1)}><ChevronUp aria-hidden="true" /></button>
                   <strong>{score}</strong>
-                  <button type="button" className={`vote-button ${item.my_vote === -1 ? "active down" : ""}`} aria-pressed={item.my_vote === -1} aria-label="Vote down" disabled={voting.has(item.id)} onClick={() => vote(item, -1)}>▼</button>
+                  <button type="button" className={`vote-button ${item.my_vote === -1 ? "active" : ""}`} aria-pressed={item.my_vote === -1} aria-label="Vote down" disabled={voting.has(item.id)} onClick={() => vote(item, -1)}><ChevronDown aria-hidden="true" /></button>
                 </div>
                 <div className="suggestion-body">
                   <div className="suggestion-meta">
-                    <span className="category-pill"><span aria-hidden="true">{type.icon}</span> {type.label}</span>
+                    <span className="category-pill">{type.label}</span>
                     <span className={`suggestion-status ${status.tone}`}>{status.label}</span>
                     {item.is_mine && <span className="muted small-text">Yours</span>}
                   </div>

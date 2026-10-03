@@ -3,6 +3,7 @@ import { useApp } from "../../lib/AppContext.jsx";
 import { CATEGORIES } from "../../data/seedPubs.js";
 import { PUB_FILTERS } from "../../lib/core/pubFilters.js";
 import NotLaunched from "../ui/NotLaunched.jsx";
+import { Calculator, Route } from "lucide-react";
 
 // The search box, category chips and (when launched) pub filters at the top of Find.
 // The search and category live in the address bar; updateParam(key, value) changes them.
@@ -42,8 +43,8 @@ export default function SearchCard({ query, category, updateParam, filtersOn, fi
       {filtersOn && filters.has("open") && <p className="muted small-text">“Open now” only includes pubs whose opening hours we have.</p>}
       {(feature("crawl_planner") || feature("round_calculator")) && (
         <div className="row-actions wrap tool-links">
-          {feature("crawl_planner") && <span><Link className="secondary-button small" to="/crawl">🗺️ Plan a crawl</Link> <NotLaunched feature="crawl_planner" /></span>}
-          {feature("round_calculator") && <span><Link className="secondary-button small" to="/round">🍻 Price a round</Link> <NotLaunched feature="round_calculator" /></span>}
+          {feature("crawl_planner") && <span><Link className="secondary-button small" to="/crawl"><Route aria-hidden="true" />Plan a crawl</Link> <NotLaunched feature="crawl_planner" /></span>}
+          {feature("round_calculator") && <span><Link className="secondary-button small" to="/round"><Calculator aria-hidden="true" />Price a round</Link> <NotLaunched feature="round_calculator" /></span>}
         </div>
       )}
     </section>

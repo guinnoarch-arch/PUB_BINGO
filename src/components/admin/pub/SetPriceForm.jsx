@@ -135,7 +135,7 @@ export default function SetPriceForm({ pub, drink, priceDefaults, onDone, onCanc
       </div>
       <FormError>{error}</FormError>
       <div className="row-actions">
-        <button type="submit" className="primary-button" disabled={saving}>{saving ? "Saving…" : isNew ? "Add drink" : "Save price"}</button>
+        <button type="submit" className="secondary-button" disabled={saving}>{saving ? "Saving…" : isNew ? "Add drink" : "Save price"}</button>
         <button type="button" className="secondary-button" onClick={onCancel}>Cancel</button>
       </div>
     </form>

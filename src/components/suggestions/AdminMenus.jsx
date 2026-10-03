@@ -6,6 +6,7 @@ import { formatDay, timeAgo } from "../../lib/core/time.js";
 import { EmptyState } from "../ui/States.jsx";
 import { MENU_STATUS } from "./MenuSubmit.jsx";
 import { FormError } from "../ui/FormErrors.jsx";
+import ExternalLink from "../ui/ExternalLink.jsx";
 
 // Private files: admins get a short-lived link. Photos show as a thumbnail.
 export function SubmissionFile({ item, large = false }) {
@@ -30,7 +31,7 @@ export function SubmissionFile({ item, large = false }) {
       </a>
     );
   }
-  return <a className="secondary-button small" href={url} target="_blank" rel="noreferrer">📄 Open PDF ↗</a>;
+  return <ExternalLink className="secondary-button small" href={url}>Open PDF</ExternalLink>;
 }
 
 export function SubmissionDetails({ item }) {
@@ -133,7 +134,7 @@ export default function AdminMenus({ items, onChanged }) {
                   <SubmissionDetails item={item} />
                   <div className="row-actions wrap">
                     {item.pub_id
-                      ? <Link className="primary-button small" to={`/admin/pubs/${item.pub_id}?submission=${item.id}`}>Update prices →</Link>
+                      ? <Link className="secondary-button small" to={`/admin/pubs/${item.pub_id}?submission=${item.id}`}>Update prices →</Link>
                       : <Link className="secondary-button small" to="/admin/pubs/new">+ Add this pub</Link>}
                   </div>
                   <SubmissionReview key={`${item.id}-${item.status}-${item.admin_note}`} item={item} onChanged={onChanged} />

@@ -12,6 +12,8 @@ const REWORDED = [
   [/^(report|drink|deal|event|menu|suggestion) not found$/i, "That's already been removed. Reload the page to see the latest."],
   [/^you reported this drink a few minutes ago$/i, "You reported this drink a few minutes ago. You can report it again after 10 minutes."],
   [/^invalid vote$/i, "That vote didn't save. Reload the page and try again."],
+  [/^you've sent 10 menus today/i, "You've sent 10 menus today, which is the daily limit. You can send more tomorrow."],
+  [/^you've already checked this price today/i, "You've already confirmed this price today. You can confirm it again tomorrow."],
   [/^your account has no profile yet$/i, "Your account isn't fully set up. Sign out, sign in again, and try once more."]
 ];
 

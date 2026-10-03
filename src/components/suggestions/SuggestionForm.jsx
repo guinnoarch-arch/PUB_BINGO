@@ -9,7 +9,7 @@ const MAX_LENGTH = 1000;
 const MIN_LENGTH = 3;
 
 // Menus go privately to admins, so they're a separate form rather than a public suggestion.
-const MENU_TYPE = { key: "menu", label: "Menu or price", icon: "📄" };
+const MENU_TYPE = { key: "menu", label: "Menu or price" };
 
 export default function SuggestionForm({ onSent, initialType = "idea", initialPubId = "" }) {
   const { api, toast } = useApp();
@@ -47,7 +47,7 @@ export default function SuggestionForm({ onSent, initialType = "idea", initialPu
     <div className="chip-row" role="radiogroup" aria-label="Type of suggestion">
       {[...SUGGESTION_TYPES, MENU_TYPE].map(t => (
         <button key={t.key} type="button" role="radio" aria-checked={type === t.key} className={`chip ${type === t.key ? "active" : ""}`} onClick={() => { setType(t.key); setError(""); setServerError(""); }}>
-          <span aria-hidden="true">{t.icon}</span> {t.label}
+          {t.label}
         </button>
       ))}
     </div>

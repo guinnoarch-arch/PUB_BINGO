@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { AREA_CENTRE } from "../../lib/core/geo.js";
+import { pointMarkerStyle, routeLineStyle } from "./mapColors.js";
 
 // Numbered stops joined by a line (straight lines between pubs, not street routes).
 export default function RouteMap({ stops, start, onPickStart }) {
@@ -32,7 +33,7 @@ export default function RouteMap({ stops, start, onPickStart }) {
     const points = [];
     if (start) {
       points.push([start.lat, start.lng]);
-      L.circleMarker([start.lat, start.lng], { radius: 9, color: "#fff", weight: 3, fillColor: "#2563eb", fillOpacity: 1 })
+      L.circleMarker([start.lat, start.lng], pointMarkerStyle())
         .bindTooltip("Start", { direction: "top" }).addTo(layer);
     }
     stops.forEach((pub, i) => {
@@ -44,7 +45,7 @@ export default function RouteMap({ stops, start, onPickStart }) {
         .bindTooltip(`${i + 1}. ${pub.name}`, { direction: "top" }).addTo(layer);
     });
     if (points.length > 1) {
-      L.polyline(points, { color: "#b7802a", weight: 3, dashArray: "6 6" }).addTo(layer);
+      L.polyline(points, routeLineStyle()).addTo(layer);
       map.fitBounds(points, { padding: [40, 40], maxZoom: 17, animate: false });
     }
   }, [stops, start]);

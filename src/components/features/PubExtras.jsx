@@ -7,6 +7,7 @@ import { WEEKDAYS } from "../../data/features.js";
 import { formatTime } from "../../lib/core/events.js";
 import NotLaunched from "../ui/NotLaunched.jsx";
 import { useGeolocation } from "../../lib/hooks/useGeolocation.js";
+import { MapPin } from "lucide-react";
 
 // Check-in needs to know you're at the pub now, so a cached position must be recent.
 const CHECK_IN_MAX_AGE_MS = 30000;
@@ -63,8 +64,8 @@ export function CheckIn({ pub }) {
 
   return (
     <span className="check-in">
-      <button type="button" className="secondary-button" onClick={checkIn} disabled={busy}>{busy ? "Checking…" : "📍 Check in"}</button>
-      {people > 0 && <span className="busy-note">🔥 {people} {people === 1 ? "person" : "people"} checked in recently</span>}
+      <button type="button" className="secondary-button" onClick={checkIn} disabled={busy}><MapPin aria-hidden="true" />{busy ? "Checking…" : "Check in"}</button>
+      {people > 0 && <span className="busy-note">{people} {people === 1 ? "person" : "people"} checked in recently</span>}
       <NotLaunched feature="check_ins" />
     </span>
   );
@@ -76,7 +77,7 @@ export function PourScore({ pub, compact = false }) {
   const [saving, setSaving] = useState(false);
   if (!feature("guinness_score") || !hasGuinness(pub)) return null;
   const score = extras.pour.get(pub.id);
-  if (compact) return score ? <span className="pour-score" title={`Guinness pour: ${score.score}/5 from ${score.ratings} ratings`}>☘️ {score.score.toFixed(1)}</span> : null;
+  if (compact) return score ? <span className="pour-score" title={`Guinness pour: ${score.score}/5 from ${score.ratings} ratings`}>Pour {score.score.toFixed(1)}/5</span> : null;
 
   async function rate(value) {
     if (!userId) { toast("Sign in to rate the pour."); return; }
@@ -98,7 +99,7 @@ export function PourScore({ pub, compact = false }) {
   return (
     <section className="card pour-card" aria-labelledby="pour-heading">
       <div className="section-header">
-        <h2 id="pour-heading" className="section-title">☘️ Guinness score</h2>
+        <h2 id="pour-heading" className="section-title">Guinness score</h2>
         <NotLaunched feature="guinness_score" />
       </div>
       <p>{score ? <><strong className="big-number">{score.score.toFixed(1)}</strong> / 5 from {score.ratings} rating{score.ratings === 1 ? "" : "s"} (last 6 months)</> : "No ratings yet. Had one here? Rate the pour."}</p>
@@ -131,7 +132,7 @@ export function PubDeals({ pub }) {
   return (
     <section className="card" aria-labelledby="deals-heading">
       <div className="section-header">
-        <h2 id="deals-heading" className="section-title">🍻 Happy hours</h2>
+        <h2 id="deals-heading" className="section-title">Happy hours</h2>
         <NotLaunched feature="happy_hours" />
       </div>
       <ul className="deal-list">

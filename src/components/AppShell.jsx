@@ -3,6 +3,7 @@ import { Link, NavLink } from "react-router-dom";
 import { useApp } from "../lib/AppContext.jsx";
 import InlineQrCode from "./ui/InlineQrCode.jsx";
 import { useWatchMatches } from "./features/PriceWatches.jsx";
+import { Lightbulb, Moon, QrCode, Sun, User } from "lucide-react";
 
 function IconButton({ label, active = false, onClick, children }) {
   return (
@@ -13,11 +14,11 @@ function IconButton({ label, active = false, onClick, children }) {
 }
 
 const icons = {
-  moon: <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.2A8.2 8.2 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7Z" /></svg>,
-  sun: <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" /></svg>,
-  qr: <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4V4ZM14 4h6v6h-6V4ZM4 14h6v6H4v-6ZM14 14h2v2h-2v-2ZM18 14h2v2h-2v-2ZM14 18h2v2h-2v-2ZM18 18h2v2h-2v-2Z" /></svg>,
-  bulb: <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4" /><path d="M12 3a6 6 0 0 0-3.6 10.8c.7.5 1.1 1.3 1.1 2.2h5c0-.9.4-1.7 1.1-2.2A6 6 0 0 0 12 3Z" /></svg>,
-  user: <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" /></svg>
+  moon: <Moon aria-hidden="true" />,
+  sun: <Sun aria-hidden="true" />,
+  qr: <QrCode aria-hidden="true" />,
+  bulb: <Lightbulb aria-hidden="true" />,
+  user: <User aria-hidden="true" />
 };
 
 function shareUrl() {
@@ -102,7 +103,7 @@ export default function AppShell({ children, theme, onToggleTheme, isOnline }) {
 
         <nav className="top-nav" aria-label="Main">
           {nav.map(([to, label, short]) => (
-            <NavLink key={to} to={to} end={to === "/"} className={({ isActive }) => `nav-item ${isActive ? "active" : ""} ${to === "/admin" ? "nav-item-admin" : ""}`}>
+            <NavLink key={to} to={to} end={to === "/"} className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}>
               {short !== label ? <><span className="nav-label-long">{label}</span><span className="nav-label-short" aria-hidden="true">{short}</span></> : label}
               {to === "/favourites" && watchHits > 0 && <span className="tab-count" aria-label={`${watchHits} price watch${watchHits === 1 ? "" : "es"} matched`}>{watchHits}</span>}
             </NavLink>

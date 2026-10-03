@@ -23,11 +23,11 @@ export default function FeedPage() {
       {feature("needs_checking") && (
         <section className="card check-teaser">
           <div className="section-header">
-            <h2 className="section-title">🔎 Needs checking</h2>
+            <h2 className="section-title">Needs checking</h2>
             <NotLaunched feature="needs_checking" />
           </div>
           <p>{toCheck.length ? `${toCheck.length} price${toCheck.length === 1 ? " hasn't" : "s haven't"} been confirmed for over 60 days, plus the estimates.` : "Help replace the remaining estimates with real prices."} Out and about? Check a few.</p>
-          <Link className="primary-button small" to="/needs-checking">See what needs checking</Link>
+          <Link className="secondary-button small" to="/needs-checking">See what needs checking</Link>
         </section>
       )}
       <section className="card">

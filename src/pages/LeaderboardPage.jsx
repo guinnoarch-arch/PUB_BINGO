@@ -69,7 +69,7 @@ export default function LeaderboardPage() {
           <ol className="leaderboard">
             {rows.map((row, index) => (
               <li key={row.drink.id}>
-                <span className={`rank ${index < 3 ? `top top-${index + 1}` : ""}`}>{index + 1}</span>
+                <span className={`rank ${index < 3 ? "top" : ""}`}>{index + 1}</span>
                 <div className="result-main">
                   <Link to={`/pubs/${row.pub.id}`} className="result-link"><strong>{row.drink.name}</strong> <span className="muted">at {row.pub.name}</span></Link>
                   <span className="result-meta">

@@ -99,7 +99,7 @@ export default function PhotoSection({ pub, photos, onChanged }) {
           <FieldError id="photo-file-error">{fileError}</FieldError>
           <label htmlFor="photo-caption" className="sr-only">Caption</label>
           <input id="photo-caption" value={caption} maxLength={140} onChange={e => setCaption(e.target.value)} placeholder="Caption (optional)" />
-          <button type="submit" className="primary-button" disabled={busy}>{busy ? "Uploading…" : "Upload"}</button>
+          <button type="submit" className="secondary-button" disabled={busy}>{busy ? "Uploading…" : "Upload"}</button>
           <p className="muted small-text">JPEG, PNG or WebP. Photos are resized, and location data is removed before upload.</p>
           <FormError>{error}</FormError>
         </form>

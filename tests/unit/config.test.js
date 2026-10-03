@@ -55,3 +55,10 @@ describe("friendlyError", () => {
     expect(friendlyError(null, "Couldn't save. Check your connection.")).toBe("Couldn't save. Check your connection.");
   });
 });
+
+describe("friendlyError rewording of database limits", () => {
+  it("drops the exclamation and says when you can try again", () => {
+    expect(friendlyError({ message: "You've sent 10 menus today. Thanks! Try again tomorrow" })).toMatch(/daily limit.*tomorrow\.$/);
+    expect(friendlyError({ message: "You've already checked this price today. Thanks!" })).not.toMatch(/!/);
+  });
+});

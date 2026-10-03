@@ -10,6 +10,7 @@ import PriceChart from "../ui/PriceChart.jsx";
 import ReporterName from "../ui/ReporterName.jsx";
 import NotLaunched from "../ui/NotLaunched.jsx";
 import { useHideReport } from "../../lib/hooks/useHideReport.js";
+import { ArrowDown, ArrowUp, Receipt } from "lucide-react";
 
 // Full price history for one drink: every report is kept so trends can be shown.
 export default function DrinkHistory({ drink }) {
@@ -40,7 +41,7 @@ export default function DrinkHistory({ drink }) {
           {stats.count} report{stats.count === 1 ? "" : "s"} · low {formatPrice(stats.min)} · high {formatPrice(stats.max)} · average {formatPrice(stats.average)}
           {stats.count > 1 && stats.change !== 0 && (
             <span className={stats.change > 0 ? "trend up" : "trend down"}>
-              {stats.change > 0 ? " ▲ " : " ▼ "}{formatPrice(Math.abs(stats.change))} since first report
+              {" "}{stats.change > 0 ? <ArrowUp aria-hidden="true" /> : <ArrowDown aria-hidden="true" />}{stats.change > 0 ? "up " : "down "}{formatPrice(Math.abs(stats.change))} since first report
             </span>
           )}
         </p>
@@ -57,7 +58,7 @@ export default function DrinkHistory({ drink }) {
             <strong>{formatPrice(report.price)}</strong>
             <SourceBadge source={report.source} url={report.source_url} />
             {report.kind === "confirm" && <span className="badge badge-confirm">Still right</span>}
-            {report.receipt_path && feature("receipts") && <span className="badge badge-receipt" title="Backed by a receipt photo">🧾 Receipt</span>}
+            {report.receipt_path && feature("receipts") && <span className="badge" title="Backed by a receipt photo"><Receipt aria-hidden="true" />Receipt</span>}
             {report.held && <span className="badge badge-held">Waiting for review</span>}
             <span className="muted">
               <ReporterName username={report.reporter_profile?.username} fallback={report.source === "seed" ? "starting estimate" : "someone"} /> · {timeAgo(report.reported_at)}

@@ -1,5 +1,6 @@
 import { formatDateTime, isStale, timeAgo } from "../../lib/core/time.js";
 import { formatPrice, isDraught, measureLabel } from "../../lib/core/prices.js";
+import { ExternalLink } from "lucide-react";
 
 const SOURCES = {
   seed: { label: "Estimate", className: "badge-seed", title: "Starting estimate, not yet confirmed. Report the real price if you know it." },
@@ -13,7 +14,7 @@ export function SourceBadge({ source, url }) {
   if (url && source === "website") {
     return (
       <a className={`badge ${info.className}`} href={url} target="_blank" rel="noreferrer" title={`${info.title} (opens the page)`}>
-        {info.label} ↗
+        {info.label}<ExternalLink aria-hidden="true" /><span className="sr-only"> (opens in a new tab)</span>
       </a>
     );
   }

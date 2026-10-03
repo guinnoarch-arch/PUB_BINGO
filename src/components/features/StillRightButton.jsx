@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useApp } from "../../lib/AppContext.jsx";
 import { friendlyError } from "../../lib/api/errors.js";
 import { formatPrice } from "../../lib/core/prices.js";
+import { Check } from "lucide-react";
 
 // One tap to say "this price is still right" (refreshes its date).
 export default function StillRightButton({ drink }) {
@@ -28,7 +29,7 @@ export default function StillRightButton({ drink }) {
   return (
     <button type="button" className="secondary-button small still-right" onClick={confirm} disabled={busy || done}
       title={`Paid ${formatPrice(drink.current_price)}? Tap to confirm it's still right`}>
-      {done ? "✓ Confirmed" : "👍 Still right?"}
+      {done ? <><Check aria-hidden="true" />Confirmed</> : "Still right?"}
     </button>
   );
 }

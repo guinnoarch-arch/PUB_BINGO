@@ -21,7 +21,7 @@ export default function ResultRow({ row, busy = false }) {
           <UpdatedAgo value={row.drink.last_updated_at} />
           <DealNote drink={row.drink} />
           {/guinness/i.test(row.drink.name) && <PourScore pub={row.pub} compact />}
-          {busy && <span className="busy-note">🔥 busy now</span>}
+          {busy && <span className="busy-note">Busy now</span>}
         </span>
         {row.distance != null && <span className="distance">{formatDistance(row.distance)}</span>}
       </div>

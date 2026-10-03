@@ -14,6 +14,7 @@ import PubDetailsForm from "../components/admin/pub/PubDetailsForm.jsx";
 import ResearchNotes from "../components/admin/pub/ResearchNotes.jsx";
 import DrinksTable from "../components/admin/pub/DrinksTable.jsx";
 import { SubmissionDetails, SubmissionFile, SubmissionReview } from "../components/suggestions/AdminMenus.jsx";
+import { ChevronLeft } from "lucide-react";
 
 export default function AdminPubPage() {
   const { pubId } = useParams();
@@ -61,7 +62,7 @@ export default function AdminPubPage() {
 
   return (
     <>
-      <nav className="breadcrumb" aria-label="Breadcrumb"><Link to="/admin">← All pubs</Link></nav>
+      <nav className="breadcrumb" aria-label="Breadcrumb"><Link to="/admin"><ChevronLeft aria-hidden="true" />All pubs</Link></nav>
       <div className="page-title-row">
         <div>
           <p className="eyebrow">Admin · {isNew ? "New pub" : pub.area}</p>
@@ -85,7 +86,7 @@ export default function AdminPubPage() {
           {submission && (
             <section className="card submission-panel" aria-labelledby="submission-heading">
               <div className="section-header">
-                <h2 id="submission-heading" className="section-title">📄 Menu sent in</h2>
+                <h2 id="submission-heading" className="section-title">Menu sent in</h2>
                 <button type="button" className="text-button" onClick={() => setParams({}, { replace: true })}>Close</button>
               </div>
               <div className="submission">
@@ -120,7 +121,7 @@ export default function AdminPubPage() {
 
           <section className="card" aria-labelledby="deals-admin-heading">
             <div className="section-header">
-              <h2 id="deals-admin-heading" className="section-title">🍻 Happy hours</h2>
+              <h2 id="deals-admin-heading" className="section-title">Happy hours</h2>
               <NotLaunched feature="happy_hours" />
             </div>
             <p className="muted small-text">While a published deal is on, search, the map and the leaderboard show the deal price and when it ends (once “Happy hours” is live in Admin → Features).</p>
@@ -129,7 +130,7 @@ export default function AdminPubPage() {
 
           <section className="card" aria-labelledby="hours-admin-heading">
             <div className="section-header">
-              <h2 id="hours-admin-heading" className="section-title">🕒 Opening hours</h2>
+              <h2 id="hours-admin-heading" className="section-title">Opening hours</h2>
               <NotLaunched feature="pub_filters" />
             </div>
             <AdminHours key={pub.id} pub={pub} onSaved={reload} />

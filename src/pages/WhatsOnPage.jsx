@@ -58,7 +58,7 @@ export default function WhatsOnPage() {
         <div className="chip-row scroll-row" role="group" aria-label="Pub features">
           {FEATURES.map(f => (
             <button key={f.tag} type="button" className={`chip ${features.includes(f.tag) ? "active" : ""}`} aria-pressed={features.includes(f.tag)} onClick={() => toggle("has", features, f.tag)}>
-              <span aria-hidden="true">{f.icon}</span> {f.label}
+              {f.label}
             </button>
           ))}
         </div>
@@ -68,9 +68,7 @@ export default function WhatsOnPage() {
               {matchingPubs.map(pub => (
                 <li key={pub.id}>
                   <Link to={`/pubs/${pub.id}`} className="result-link"><strong>{pub.name}</strong> <span className="muted">· {pub.area}</span></Link>
-                  <span className="feature-icons" aria-label="Features">
-                    {FEATURES.filter(f => (pub.tags || []).includes(f.tag)).map(f => <span key={f.tag} title={f.label}>{f.icon}</span>)}
-                  </span>
+                  <span className="muted small-text">{FEATURES.filter(f => (pub.tags || []).includes(f.tag)).map(f => f.label).join(" · ")}</span>
                   <FavouriteButton pub={pub} compact />
                 </li>
               ))}
@@ -91,7 +89,7 @@ export default function WhatsOnPage() {
           <button type="button" className={`chip ${!types.length ? "active" : ""}`} aria-pressed={!types.length} onClick={() => update("type", [])}>All</button>
           {EVENT_CATEGORIES.filter(c => c.key !== "other").map(c => (
             <button key={c.key} type="button" className={`chip ${types.includes(c.key) ? "active" : ""}`} aria-pressed={types.includes(c.key)} onClick={() => toggle("type", types, c.key)}>
-              <span aria-hidden="true">{c.icon}</span> {c.label}
+              {c.label}
             </button>
           ))}
         </div>

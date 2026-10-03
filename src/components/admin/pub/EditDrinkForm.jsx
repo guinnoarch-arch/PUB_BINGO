@@ -69,7 +69,7 @@ export default function EditDrinkForm({ drink, onDone, onCancel }) {
       </div>
       <FormError>{error}</FormError>
       <div className="row-actions">
-        <button type="submit" className="primary-button" disabled={saving}>{saving ? "Saving…" : "Save"}</button>
+        <button type="submit" className="secondary-button" disabled={saving}>{saving ? "Saving…" : "Save"}</button>
         <button type="button" className="secondary-button" onClick={onCancel}>Cancel</button>
       </div>
     </form>

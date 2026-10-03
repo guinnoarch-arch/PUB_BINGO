@@ -100,7 +100,7 @@ function DealForm({ pub, deal, onDone, onCancel }) {
       <p className="muted small-text">A fixed price counts as a confirmed price while the deal is on. A % off only applies to confirmed prices.</p>
       <FormError>{error}</FormError>
       <div className="row-actions">
-        <button type="submit" className="primary-button" disabled={saving}>{saving ? "Saving…" : "Save deal"}</button>
+        <button type="submit" className="secondary-button" disabled={saving}>{saving ? "Saving…" : "Save deal"}</button>
         <button type="button" className="secondary-button" onClick={onCancel}>Cancel</button>
       </div>
     </form>

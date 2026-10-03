@@ -9,6 +9,7 @@ import { weekStart, weeklyCardState, weeklyStreak } from "../lib/core/weeklyBing
 import { addDays, formatDate } from "../lib/core/events.js";
 import { useUrlParams } from "../lib/hooks/useUrlParam.js";
 import Segmented from "../components/ui/Segmented.jsx";
+import { Check } from "lucide-react";
 
 function heroText({ fullHouse, lineCount }) {
   if (fullHouse) return { heading: "Full house", body: "Every tile is done." };
@@ -21,7 +22,7 @@ function BingoTile({ tile, inLine, saving, onToggle }) {
   const className = `bingo-cell ${tile.done ? "marked" : ""} ${inLine ? "in-line" : ""} ${tile.mode}`;
   const content = (
     <>
-      {tile.done && <span className="bingo-tick" aria-hidden="true">✓</span>}
+      {tile.done && <span className="bingo-tick" aria-hidden="true"><Check /></span>}
       <span className="bingo-title">{tile.title}</span>
       <span className="bingo-detail">{status}</span>
     </>

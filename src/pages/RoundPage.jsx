@@ -65,7 +65,7 @@ function Round() {
           <ol className="round-results">
             {rows.slice(0, PUBS_SHOWN).map((row, index) => (
               <li key={row.pub.id} className={row.complete ? "" : "incomplete"}>
-                <span className={`rank ${index < 3 && row.complete ? `top top-${index + 1}` : ""}`}>{index + 1}</span>
+                <span className={`rank ${index < 3 && row.complete ? "top" : ""}`}>{index + 1}</span>
                 <div className="result-main">
                   <Link to={`/pubs/${row.pub.id}`} className="result-link"><strong>{row.pub.name}</strong> <span className="muted">{row.pub.area}</span></Link>
                   <span className="small-text muted">

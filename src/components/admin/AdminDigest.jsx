@@ -60,9 +60,9 @@ export default function AdminDigest() {
         <div><strong>{estimates}</strong><span>estimates left</span></div>
       </div>
       <h3 className="section-title">Waiting for you</h3>
-      {todo.length === 0 ? <p className="muted">All caught up. 🍻</p> : (
+      {todo.length === 0 ? <p className="muted">Nothing is waiting for you.</p> : (
         <ul className="digest-list">
-          {todo.map(([n, label, to]) => <li key={label}><strong>{n}</strong> {label} <Link to={to}>Open →</Link></li>)}
+          {todo.map(([n, label, to]) => <li key={label}><strong>{n}</strong> {label} <Link to={to}>Open</Link></li>)}
         </ul>
       )}
       <p className="muted small-text">A weekly email of this page needs an email service to be set up (see Features → Weekly admin email).</p>

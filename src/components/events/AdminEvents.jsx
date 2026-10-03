@@ -4,9 +4,9 @@ import { friendlyError } from "../../lib/api/errors.js";
 import { EVENT_CATEGORIES, WEEKDAYS } from "../../data/features.js";
 import { formatSchedule, validateEvent } from "../../lib/core/events.js";
 import { ErrorSummary, FormError, Required, fieldErrorBinding } from "../ui/FormErrors.jsx";
-import { categoryInfo } from "./EventItem.jsx";
 import { usePending } from "../../lib/hooks/usePending.js";
 import { ErrorState, Loading } from "../ui/States.jsx";
+import ExternalLink from "../ui/ExternalLink.jsx";
 
 const MONDAY_FIRST = [1, 2, 3, 4, 5, 6, 0];
 const SOURCE_LABELS = { research: "Web research", website: "Pub website", admin: "Added by admin" };
@@ -68,7 +68,7 @@ function EventForm({ pub, event, onDone, onCancel }) {
         <div className="field">
           <label htmlFor={`${idPrefix}-cat`}>Type</label>
           <select id={`${idPrefix}-cat`} value={form.category} onChange={set("category")}>
-            {EVENT_CATEGORIES.map(c => <option key={c.key} value={c.key}>{c.icon} {c.label}</option>)}
+            {EVENT_CATEGORIES.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
           </select>
         </div>
         <div className="field">
@@ -126,7 +126,7 @@ function EventForm({ pub, event, onDone, onCancel }) {
       </label>
       <FormError>{error}</FormError>
       <div className="row-actions">
-        <button type="submit" className="primary-button" disabled={saving}>{saving ? "Saving…" : event ? "Save event" : "Add event"}</button>
+        <button type="submit" className="secondary-button" disabled={saving}>{saving ? "Saving…" : event ? "Save event" : "Add event"}</button>
         <button type="button" className="secondary-button" onClick={onCancel}>Cancel</button>
       </div>
     </form>
@@ -186,20 +186,19 @@ export default function AdminEvents({ pub }) {
         {events.map(event => (
           <li key={event.id} className={event.is_published ? "" : "unpublished"}>
             <div className="admin-event-row">
-              <span className="event-icon" aria-hidden="true">{categoryInfo(event.category).icon}</span>
               <div className="event-main">
                 <strong>{event.title}</strong>
                 <span className="small-text">{formatSchedule(event)}</span>
                 <span className="event-meta">
                   <span className={`status-pill ${event.is_published ? "live" : "hidden"}`}>{event.is_published ? "Live" : "Needs checking"}</span>
                   <span className="muted small-text">{SOURCE_LABELS[event.source] || event.source}</span>
-                  {event.source_url && <a className="small-text" href={event.source_url} target="_blank" rel="noreferrer">Check source ↗</a>}
+                  {event.source_url && <ExternalLink className="small-text" href={event.source_url}>Check source</ExternalLink>}
                 </span>
               </div>
               <div className="row-actions">
                 {event.is_published
                   ? <button type="button" className="secondary-button small" disabled={isPending(event.id)} onClick={() => quick(event, { is_published: false }, "Event unpublished.")}>Unpublish</button>
-                  : <button type="button" className="primary-button small" disabled={isPending(event.id)} onClick={() => quick(event, { is_published: true }, "Event checked and published.")}>Checked: publish</button>}
+                  : <button type="button" className="secondary-button small" disabled={isPending(event.id)} onClick={() => quick(event, { is_published: true }, "Event checked and published.")}>Checked: publish</button>}
                 <button type="button" className="text-button" aria-expanded={open === event.id} onClick={() => setOpen(open === event.id ? null : event.id)}>Edit</button>
                 <button type="button" className="text-button danger" disabled={isPending(event.id)} onClick={() => remove(event)}>Delete</button>
               </div>

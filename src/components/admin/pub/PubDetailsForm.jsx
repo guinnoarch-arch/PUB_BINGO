@@ -6,6 +6,7 @@ import { AREAS, TAGS } from "../../../data/seedPubs.js";
 import { canPublish, missingInfo, slugify, validatePubDetails } from "../../../lib/core/adminPubs.js";
 import { useValidation } from "../../../lib/hooks/useValidation.js";
 import { ErrorSummary, FormError, Required, RequiredHint, fieldErrorBinding } from "../../ui/FormErrors.jsx";
+import ExternalLink from "../../ui/ExternalLink.jsx";
 
 const EMPTY_PUB = {
   id: "", name: "", area: "Soho", address: "", lat: "", lng: "", opened_year: "", tags: [], description: "",
@@ -155,7 +156,7 @@ export default function PubDetailsForm({ pub, isNew, onSaved }) {
       </div>
       <p className="muted small-text">
         Tip: in Google Maps, right-click the pub and click the numbers to copy them, then paste both into Latitude.
-        {osmLink && <> Or <a href={osmLink} target="_blank" rel="noreferrer">look up the address on OpenStreetMap ↗</a>.</>}
+        {osmLink && <> Or <ExternalLink href={osmLink}>look up the address on OpenStreetMap</ExternalLink>.</>}
       </p>
 
       <div className="form-grid">

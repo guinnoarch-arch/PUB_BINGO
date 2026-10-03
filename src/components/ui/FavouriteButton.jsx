@@ -1,3 +1,4 @@
+import { Heart } from "lucide-react";
 import { useApp } from "../../lib/AppContext.jsx";
 
 export default function FavouriteButton({ pub, compact = false }) {
@@ -13,9 +14,7 @@ export default function FavouriteButton({ pub, compact = false }) {
       aria-label={label}
       title={label}
     >
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M12 20.5s-7.5-4.6-9.3-9.2C1.5 8 3.6 4.5 7 4.5c2 0 3.4 1.1 5 3 1.6-1.9 3-3 5-3 3.4 0 5.5 3.5 4.3 6.8-1.8 4.6-9.3 9.2-9.3 9.2Z" />
-      </svg>
+      <Heart aria-hidden="true" />
       {!compact && <span>{active ? "Favourite" : "Add to favourites"}</span>}
     </button>
   );
