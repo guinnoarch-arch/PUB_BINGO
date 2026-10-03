@@ -16,6 +16,7 @@ import AdminHours from "../components/admin/AdminHours.jsx";
 import NotLaunched from "../components/ui/NotLaunched.jsx";
 import { SubmissionDetails, SubmissionFile, SubmissionReview, formatSeenOn } from "../components/suggestions/AdminMenus.jsx";
 import { londonToday, validateSeenOn } from "../lib/api/menuFiles.js";
+import { usePending } from "../lib/usePending.js";
 
 const EMPTY_PUB = {
   id: "", name: "", area: "Soho", address: "", lat: "", lng: "", opened_year: "", tags: [], description: "",
@@ -184,6 +185,7 @@ function PubDetailsForm({ pub, isNew, onSaved }) {
       {error && <p className="form-error" role="alert">{error}</p>}
       <div className="row-actions wrap">
         <button type="submit" className="primary-button" disabled={saving || !form.id || !form.name}>{saving ? "Saving…" : isNew ? "Create pub" : "Save pub details"}</button>
+        {(!form.id || !form.name) && <span className="muted small-text">Add a pub name{isNew ? " and ID" : ""} to save.</span>}
         {!isNew && form.is_published && <Link className="secondary-button" to={`/pubs/${form.id}`}>View public page</Link>}
         {!isNew && !form.is_published && <Link className="secondary-button" to={`/pubs/${form.id}`}>Preview page</Link>}
       </div>
@@ -363,18 +365,23 @@ function EditDrinkForm({ drink, onDone, onCancel }) {
   const [measure, setMeasure] = useState(drink.measure);
   const [volume, setVolume] = useState(drink.volume_ml ? String(drink.volume_ml) : "");
   const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
 
   async function save(event) {
     event.preventDefault();
+    setError("");
+    const volumeMl = !isDraught(measure) && volume.trim() ? Number(volume) : null;
+    if (volumeMl !== null && !(volumeMl >= 100 && volumeMl <= 2000)) { setError("Enter a size between 100 and 2000 ml."); return; }
+    setSaving(true);
     try {
-      const volumeMl = !isDraught(measure) && volume.trim() ? Number(volume) : null;
-      if (volumeMl !== null && !(volumeMl >= 100 && volumeMl <= 2000)) { setError("Size must be 100-2000 ml"); return; }
       await api.admin.updateDrink(drink.id, { name, category, measure, volumeMl });
       toast("Drink updated.", "success");
       notifyChange();
       onDone();
     } catch (err) {
-      setError(friendlyError(err));
+      setError(friendlyError(err, "Couldn't save the drink. Try again."));
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -406,7 +413,7 @@ function EditDrinkForm({ drink, onDone, onCancel }) {
       </div>
       {error && <p className="form-error" role="alert">{error}</p>}
       <div className="row-actions">
-        <button type="submit" className="primary-button">Save</button>
+        <button type="submit" className="primary-button" disabled={saving}>{saving ? "Saving…" : "Save"}</button>
         <button type="button" className="secondary-button" onClick={onCancel}>Cancel</button>
       </div>
     </form>
@@ -416,20 +423,23 @@ function EditDrinkForm({ drink, onDone, onCancel }) {
 function DrinksTable({ pub, priceDefaults, onChanged }) {
   const { api, toast, notifyChange } = useApp();
   const [open, setOpen] = useState(null); // { id, mode: "price" | "edit" | "history" } or { id: "new" }
+  const { run, isPending } = usePending();
   const drinks = useMemo(() => [...(pub.drinks || [])].sort((a, b) =>
     CATEGORIES.indexOf(a.category) - CATEGORIES.indexOf(b.category) || a.name.localeCompare(b.name)), [pub.drinks]);
   const done = () => { setOpen(null); onChanged(); };
 
-  async function remove(drink) {
+  function remove(drink) {
     if (!window.confirm(`Delete ${drink.name} and its whole price history?`)) return;
-    try {
-      await api.admin.deleteDrink(drink.id);
-      toast(`${drink.name} deleted.`, "success");
-      notifyChange();
-      onChanged();
-    } catch (err) {
-      toast(friendlyError(err), "error");
-    }
+    run(drink.id, async () => {
+      try {
+        await api.admin.deleteDrink(drink.id);
+        toast(`${drink.name} deleted.`, "success");
+        notifyChange();
+        onChanged();
+      } catch (err) {
+        toast(friendlyError(err, `Couldn't delete ${drink.name}. Try again.`), "error");
+      }
+    });
   }
 
   return (
@@ -452,7 +462,7 @@ function DrinksTable({ pub, priceDefaults, onChanged }) {
             <tbody>
               {drinks.map(drink => (
                 <DrinkRow key={drink.id} pub={pub} drink={drink} priceDefaults={priceDefaults} open={open?.id === drink.id ? open.mode : null}
-                  setOpen={mode => setOpen(mode ? { id: drink.id, mode } : null)} onDone={done} onRemove={() => remove(drink)} />
+                  setOpen={mode => setOpen(mode ? { id: drink.id, mode } : null)} onDone={done} onRemove={() => remove(drink)} removing={isPending(drink.id)} />
               ))}
             </tbody>
           </table>
@@ -470,7 +480,7 @@ function DrinksTable({ pub, priceDefaults, onChanged }) {
   );
 }
 
-function DrinkRow({ pub, drink, priceDefaults, open, setOpen, onDone, onRemove }) {
+function DrinkRow({ pub, drink, priceDefaults, open, setOpen, onDone, onRemove, removing }) {
   return (
     <>
       <tr>
@@ -488,7 +498,7 @@ function DrinkRow({ pub, drink, priceDefaults, open, setOpen, onDone, onRemove }
           <button type="button" className="secondary-button small" aria-expanded={open === "price"} onClick={() => setOpen(open === "price" ? null : "price")}>Set price</button>
           <button type="button" className="text-button" aria-expanded={open === "history"} onClick={() => setOpen(open === "history" ? null : "history")}>History</button>
           <button type="button" className="text-button" aria-expanded={open === "edit"} onClick={() => setOpen(open === "edit" ? null : "edit")}>Edit</button>
-          <button type="button" className="text-button danger" onClick={onRemove}>Delete</button>
+          <button type="button" className="text-button danger" onClick={onRemove} disabled={removing}>{removing ? "Deleting…" : "Delete"}</button>
         </td>
       </tr>
       {open && (

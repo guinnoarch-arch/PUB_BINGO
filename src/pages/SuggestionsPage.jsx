@@ -91,6 +91,7 @@ function AdminControls({ item, onChanged }) {
   const [status, setStatus] = useState(item.status);
   const [note, setNote] = useState(item.admin_note || "");
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   async function save() {
     setSaving(true);
@@ -106,12 +107,14 @@ function AdminControls({ item, onChanged }) {
   }
   async function remove() {
     if (!window.confirm("Delete this suggestion?")) return;
+    setDeleting(true);
     try {
       await api.admin.deleteSuggestion(item.id);
       toast("Suggestion deleted.", "success");
       onChanged();
     } catch (err) {
-      toast(friendlyError(err), "error");
+      toast(friendlyError(err, "Couldn't delete the suggestion. Try again."), "error");
+      setDeleting(false);
     }
   }
 
@@ -124,7 +127,7 @@ function AdminControls({ item, onChanged }) {
       <label className="sr-only" htmlFor={`note-${item.id}`}>Reply</label>
       <input id={`note-${item.id}`} value={note} maxLength={1000} onChange={e => setNote(e.target.value)} placeholder="Reply (shown to everyone)" />
       <button type="button" className="secondary-button small" onClick={save} disabled={saving}>{saving ? "Saving…" : "Save"}</button>
-      <button type="button" className="text-button danger" onClick={remove}>Delete</button>
+      <button type="button" className="text-button danger" onClick={remove} disabled={deleting}>{deleting ? "Deleting…" : "Delete"}</button>
     </div>
   );
 }
@@ -139,6 +142,7 @@ export default function SuggestionsPage() {
   const [filter, setFilter] = useState("all");
   const [reloadKey, setReloadKey] = useState(0);
   const reload = () => setReloadKey(k => k + 1);
+  const [voting, setVoting] = useState(() => new Set());
 
   useEffect(() => {
     let active = true;
@@ -150,6 +154,8 @@ export default function SuggestionsPage() {
 
   async function vote(item, value) {
     if (!userId) { toast("Sign in to vote."); return; }
+    if (voting.has(item.id)) return;
+    setVoting(prev => new Set(prev).add(item.id));
     const next = item.my_vote === value ? 0 : value;
     // Show the vote straight away; the list reloads from the server afterwards.
     setItems(prev => prev.map(s => (s.id !== item.id ? s : {
@@ -161,7 +167,9 @@ export default function SuggestionsPage() {
     try {
       await api.voteSuggestion(item.id, next);
     } catch (err) {
-      toast(friendlyError(err, "Couldn't save your vote."), "error");
+      toast(friendlyError(err, "Couldn't save your vote. Try again."), "error");
+    } finally {
+      setVoting(prev => { const next = new Set(prev); next.delete(item.id); return next; });
     }
     reload();
   }
@@ -222,9 +230,9 @@ export default function SuggestionsPage() {
             return (
               <li key={item.id} className="suggestion">
                 <div className="vote-box" role="group" aria-label={`Votes: ${score}`}>
-                  <button type="button" className={`vote-button ${item.my_vote === 1 ? "active" : ""}`} aria-pressed={item.my_vote === 1} aria-label="Vote up" onClick={() => vote(item, 1)}>▲</button>
+                  <button type="button" className={`vote-button ${item.my_vote === 1 ? "active" : ""}`} aria-pressed={item.my_vote === 1} aria-label="Vote up" disabled={voting.has(item.id)} onClick={() => vote(item, 1)}>▲</button>
                   <strong>{score}</strong>
-                  <button type="button" className={`vote-button ${item.my_vote === -1 ? "active down" : ""}`} aria-pressed={item.my_vote === -1} aria-label="Vote down" onClick={() => vote(item, -1)}>▼</button>
+                  <button type="button" className={`vote-button ${item.my_vote === -1 ? "active down" : ""}`} aria-pressed={item.my_vote === -1} aria-label="Vote down" disabled={voting.has(item.id)} onClick={() => vote(item, -1)}>▼</button>
                 </div>
                 <div className="suggestion-body">
                   <div className="suggestion-meta">

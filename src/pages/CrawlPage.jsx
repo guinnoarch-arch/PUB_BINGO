@@ -7,12 +7,14 @@ import { formatPrice } from "../lib/core/prices.js";
 import FeaturePage from "../components/features/FeaturePage.jsx";
 import RouteMap from "../components/map/RouteMap.jsx";
 import NotLaunched from "../components/ui/NotLaunched.jsx";
-import { Loading } from "../components/ui/States.jsx";
+import { ErrorState, Loading } from "../components/ui/States.jsx";
+import { useGeolocation } from "../lib/useGeolocation.js";
 
 const d = (a, b) => distanceMetres({ lat: Number(a.lat), lng: Number(a.lng) }, { lat: Number(b.lat), lng: Number(b.lng) }) ?? 0;
 
 function Crawl() {
-  const { livePubs, pubsStatus, toast } = useApp();
+  const { livePubs, pubsStatus, pubsError, reloadPubs, toast } = useApp();
+  const { locate, locating } = useGeolocation({ fallback: "Tap the map to set a start instead." });
   const [params, setParams] = useSearchParams();
   const shared = (params.get("stops") || "").split(",").filter(Boolean);
   const [mode, setMode] = useState(shared.length ? "pick" : "cheapest");
@@ -33,14 +35,6 @@ function Crawl() {
   const total = route.reduce((sum, pub) => sum + (best.get(pub.id)?.pintPrice || 0), 0);
   const unpriced = route.filter(pub => !best.get(pub.id)).length;
 
-  function locate() {
-    if (!navigator.geolocation) { toast("Your browser can't share its location. Tap the map instead."); return; }
-    navigator.geolocation.getCurrentPosition(
-      pos => setStart({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      () => toast("Couldn't get your location. Tap the map to set a start.", "error"),
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
-  }
 
   async function share() {
     const next = new URLSearchParams();
@@ -50,13 +44,17 @@ function Crawl() {
     setParams(next, { replace: true });
     try {
       if (navigator.share) await navigator.share({ title: "Pub crawl", text: route.map((p, i) => `${i + 1}. ${p.name}`).join("\n"), url });
-      else { await navigator.clipboard.writeText(url); toast("Link copied. Send it to your mates!", "success"); }
-    } catch { /* share cancelled */ }
+      else { await navigator.clipboard.writeText(url); toast("Crawl link copied.", "success"); }
+    } catch (error) {
+      // Closing the share sheet isn't an error.
+      if (error?.name !== "AbortError") toast("Couldn't share or copy the link. Copy it from the address bar instead.", "error");
+    }
   }
 
   const toggle = id => setPicked(prev => { const next = new Set(prev); if (next.has(id)) next.delete(id); else next.add(id); return next; });
 
   if (pubsStatus === "loading") return <Loading />;
+  if (pubsStatus === "error") return <ErrorState message={pubsError} onRetry={() => reloadPubs()} />;
   return (
     <>
       <div className="page-title-row">
@@ -88,7 +86,7 @@ function Crawl() {
           <div className="field">
             <span className="field-label">Start</span>
             <div className="row-actions wrap">
-              <button type="button" className="secondary-button small" onClick={locate}>Use my location</button>
+              <button type="button" className="secondary-button small" onClick={() => locate(setStart)} disabled={locating}>{locating ? "Finding you…" : "Use my location"}</button>
               {start && <button type="button" className="text-button" onClick={() => setStart(null)}>Clear start</button>}
             </div>
           </div>

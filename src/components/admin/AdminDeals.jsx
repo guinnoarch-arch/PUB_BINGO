@@ -4,6 +4,7 @@ import { friendlyError } from "../../lib/api/errors.js";
 import { CATEGORIES } from "../../data/seedPubs.js";
 import { WEEKDAYS } from "../../data/features.js";
 import { describeDeal } from "../../lib/core/deals.js";
+import { usePending } from "../../lib/usePending.js";
 
 const EMPTY = { title: "", days: [1, 2, 3, 4, 5], start_time: "16:00", end_time: "19:00", drink_id: "", category: "", kind: "price", deal_price: "", discount_pct: "", source_url: "", is_published: false };
 const ORDER = [1, 2, 3, 4, 5, 6, 0];
@@ -100,6 +101,7 @@ export default function AdminDeals({ pub }) {
   const [deals, setDeals] = useState([]);
   const [editing, setEditing] = useState(null); // deal, "new" or null
   const [key, setKey] = useState(0);
+  const { run, isPending } = usePending();
 
   useEffect(() => {
     let active = true;
@@ -108,9 +110,11 @@ export default function AdminDeals({ pub }) {
   }, [api, pub.id, key]);
   const done = () => { setEditing(null); setKey(k => k + 1); reloadFeatures(); };
 
-  async function remove(deal) {
+  function remove(deal) {
     if (!window.confirm(`Delete “${deal.title}”?`)) return;
-    try { await api.admin.deleteDeal(deal.id); toast("Deal deleted.", "success"); done(); } catch (err) { toast(friendlyError(err), "error"); }
+    run(deal.id, async () => {
+      try { await api.admin.deleteDeal(deal.id); toast("Deal deleted.", "success"); done(); } catch (err) { toast(friendlyError(err, "Couldn't delete the deal. Try again."), "error"); }
+    });
   }
 
   return (
@@ -126,7 +130,7 @@ export default function AdminDeals({ pub }) {
                     <span><strong>{d.title}</strong> · {what} <span className="muted small-text">· {when}</span> <span className={`status-pill ${d.is_published ? "live" : "hidden"}`}>{d.is_published ? "Published" : "Draft"}</span></span>
                     <span className="row-actions">
                       <button type="button" className="text-button" onClick={() => setEditing(d)}>Edit</button>
-                      <button type="button" className="text-button danger" onClick={() => remove(d)}>Delete</button>
+                      <button type="button" className="text-button danger" disabled={isPending(d.id)} onClick={() => remove(d)}>{isPending(d.id) ? "Deleting…" : "Delete"}</button>
                     </span>
                   </div>
                 )}

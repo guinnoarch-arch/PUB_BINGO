@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useApp } from "../lib/AppContext.jsx";
 import { CATEGORIES } from "../data/seedPubs.js";
 import { cheapestPints } from "../lib/core/search.js";
@@ -12,8 +12,17 @@ import NotLaunched from "../components/ui/NotLaunched.jsx";
 
 export default function LeaderboardPage() {
   const { livePubs: pubs, pubsStatus, pubsError, reloadPubs, liveStatus, feature } = useApp();
-  const [tab, setTab] = useState("pints");
-  const [category, setCategory] = useState(null);
+  // The tab and category live in the URL, so refresh and back keep them.
+  const [params, setParams] = useSearchParams();
+  const tab = params.get("view") === "people" ? "people" : "pints";
+  const category = CATEGORIES.includes(params.get("cat")) ? params.get("cat") : null;
+  const updateParam = (key, value) => {
+    const next = new URLSearchParams(params);
+    if (value) next.set(key, value); else next.delete(key);
+    setParams(next, { replace: true });
+  };
+  const setTab = value => updateParam("view", value === "people" ? "people" : "");
+  const setCategory = value => updateParam("cat", value || "");
   const [onePerPub, setOnePerPub] = useState(true);
   // Confirmed prices only: starting estimates never appear on the leaderboard.
   const rows = useMemo(() => cheapestPints(pubs, { limit: 20, category, onePerPub, realOnly: true }), [pubs, category, onePerPub]);
@@ -22,15 +31,17 @@ export default function LeaderboardPage() {
     <>
       <div className="page-title-row">
         <div>
-          <p className="eyebrow">Across all {pubs.length || ""} pubs</p>
+          <p className="eyebrow">{pubs.length ? `Across all ${pubs.length} pubs` : "Across all pubs"}</p>
           <h2>{tab === "people" ? "Top reporters" : "Cheapest pint right now"}</h2>
         </div>
         <span className={`live-pill ${liveStatus}`}>{liveStatus === "live" ? "● Live" : liveStatus === "offline" ? "Offline" : "Connecting…"}</span>
       </div>
       {feature("top_reporters") && (
-        <div className="segmented" role="tablist" aria-label="Leaderboards">
-          <button type="button" role="tab" aria-selected={tab === "pints"} className={tab === "pints" ? "active" : ""} onClick={() => setTab("pints")}>Cheapest pints</button>
-          <button type="button" role="tab" aria-selected={tab === "people"} className={tab === "people" ? "active" : ""} onClick={() => setTab("people")}>Top reporters</button>
+        <div className="tab-row">
+          <div className="segmented" role="group" aria-label="Leaderboards">
+            <button type="button" aria-pressed={tab === "pints"} className={tab === "pints" ? "active" : ""} onClick={() => setTab("pints")}>Cheapest pints</button>
+            <button type="button" aria-pressed={tab === "people"} className={tab === "people" ? "active" : ""} onClick={() => setTab("people")}>Top reporters</button>
+          </div>
           <NotLaunched feature="top_reporters" />
         </div>
       )}

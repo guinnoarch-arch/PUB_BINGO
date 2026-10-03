@@ -6,6 +6,7 @@ import { formatPrice } from "../lib/core/prices.js";
 import { timeAgo } from "../lib/core/time.js";
 import { EmptyState, ErrorState, Loading } from "./ui/States.jsx";
 import ReporterName from "./ui/ReporterName.jsx";
+import { usePending } from "../lib/usePending.js";
 
 // The most recent community price reports. Refreshes when anyone reports a price.
 export default function LiveFeed({ limit = 30, compact = false }) {
@@ -14,6 +15,7 @@ export default function LiveFeed({ limit = 30, compact = false }) {
   const [status, setStatus] = useState("loading");
   const [error, setError] = useState("");
   const [retry, setRetry] = useState(0);
+  const { run, isPending } = usePending();
 
   useEffect(() => {
     let active = true;
@@ -23,15 +25,15 @@ export default function LiveFeed({ limit = 30, compact = false }) {
     return () => { active = false; };
   }, [api, limit, changeVersion, retry]);
 
-  async function hide(report) {
+  const hide = report => run(report.id, async () => {
     try {
       await api.admin.setReportHidden(report.id, !report.is_hidden);
       toast(report.is_hidden ? "Report restored." : "Report hidden and price recalculated.", "success");
       notifyChange();
     } catch (err) {
-      toast(friendlyError(err), "error");
+      toast(friendlyError(err, "Couldn't change the report. Try again."), "error");
     }
-  }
+  });
 
   if (status === "loading") return <Loading label="Loading reports…" />;
   if (status === "error") return <ErrorState message={error} onRetry={() => { setStatus("loading"); setRetry(r => r + 1); }} />;
@@ -60,7 +62,7 @@ export default function LiveFeed({ limit = 30, compact = false }) {
           <span className="feed-time">
             <time dateTime={report.reported_at}>{timeAgo(report.reported_at)}</time>
             {isAdmin && !compact && !report.held && (
-              <button type="button" className="text-button danger" onClick={() => hide(report)}>
+              <button type="button" className="text-button danger" disabled={isPending(report.id)} onClick={() => hide(report)}>
                 {report.is_hidden ? "Unhide" : "Hide"}
               </button>
             )}

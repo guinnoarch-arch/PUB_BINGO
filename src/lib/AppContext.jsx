@@ -5,6 +5,10 @@ import { londonNow } from "./core/events.js";
 
 const AppContext = createContext(null);
 
+const TOAST_MS = 4500;
+const TOAST_WITH_ACTION_MS = 8000;
+const MAX_TOASTS = 3;
+
 export function useApp() {
   const value = useContext(AppContext);
   if (!value) throw new Error("useApp must be used inside <AppProvider>");
@@ -30,11 +34,15 @@ export function AppProvider({ api, children }) {
   const reloadTimer = useRef(null);
   const userId = session?.user?.id || null;
 
-  const toast = useCallback((message, tone = "info") => {
+  const dismissToast = useCallback(id => setToasts(list => list.filter(t => t.id !== id)), []);
+
+  // toast("Saved.", "success") or toast("Unticked.", "info", { action: { label: "Undo", onClick } }).
+  // Toasts with an action stay up longer so there's time to tap it.
+  const toast = useCallback((message, tone = "info", { action = null } = {}) => {
     const id = Math.random().toString(36).slice(2);
-    setToasts(list => [...list.slice(-2), { id, message, tone }]);
-    window.setTimeout(() => setToasts(list => list.filter(t => t.id !== id)), 4500);
-  }, []);
+    setToasts(list => [...list.slice(-(MAX_TOASTS - 1)), { id, message, tone, action }]);
+    window.setTimeout(() => dismissToast(id), action ? TOAST_WITH_ACTION_MS : TOAST_MS);
+  }, [dismissToast]);
 
   const reloadPubs = useCallback(async ({ quiet = false } = {}) => {
     if (!quiet) setPubsStatus(status => (status === "ready" ? "ready" : "loading"));
@@ -198,8 +206,9 @@ export function AppProvider({ api, children }) {
     changeVersion,
     notifyChange: () => { setChangeVersion(v => v + 1); reloadPubs({ quiet: true }); },
     toast,
+    dismissToast,
     toasts
-  }), [api, session, userId, profile, isAdmin, feature, featureLive, reloadFeatures, deals, livePubs, clock, extras, priceWatches, reloadWatches, authReady, pubs, pubsStatus, pubsError, reloadPubs, favourites, toggleFavourite, liveStatus, changeVersion, toast, toasts]);
+  }), [api, session, userId, profile, isAdmin, feature, featureLive, reloadFeatures, deals, livePubs, clock, extras, priceWatches, reloadWatches, authReady, pubs, pubsStatus, pubsError, reloadPubs, favourites, toggleFavourite, liveStatus, changeVersion, toast, dismissToast, toasts]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }

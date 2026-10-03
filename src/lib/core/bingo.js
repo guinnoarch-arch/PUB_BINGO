@@ -14,9 +14,10 @@ export const BINGO_TILES = [
   { id: "five-reports", title: "Report 5 prices", detail: "Completes automatically: become a regular reporter.", mode: "auto" }
 ];
 
-// activity: { reports: [{price, measure, pub_id}], favouritePubIds: [], photoCount, pubsById: {id: pub} }
+// activity: { reports: [{price, measure, pub_id, kind}], favouritePubIds: [], photoCount, pubsById: {id: pub} }
+// "Still right?" confirmations aren't price reports, so they don't count towards the report tiles.
 export function evaluateAutoTiles(activity = {}) {
-  const reports = activity.reports || [];
+  const reports = (activity.reports || []).filter(r => (r.kind || "report") === "report");
   const pubsById = activity.pubsById || {};
   const areas = new Set((activity.favouritePubIds || []).map(id => pubsById[id]?.area).filter(Boolean));
   return {
@@ -39,8 +40,13 @@ export function buildCardState(progressRows = [], autoResults = {}) {
   });
 }
 
-const LINES = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
+// Rows, columns and the two diagonals of the 3×3 card, as tile indexes.
+export const LINES = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
 
 export function completedLines(cardState) {
   return LINES.filter(line => line.every(index => cardState[index]?.done));
+}
+
+export function isFullHouse(cardState) {
+  return cardState.length > 0 && cardState.every(tile => tile.done);
 }

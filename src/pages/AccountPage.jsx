@@ -23,7 +23,20 @@ export default function AccountPage() {
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
   const set = key => event => setForm(prev => ({ ...prev, [key]: event.target.value }));
+
+  async function signOut() {
+    setSigningOut(true);
+    try {
+      await api.auth.signOut();
+      toast("Signed out.");
+    } catch (error) {
+      toast(friendlyError(error, "Couldn't sign you out. Check your connection and try again."), "error");
+    } finally {
+      setSigningOut(false);
+    }
+  }
 
   if (!authReady) return <Loading />;
 
@@ -38,7 +51,7 @@ export default function AccountPage() {
           <Link className="secondary-button" to="/favourites">Favourites</Link>
           <Link className="secondary-button" to="/bingo">Bingo card</Link>
           {profile?.is_admin && <Link className="secondary-button" to="/admin">Admin</Link>}
-          <button type="button" className="danger-button" onClick={async () => { await api.auth.signOut(); toast("Signed out."); }}>Sign out</button>
+          <button type="button" className="danger-button" onClick={signOut} disabled={signingOut}>{signingOut ? "Signing out…" : "Sign out"}</button>
         </div>
       </section>
       <AccountExtras />
@@ -137,8 +150,8 @@ export default function AccountPage() {
         <button type="submit" className="primary-button" disabled={busy}>
           {busy ? "Please wait…" : mode === "signin" ? "Sign in" : mode === "signup" ? "Create account" : "Send reset link"}
         </button>
-        {mode === "signin" && <button type="button" className="text-button" onClick={() => setMode("reset")}>Forgot password?</button>}
-        {mode === "reset" && <button type="button" className="text-button" onClick={() => setMode("signin")}>Back to sign in</button>}
+        {mode === "signin" && <button type="button" className="text-button" onClick={() => { setMode("reset"); setErrors({}); setMessage(""); }}>Forgot password?</button>}
+        {mode === "reset" && <button type="button" className="text-button" onClick={() => { setMode("signin"); setErrors({}); setMessage(""); }}>Back to sign in</button>}
       </form>
       {api.mode === "demo" && <p className="muted small-text">Demo mode: try the admin account <code>admin</code> / <code>password123</code>.</p>}
     </section>

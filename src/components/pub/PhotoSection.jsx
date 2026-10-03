@@ -6,6 +6,7 @@ import { validatePhotoFile } from "../../lib/api/photos.js";
 import { cleanText } from "../../lib/core/prices.js";
 import PubImage, { hasCover } from "./PubImage.jsx";
 import { PUB_COVERS } from "../../data/pubCovers.js";
+import { usePending } from "../../lib/usePending.js";
 
 export default function PhotoSection({ pub, photos, onChanged }) {
   const { api, userId, isAdmin, toast } = useApp();
@@ -14,6 +15,7 @@ export default function PhotoSection({ pub, photos, onChanged }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [pausedView, setPausedView] = useState(pub.uploads_paused);
+  const { run: runPending, isPending } = usePending();
   useEffect(() => setPausedView(pub.uploads_paused), [pub.uploads_paused]);
 
   async function upload(event) {
@@ -43,7 +45,7 @@ export default function PhotoSection({ pub, photos, onChanged }) {
       onChanged();
       return true;
     } catch (err) {
-      toast(friendlyError(err), "error");
+      toast(friendlyError(err, "That didn't save. Try again."), "error");
       return false;
     }
   }
@@ -77,11 +79,11 @@ export default function PhotoSection({ pub, photos, onChanged }) {
             {(isAdmin || photo.uploaded_by === userId) && (
               <div className="photo-actions">
                 {isAdmin && (
-                  <button type="button" className="text-button" onClick={() => run(() => api.admin.setPhotoHidden(photo.id, !photo.is_hidden), photo.is_hidden ? "Photo restored." : "Photo hidden.")}>
+                  <button type="button" className="text-button" disabled={isPending(photo.id)} onClick={() => runPending(photo.id, () => run(() => api.admin.setPhotoHidden(photo.id, !photo.is_hidden), photo.is_hidden ? "Photo restored." : "Photo hidden."))}>
                     {photo.is_hidden ? "Unhide" : "Hide"}
                   </button>
                 )}
-                <button type="button" className="text-button danger" onClick={() => window.confirm("Delete this photo?") && run(() => api.deletePhoto(photo), "Photo deleted.")}>Delete</button>
+                <button type="button" className="text-button danger" disabled={isPending(photo.id)} onClick={() => window.confirm("Delete this photo?") && runPending(photo.id, () => run(() => api.deletePhoto(photo), "Photo deleted."))}>Delete</button>
               </div>
             )}
           </figure>

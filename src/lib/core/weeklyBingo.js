@@ -9,6 +9,9 @@ const inWeek = (value, start) => {
   return key >= start && key < addDays(start, 7);
 };
 
+// Stop counting back after two years.
+const MAX_STREAK_WEEKS = 104;
+
 export const WEEKLY_POOL = [
   { id: "report", mode: "auto", title: "Report a price", detail: "Any drink, any pub.", test: a => a.reports.length >= 1 },
   { id: "three-reports", mode: "auto", title: "Report 3 prices", detail: "Keep the prices fresh.", test: a => a.reports.length >= 3 },
@@ -80,21 +83,21 @@ export function weeklyCardState(start, progressRows = [], activity = {}, pubsByI
   const stored = new Map(progressRows.map(row => [row.tile_id, row.completed_at]));
   const week = weeklyActivity(activity, start, pubsById);
   return weeklyCard(start).map(tile => {
-    const completedAt = stored.get(tile.id) || null;
+    const saved = stored.has(tile.id);
     const earned = tile.mode === "auto" && Boolean(tile.test?.(week));
-    return { ...tile, done: Boolean(completedAt) || earned, completedAt, needsSaving: earned && !completedAt };
+    return { ...tile, done: saved || earned, completedAt: stored.get(tile.id) || null, needsSaving: earned && !saved };
   });
 }
 
 // Weeks in a row with at least one line, counting back from this week (or last week, if this
-// week's card isn't done yet).
-export function weeklyStreak(progressRows = [], now = londonNow()) {
-  const done = new Set(progressRows.map(r => r.tile_id));
-  const hasLine = start => completedLines(weeklyCard(start).map(t => ({ done: done.has(t.id) }))).length > 0;
+// week's card isn't done yet). Auto tiles count when the week's activity earned them, even if the
+// Bingo page wasn't opened that week to save them.
+export function weeklyStreak(progressRows = [], now = londonNow(), activity = {}, pubsById = {}) {
+  const hasLine = start => completedLines(weeklyCardState(start, progressRows, activity, pubsById)).length > 0;
   let start = weekStart(now);
   if (!hasLine(start)) start = addDays(start, -7);
   let streak = 0;
-  while (streak < 104 && hasLine(start)) {
+  while (streak < MAX_STREAK_WEEKS && hasLine(start)) {
     streak += 1;
     start = addDays(start, -7);
   }

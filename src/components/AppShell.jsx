@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, NavLink } from "react-router-dom";
 import { useApp } from "../lib/AppContext.jsx";
 import InlineQrCode from "./common/InlineQrCode.jsx";
 import { useWatchMatches } from "./features/PriceWatches.jsx";
@@ -15,8 +15,6 @@ function IconButton({ label, active = false, onClick, children }) {
 const icons = {
   moon: <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.2A8.2 8.2 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7Z" /></svg>,
   sun: <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" /></svg>,
-  phone: <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.2" /><path d="M10 5h4M11 18.5h2" /></svg>,
-  laptop: <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="10" rx="1.5" /><path d="M3 18h18M7 14l-2 4M17 14l2 4" /></svg>,
   qr: <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4V4ZM14 4h6v6h-6V4ZM4 14h6v6H4v-6ZM14 14h2v2h-2v-2ZM18 14h2v2h-2v-2ZM14 18h2v2h-2v-2ZM18 18h2v2h-2v-2Z" /></svg>,
   bulb: <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4" /><path d="M12 3a6 6 0 0 0-3.6 10.8c.7.5 1.1 1.3 1.1 2.2h5c0-.9.4-1.7 1.1-2.2A6 6 0 0 0 12 3Z" /></svg>,
   user: <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" /></svg>
@@ -27,16 +25,28 @@ function shareUrl() {
   return configured ? configured.replace(/\/$/, "") : window.location.origin;
 }
 
-export default function AppShell({ children, theme, onToggleTheme, phoneMode, onTogglePhoneMode, isOnline }) {
-  const { api, session, profile, isAdmin, toasts } = useApp();
-  const navigate = useNavigate();
-  const { pathname } = useLocation();
+export default function AppShell({ children, theme, onToggleTheme, isOnline }) {
+  const { api, session, profile, isAdmin, toasts, dismissToast } = useApp();
   const [showShare, setShowShare] = useState(false);
+  const shareRef = useRef(null);
   const watchHits = useWatchMatches().filter(r => r.matches.length).length;
   const url = shareUrl();
   const isLocal = ["localhost", "127.0.0.1"].includes(window.location.hostname);
 
-  // [path, label, short label for phone view]
+  // The "Open on phone" panel closes with Escape or a tap outside it.
+  useEffect(() => {
+    if (!showShare) return undefined;
+    const onKey = event => { if (event.key === "Escape") setShowShare(false); };
+    const onPointer = event => { if (!shareRef.current?.contains(event.target)) setShowShare(false); };
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("pointerdown", onPointer);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("pointerdown", onPointer);
+    };
+  }, [showShare]);
+
+  // [path, label, short label for narrow screens]
   const nav = [
     ["/", "Find", "Find"],
     ["/whats-on", "What's on", "What's on"],
@@ -48,7 +58,7 @@ export default function AppShell({ children, theme, onToggleTheme, phoneMode, on
   ];
 
   return (
-    <div className={`app-shell ${phoneMode ? "phone-mode" : ""}`.trim()}>
+    <div className="app-shell">
       <a className="skip-link" href="#main">Skip to content</a>
       <div className="app-fixed-area">
         <header className="app-header">
@@ -60,10 +70,9 @@ export default function AppShell({ children, theme, onToggleTheme, phoneMode, on
             </span>
           </Link>
           <div className="header-actions">
-            <IconButton label="Suggestions" active={pathname === "/suggestions"} onClick={() => navigate("/suggestions")}>{icons.bulb}</IconButton>
-            <IconButton label={theme === "dark" ? "Light mode" : "Dark mode"} onClick={onToggleTheme}>{theme === "dark" ? icons.sun : icons.moon}</IconButton>
-            <IconButton label={phoneMode ? "Desktop view" : "Phone view"} active={phoneMode} onClick={onTogglePhoneMode}>{phoneMode ? icons.laptop : icons.phone}</IconButton>
-            <div className="device-share-wrapper">
+            <NavLink to="/suggestions" className={({ isActive }) => `header-icon-button ${isActive ? "active" : ""}`} aria-label="Suggestions" title="Suggestions">{icons.bulb}</NavLink>
+            <IconButton label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"} onClick={onToggleTheme}>{theme === "dark" ? icons.sun : icons.moon}</IconButton>
+            <div className="device-share-wrapper" ref={shareRef}>
               <IconButton label="Open on phone" active={showShare} onClick={() => setShowShare(v => !v)}>{icons.qr}</IconButton>
               {showShare && (
                 <div className="device-share-panel" role="dialog" aria-label="Open on your phone">
@@ -79,10 +88,10 @@ export default function AppShell({ children, theme, onToggleTheme, phoneMode, on
                 </div>
               )}
             </div>
-            <button type="button" className="account-chip" onClick={() => navigate("/account")} aria-label={session ? "Your account" : "Sign in"}>
+            <Link to="/account" className="account-chip" aria-label={session ? "Your account" : "Sign in"}>
               {icons.user}
               <span>{session ? (profile ? `@${profile.username}` : "Account") : "Sign in"}</span>
-            </button>
+            </Link>
           </div>
         </header>
 
@@ -94,7 +103,7 @@ export default function AppShell({ children, theme, onToggleTheme, phoneMode, on
         <nav className="top-nav" aria-label="Main">
           {nav.map(([to, label, short]) => (
             <NavLink key={to} to={to} end={to === "/"} className={({ isActive }) => `nav-item ${isActive ? "active" : ""} ${to === "/admin" ? "nav-item-admin" : ""}`}>
-              {phoneMode && short !== label ? <><span aria-hidden="true">{short}</span><span className="sr-only">{label}</span></> : label}
+              {short !== label ? <><span className="nav-label-long">{label}</span><span className="nav-label-short" aria-hidden="true">{short}</span></> : label}
               {to === "/favourites" && watchHits > 0 && <span className="tab-count" aria-label={`${watchHits} price watch${watchHits === 1 ? "" : "es"} matched`}>{watchHits}</span>}
             </NavLink>
           ))}
@@ -104,7 +113,14 @@ export default function AppShell({ children, theme, onToggleTheme, phoneMode, on
       <main id="main" className="page-content" tabIndex={-1}>{children}</main>
 
       <div className="toast-region" aria-live="polite" aria-atomic="false">
-        {toasts.map(t => <div key={t.id} className={`toast ${t.tone}`} role={t.tone === "error" ? "alert" : "status"}>{t.message}</div>)}
+        {toasts.map(t => (
+          <div key={t.id} className={`toast ${t.tone}`} role={t.tone === "error" ? "alert" : "status"}>
+            <span>{t.message}</span>
+            {t.action && (
+              <button type="button" className="toast-action" onClick={() => { dismissToast(t.id); t.action.onClick(); }}>{t.action.label}</button>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );

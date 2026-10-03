@@ -54,6 +54,7 @@ export function SubmissionReview({ item, onChanged, compact = false }) {
   const [status, setStatus] = useState(item.status);
   const [note, setNote] = useState(item.admin_note || "");
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   async function save(nextStatus = status) {
     setSaving(true);
@@ -69,12 +70,14 @@ export function SubmissionReview({ item, onChanged, compact = false }) {
   }
   async function remove() {
     if (!window.confirm("Delete this menu and its file?")) return;
+    setDeleting(true);
     try {
       await api.admin.deleteMenuSubmission(item.id);
       toast("Menu deleted.", "success");
       onChanged();
     } catch (err) {
-      toast(friendlyError(err), "error");
+      toast(friendlyError(err, "Couldn't delete the menu. Try again."), "error");
+      setDeleting(false);
     }
   }
 
@@ -87,7 +90,7 @@ export function SubmissionReview({ item, onChanged, compact = false }) {
       <label className="sr-only" htmlFor={`menu-reply-${item.id}`}>Reply to sender</label>
       <input id={`menu-reply-${item.id}`} value={note} maxLength={500} onChange={e => setNote(e.target.value)} placeholder="Reply (only the sender sees it)" />
       <button type="button" className="secondary-button small" onClick={() => save()} disabled={saving}>{saving ? "Saving…" : "Save"}</button>
-      {!compact && <button type="button" className="text-button danger" onClick={remove}>Delete</button>}
+      {!compact && <button type="button" className="text-button danger" onClick={remove} disabled={deleting}>{deleting ? "Deleting…" : "Delete"}</button>}
     </div>
   );
 }

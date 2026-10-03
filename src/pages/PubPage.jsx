@@ -73,7 +73,7 @@ export default function PubPage() {
   if (status === "loading") return <Loading label="Loading pub…" />;
   if (status === "error") return <ErrorState message={error} onRetry={() => { setStatus("loading"); reload(); }} />;
   if (status === "missing") {
-    return <EmptyState title="Pub not found">That pub isn't in Pub Bingo (yet). <Link to="/">Back to search</Link></EmptyState>;
+    return <section className="card"><EmptyState title="Pub not found">That pub isn't in Pub Bingo yet, or the link is wrong. <Link to="/">Search all pubs</Link></EmptyState></section>;
   }
 
   const age = pub.opened_year ? new Date().getFullYear() - pub.opened_year : null;

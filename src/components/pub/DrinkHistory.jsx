@@ -9,12 +9,14 @@ import { ErrorState, Loading } from "../ui/States.jsx";
 import PriceChart from "../ui/PriceChart.jsx";
 import ReporterName from "../ui/ReporterName.jsx";
 import NotLaunched from "../ui/NotLaunched.jsx";
+import { usePending } from "../../lib/usePending.js";
 
 // Full price history for one drink: every report is kept so trends can be shown.
 export default function DrinkHistory({ drink }) {
   const { api, changeVersion, isAdmin, feature, toast, notifyChange } = useApp();
   const [rows, setRows] = useState(null);
   const [error, setError] = useState("");
+  const { run, isPending } = usePending();
 
   useEffect(() => {
     let active = true;
@@ -24,15 +26,15 @@ export default function DrinkHistory({ drink }) {
     return () => { active = false; };
   }, [api, drink.id, changeVersion]);
 
-  async function toggleHidden(report) {
+  const toggleHidden = report => run(report.id, async () => {
     try {
       await api.admin.setReportHidden(report.id, !report.is_hidden);
       toast(report.is_hidden ? "Report restored." : "Report hidden. Current price recalculated.", "success");
       notifyChange();
     } catch (err) {
-      toast(friendlyError(err), "error");
+      toast(friendlyError(err, "Couldn't change the report. Try again."), "error");
     }
-  }
+  });
 
   if (error) return <ErrorState message={error} />;
   if (!rows) return <Loading label="Loading history…" />;
@@ -70,7 +72,7 @@ export default function DrinkHistory({ drink }) {
             </span>
             {report.note && report.kind !== "confirm" && <span className="feed-note">“{report.note}”</span>}
             {isAdmin && report.source === "community" && (
-              <button type="button" className="text-button danger" onClick={() => toggleHidden(report)}>{report.is_hidden ? "Unhide" : "Hide"}</button>
+              <button type="button" className="text-button danger" disabled={isPending(report.id)} onClick={() => toggleHidden(report)}>{report.is_hidden ? "Unhide" : "Hide"}</button>
             )}
           </li>
         ))}

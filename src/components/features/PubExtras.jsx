@@ -72,20 +72,25 @@ export function CheckIn({ pub }) {
 export function PourScore({ pub, compact = false }) {
   const { api, userId, feature, extras, toast, notifyChange } = useApp();
   const [mine, setMine] = useState(null);
+  const [saving, setSaving] = useState(false);
   if (!feature("guinness_score") || !hasGuinness(pub)) return null;
   const score = extras.pour.get(pub.id);
   if (compact) return score ? <span className="pour-score" title={`Guinness pour: ${score.score}/5 from ${score.ratings} ratings`}>☘️ {score.score.toFixed(1)}</span> : null;
 
   async function rate(value) {
     if (!userId) { toast("Sign in to rate the pour."); return; }
+    const previous = mine;
     setMine(value);
+    setSaving(true);
     try {
       await api.ratePour(pub.id, value);
-      toast("Thanks for rating the pour!", "success");
+      toast(`Rated ${value} out of 5.`, "success");
       notifyChange();
     } catch (err) {
-      setMine(null);
-      toast(friendlyError(err, "Couldn't save your rating."), "error");
+      setMine(previous);
+      toast(friendlyError(err, "Couldn't save your rating. Try again."), "error");
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -98,7 +103,7 @@ export function PourScore({ pub, compact = false }) {
       <p>{score ? <><strong className="big-number">{score.score.toFixed(1)}</strong> / 5 from {score.ratings} rating{score.ratings === 1 ? "" : "s"} (last 6 months)</> : "No ratings yet. Had one here? Rate the pour."}</p>
       <div className="rating-row" role="group" aria-label="Rate the Guinness pour from 1 to 5">
         {[1, 2, 3, 4, 5].map(v => (
-          <button key={v} type="button" className={`rating-button ${mine != null && v <= mine ? "active" : ""}`} aria-pressed={mine === v} aria-label={`${v} out of 5`} onClick={() => rate(v)}>
+          <button key={v} type="button" className={`rating-button ${mine != null && v <= mine ? "active" : ""}`} aria-pressed={mine === v} aria-label={`${v} out of 5`} disabled={saving} onClick={() => rate(v)}>
             {v}
           </button>
         ))}

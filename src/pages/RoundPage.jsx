@@ -6,12 +6,14 @@ import { formatDistance } from "../lib/core/geo.js";
 import { formatPrice } from "../lib/core/prices.js";
 import FeaturePage from "../components/features/FeaturePage.jsx";
 import NotLaunched from "../components/ui/NotLaunched.jsx";
-import { Loading } from "../components/ui/States.jsx";
+import { ErrorState, Loading } from "../components/ui/States.jsx";
+import { useGeolocation } from "../lib/useGeolocation.js";
 
 const QUICK = ["Guinness", "any lager", "IPA", "cider", "real ale"];
 
 function Round() {
-  const { livePubs, pubsStatus, toast } = useApp();
+  const { livePubs, pubsStatus, pubsError, reloadPubs } = useApp();
+  const { locate, locating } = useGeolocation();
   const [items, setItems] = useState([{ query: "Guinness", qty: 2 }, { query: "any lager", qty: 2 }]);
   const [includeEstimates, setIncludeEstimates] = useState(false);
   const [origin, setOrigin] = useState(null);
@@ -19,14 +21,8 @@ function Round() {
   const people = items.reduce((sum, i) => sum + (Number(i.qty) || 0), 0);
 
   const update = (index, patch) => setItems(prev => prev.map((item, i) => (i === index ? { ...item, ...patch } : item)));
-  function locate() {
-    navigator.geolocation?.getCurrentPosition(
-      pos => setOrigin({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      () => toast("Couldn't get your location.", "error")
-    );
-  }
-
   if (pubsStatus === "loading") return <Loading />;
+  if (pubsStatus === "error") return <ErrorState message={pubsError} onRetry={() => reloadPubs()} />;
   return (
     <>
       <div className="page-title-row">
@@ -54,7 +50,9 @@ function Round() {
         <datalist id="round-quick">{QUICK.map(q => <option key={q} value={q} />)}</datalist>
         <div className="row-actions wrap">
           <button type="button" className="secondary-button small" onClick={() => setItems(prev => [...prev, { query: "", qty: 1 }])} disabled={items.length >= 8}>+ Add drink</button>
-          <button type="button" className="secondary-button small" onClick={locate}>{origin ? "✓ Near me" : "Sort by distance too"}</button>
+          {origin
+            ? <button type="button" className="secondary-button small" onClick={() => setOrigin(null)}>Stop sorting by distance</button>
+            : <button type="button" className="secondary-button small" onClick={() => locate(setOrigin)} disabled={locating}>{locating ? "Finding you…" : "Sort by distance too"}</button>}
           <label className="checkbox-label"><input type="checkbox" checked={includeEstimates} onChange={e => setIncludeEstimates(e.target.checked)} /> Include estimated prices</label>
         </div>
       </section>

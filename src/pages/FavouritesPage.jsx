@@ -3,19 +3,20 @@ import { useApp } from "../lib/AppContext.jsx";
 import { cheapestPints } from "../lib/core/search.js";
 import FavouriteButton from "../components/ui/FavouriteButton.jsx";
 import { PriceTag } from "../components/ui/Badges.jsx";
-import { EmptyState, Loading } from "../components/ui/States.jsx";
+import { EmptyState, ErrorState, Loading } from "../components/ui/States.jsx";
 import PubImage from "../components/pub/PubImage.jsx";
 import SignInPrompt from "../components/SignInPrompt.jsx";
 import PriceWatches from "../components/features/PriceWatches.jsx";
 
 export default function FavouritesPage() {
-  const { userId, authReady, pubs, pubsStatus, favourites } = useApp();
+  const { userId, authReady, pubs, pubsStatus, pubsError, reloadPubs, favourites } = useApp();
 
   if (!authReady) return <Loading />;
   if (!userId) {
     return <SignInPrompt title="Your favourite pubs">Sign in to save favourites. They're kept with your account, so they follow you to any device.</SignInPrompt>;
   }
   if (pubsStatus === "loading") return <Loading />;
+  if (pubsStatus === "error") return <ErrorState message={pubsError} onRetry={() => reloadPubs()} />;
 
   const list = pubs.filter(pub => favourites.has(pub.id));
   return (

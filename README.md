@@ -42,7 +42,7 @@ Built with the same stack and look as Guinness & Holley Budgeting: **React + Vit
 ## Where data lives
 
 - **All real data (prices, reports, favourites, bingo progress, photos) is in Supabase**, shared by every visitor.
-- The browser only stores your sign-in session and display preferences (dark mode, phone view).
+- The browser only stores your sign-in session and your dark mode preference.
 
 ## Setup (one-off, about 10 minutes)
 

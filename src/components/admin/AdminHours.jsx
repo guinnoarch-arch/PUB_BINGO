@@ -40,6 +40,7 @@ export default function AdminHours({ pub, onSaved }) {
   return (
     <div className="hours-editor">
       <p className="muted small-text">{pub.opening_hours ? "Saved hours are shown on the pub page and used by the “Open now” filter." : "No hours saved yet: the pub won't show in “Open now” until they are."} Closing after midnight? Just enter e.g. 01:00.</p>
+      <div className="sheet-wrap hours-wrap">
       <table className="sheet hours-sheet">
         <tbody>
           {ORDER.map(d => (
@@ -52,6 +53,7 @@ export default function AdminHours({ pub, onSaved }) {
           ))}
         </tbody>
       </table>
+      </div>
       {error && <p className="form-error" role="alert">{error}</p>}
       <div className="row-actions">
         <button type="button" className="primary-button" onClick={() => save(false)} disabled={saving}>{saving ? "Saving…" : "Save hours"}</button>

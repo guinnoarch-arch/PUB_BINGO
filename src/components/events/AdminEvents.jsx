@@ -4,6 +4,7 @@ import { friendlyError } from "../../lib/api/errors.js";
 import { EVENT_CATEGORIES, WEEKDAYS } from "../../data/features.js";
 import { formatSchedule } from "../../lib/core/events.js";
 import { categoryInfo } from "./EventItem.jsx";
+import { usePending } from "../../lib/usePending.js";
 
 const MONDAY_FIRST = [1, 2, 3, 4, 5, 6, 0];
 const SOURCE_LABELS = { research: "Web research", website: "Pub website", admin: "Added by admin" };
@@ -121,6 +122,7 @@ export default function AdminEvents({ pub }) {
   const [open, setOpen] = useState(null); // event id, "new" or null
   const [reloadKey, setReloadKey] = useState(0);
   const reload = () => setReloadKey(k => k + 1);
+  const { run, isPending } = usePending();
 
   useEffect(() => {
     let active = true;
@@ -130,27 +132,29 @@ export default function AdminEvents({ pub }) {
     return () => { active = false; };
   }, [api, pub.id, changeVersion, reloadKey, toast]);
 
-  async function quick(event, changes, message) {
+  const quick = (event, changes, message) => run(event.id, async () => {
     try {
       await api.admin.saveEvent({ ...event, ...changes });
       toast(message, "success");
       notifyChange();
       reload();
     } catch (err) {
-      toast(friendlyError(err), "error");
+      toast(friendlyError(err, "Couldn't save the event. Try again."), "error");
     }
-  }
+  });
 
-  async function remove(event) {
+  function remove(event) {
     if (!window.confirm(`Delete “${event.title}”?`)) return;
-    try {
-      await api.admin.deleteEvent(event.id);
-      toast("Event deleted.", "success");
-      notifyChange();
-      reload();
-    } catch (err) {
-      toast(friendlyError(err), "error");
-    }
+    run(event.id, async () => {
+      try {
+        await api.admin.deleteEvent(event.id);
+        toast("Event deleted.", "success");
+        notifyChange();
+        reload();
+      } catch (err) {
+        toast(friendlyError(err, "Couldn't delete the event. Try again."), "error");
+      }
+    });
   }
 
   const done = () => { setOpen(null); reload(); };
@@ -175,10 +179,10 @@ export default function AdminEvents({ pub }) {
               </div>
               <div className="row-actions">
                 {event.is_published
-                  ? <button type="button" className="secondary-button small" onClick={() => quick(event, { is_published: false }, "Event unpublished.")}>Unpublish</button>
-                  : <button type="button" className="primary-button small" onClick={() => quick(event, { is_published: true }, "Event checked and published.")}>Checked: publish</button>}
+                  ? <button type="button" className="secondary-button small" disabled={isPending(event.id)} onClick={() => quick(event, { is_published: false }, "Event unpublished.")}>Unpublish</button>
+                  : <button type="button" className="primary-button small" disabled={isPending(event.id)} onClick={() => quick(event, { is_published: true }, "Event checked and published.")}>Checked: publish</button>}
                 <button type="button" className="text-button" aria-expanded={open === event.id} onClick={() => setOpen(open === event.id ? null : event.id)}>Edit</button>
-                <button type="button" className="text-button danger" onClick={() => remove(event)}>Delete</button>
+                <button type="button" className="text-button danger" disabled={isPending(event.id)} onClick={() => remove(event)}>Delete</button>
               </div>
             </div>
             {open === event.id && <EventForm pub={pub} event={event} onDone={done} onCancel={() => setOpen(null)} />}

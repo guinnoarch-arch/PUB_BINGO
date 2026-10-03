@@ -6,6 +6,7 @@ import { allWatchMatches } from "../../lib/core/watches.js";
 import { formatPrice, parsePrice } from "../../lib/core/prices.js";
 import { AREAS } from "../../data/seedPubs.js";
 import NotLaunched from "../ui/NotLaunched.jsx";
+import { usePending } from "../../lib/usePending.js";
 
 export function useWatchMatches() {
   const { livePubs, priceWatches, feature } = useApp();
@@ -19,6 +20,7 @@ export default function PriceWatches() {
   const [max, setMax] = useState("6.00");
   const [area, setArea] = useState("");
   const [error, setError] = useState("");
+  const { run, isPending } = usePending();
   if (!feature("price_watch")) return null;
 
   async function add(event) {
@@ -27,18 +29,35 @@ export default function PriceWatches() {
     const price = parsePrice(max);
     if (query.trim().length < 2) { setError("Type a drink, like Guinness or IPA."); return; }
     if (price == null) { setError("Enter a price like 6.00"); return; }
+    await run("add", async () => {
+      try {
+        await api.addPriceWatch({ query: query.trim(), maxPrice: price, area });
+        setQuery("");
+        reloadWatches();
+        toast("Price watch saved. Matches show here and on the Saved tab.", "success");
+      } catch (err) {
+        setError(friendlyError(err, "Couldn't save the price watch. Check your connection and try again."));
+      }
+    });
+  }
+
+  // Removing offers Undo, which adds the same watch back.
+  const remove = watch => run(watch.id, async () => {
     try {
-      await api.addPriceWatch({ query: query.trim(), maxPrice: price, area });
-      setQuery("");
+      await api.deletePriceWatch(watch.id);
       reloadWatches();
-      toast("Watching. Matches show here and on the Saved tab.", "success");
+      toast(`Stopped watching ${watch.query}.`, "info", {
+        action: {
+          label: "Undo",
+          onClick: () => api.addPriceWatch({ query: watch.query, maxPrice: Number(watch.max_price), area: watch.area || "" })
+            .then(reloadWatches)
+            .catch(err => toast(friendlyError(err, "Couldn't restore the price watch."), "error"))
+        }
+      });
     } catch (err) {
-      setError(friendlyError(err, "Couldn't save the price watch."));
+      toast(friendlyError(err, "Couldn't remove the price watch. Try again."), "error");
     }
-  }
-  async function remove(id) {
-    try { await api.deletePriceWatch(id); reloadWatches(); } catch (err) { toast(friendlyError(err), "error"); }
-  }
+  });
 
   return (
     <section className="card" aria-labelledby="watch-heading">
@@ -56,7 +75,7 @@ export default function PriceWatches() {
             {AREAS.map(a => <option key={a} value={a}>{a}</option>)}
           </select>
         </div>
-        <button type="submit" className="primary-button">Watch</button>
+        <button type="submit" className="primary-button" disabled={isPending("add")}>{isPending("add") ? "Saving…" : "Watch"}</button>
       </form>
       {error && <p className="form-error" role="alert">{error}</p>}
       {results.length > 0 && (
@@ -65,7 +84,7 @@ export default function PriceWatches() {
             <li key={watch.id}>
               <div className="section-header">
                 <strong>{watch.query} under {formatPrice(watch.max_price)}{watch.area ? ` in ${watch.area}` : ""}</strong>
-                <button type="button" className="text-button danger" onClick={() => remove(watch.id)}>Remove</button>
+                <button type="button" className="text-button danger" disabled={isPending(watch.id)} onClick={() => remove(watch)}>Remove</button>
               </div>
               {matches.length === 0 ? <span className="muted small-text">No matches right now.</span> : (
                 <ul className="match-list">

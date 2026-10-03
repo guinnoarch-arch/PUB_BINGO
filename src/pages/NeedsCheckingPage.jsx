@@ -8,10 +8,10 @@ import { AREAS } from "../data/seedPubs.js";
 import FeaturePage from "../components/features/FeaturePage.jsx";
 import StillRightButton from "../components/features/StillRightButton.jsx";
 import NotLaunched from "../components/ui/NotLaunched.jsx";
-import { EmptyState, Loading } from "../components/ui/States.jsx";
+import { EmptyState, ErrorState, Loading } from "../components/ui/States.jsx";
 
 function NeedsChecking() {
-  const { pubs, pubsStatus } = useApp();
+  const { pubs, pubsStatus, pubsError, reloadPubs } = useApp();
   const [area, setArea] = useState("");
   const [showEstimates, setShowEstimates] = useState(true);
   const rows = useMemo(() => needsChecking(pubs).filter(r => (!area || r.pub.area === area) && (showEstimates || !r.estimate)), [pubs, area, showEstimates]);
@@ -34,7 +34,7 @@ function NeedsChecking() {
         </div>
         <label className="checkbox-label"><input type="checkbox" checked={showEstimates} onChange={e => setShowEstimates(e.target.checked)} /> Include estimates</label>
       </section>
-      {pubsStatus === "loading" ? <Loading /> : groups.length === 0 ? (
+      {pubsStatus === "loading" ? <Loading /> : pubsStatus === "error" ? <ErrorState message={pubsError} onRetry={() => reloadPubs()} /> : groups.length === 0 ? (
         <section className="card"><EmptyState title="All checked!">Every price here has been confirmed recently. 🍻</EmptyState></section>
       ) : groups.map(({ pub, rows: items }) => (
         <section key={pub.id} className="card check-group">

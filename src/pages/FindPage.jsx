@@ -14,6 +14,7 @@ import { PourScore } from "../components/features/PubExtras.jsx";
 import NotLaunched from "../components/ui/NotLaunched.jsx";
 import { isOpenAt } from "../lib/core/hours.js";
 import { upcoming } from "../lib/core/events.js";
+import { useGeolocation } from "../lib/useGeolocation.js";
 
 // Extra filters (the "pub_filters" feature). Each is a test on a pub.
 const PUB_FILTERS = [
@@ -25,7 +26,8 @@ const PUB_FILTERS = [
 const SUGGESTIONS = ["Guinness", "IPA", "Camden Hells", "London Pride", "Cider"];
 
 export default function FindPage() {
-  const { livePubs, pubsStatus, pubsError, reloadPubs, toast, feature, clock, api, extras } = useApp();
+  const { livePubs, pubsStatus, pubsError, reloadPubs, feature, clock, api, extras } = useApp();
+  const { locate, locating } = useGeolocation({ fallback: "Tap the map to pick a point instead." });
   const [filters, setFilters] = useState(() => new Set());
   const [sportPubIds, setSportPubIds] = useState(null);
   const filtersOn = feature("pub_filters");
@@ -51,7 +53,6 @@ export default function FindPage() {
   const category = CATEGORIES.includes(params.get("cat")) ? params.get("cat") : null;
   const [origin, setOrigin] = useState(null);
   const [sortBy, setSortBy] = useState("price");
-  const [locating, setLocating] = useState(false);
 
   const updateParam = (key, value) => {
     const next = new URLSearchParams(params);
@@ -76,24 +77,8 @@ export default function FindPage() {
   }
 
   function locateMe() {
-    if (!navigator.geolocation) {
-      toast("Your browser can't share its location. Tap the map instead.");
-      return;
-    }
-    setLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      position => {
-        setLocating(false);
-        // fromDevice: the map zooms to you and your nearest pubs, wherever you are.
-        const point = { lat: position.coords.latitude, lng: position.coords.longitude, fromDevice: true };
-        pickOrigin(point);
-      },
-      () => {
-        setLocating(false);
-        toast("Couldn't get your location. Tap the map to pick a point instead.", "error");
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
-    );
+    // fromDevice: the map zooms to you and your nearest pubs, wherever you are.
+    locate(point => pickOrigin({ ...point, fromDevice: true }));
   }
 
   return (
@@ -142,10 +127,10 @@ export default function FindPage() {
           <div className="section-header">
             <h2 id="map-heading" className="section-title">Map</h2>
             <button type="button" className="secondary-button small" onClick={locateMe} disabled={locating}>
-              {locating ? "Locating…" : "Use my location"}
+              {locating ? "Finding you…" : "Use my location"}
             </button>
           </div>
-          <p className="muted small-text" aria-live="polite">
+          <p id="origin-help" className="muted small-text" aria-live="polite">
             {origin ? (
               <>Searching from your chosen point. <button type="button" className="text-button" onClick={() => { setOrigin(null); setSortBy("price"); }}>Clear point</button></>
             ) : "Tap anywhere on the map to search from there and sort by distance."}
@@ -172,7 +157,8 @@ export default function FindPage() {
                 className={sortBy === "distance" ? "active" : ""}
                 aria-pressed={sortBy === "distance"}
                 disabled={!origin}
-                title={origin ? "Sort by distance" : "Pick a point on the map first"}
+                aria-describedby={origin ? undefined : "origin-help"}
+                title={origin ? "Sort by distance" : "Tap the map or use your location first"}
                 onClick={() => setSortBy("distance")}
               >
                 Nearest
