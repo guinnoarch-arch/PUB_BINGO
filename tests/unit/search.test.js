@@ -107,14 +107,13 @@ describe("cheapestPerPub / cheapestPints", () => {
     const board = cheapestPints(pubs, { limit: 5 });
     expect(board).toHaveLength(5);
     expect(new Set(board.map(r => r.pub.id)).size).toBe(5);
-    expect(board[0]).toMatchObject({ pintPrice: 4.9 });
-    expect(board[0].pub.id).toBe("the-alleyns-head");
+    expect(board[0]).toMatchObject({ pintPrice: 4.6 });
+    expect(board[0].pub.id).toBe("the-euston-tap");
   });
 
   it("can include several drinks from the same pub", () => {
     const board = cheapestPints(pubs, { limit: 3, onePerPub: false });
-    expect(board.map(r => r.pintPrice)).toEqual([4.9, 5.1, 5.15]);
-    expect(board[0].pub.id).toBe(board[2].pub.id);
+    expect(board.map(r => r.pintPrice)).toEqual([4.6, 4.9, 5]);
   });
 });
 

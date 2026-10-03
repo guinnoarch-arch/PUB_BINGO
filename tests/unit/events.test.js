@@ -137,6 +137,8 @@ describe("researched seed data", async () => {
       for (const d of pub.drinks) {
         const key = `${d.name.toLowerCase()}|${d.measure || "pint"}`;
         expect(seen.has(key)).toBe(false);
+        expect(d.name.trim().length).toBeGreaterThanOrEqual(2);
+        expect(d.name.length).toBeLessThanOrEqual(60); // the database limit
         seen.add(key);
         expect(d.price).toBeGreaterThanOrEqual(1);
         expect(d.price).toBeLessThanOrEqual(30);

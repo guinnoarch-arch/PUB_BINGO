@@ -1,11 +1,11 @@
-// Seed dataset: 39 real pubs across central London and Dulwich.
+// Seed dataset: 60 real pubs across central London and Dulwich.
 // Pubs from Soho to King's Cross came from the first seed; the rest, and every real price, came from the
-// research spreadsheet ("Pub Bingo pubs research", updated 28-29 Sep 2026) and the pubs' own menus.
+// research spreadsheet ("Pub Bingo pubs research", updated 28 Sep-3 Oct 2026) and the pubs' own menus.
 // Drinks with a `source` are real prices (with the link and date seen); drinks without one are estimates.
 // opening_hours: { "0": [["12:00", "22:30"]], ... } with 0 = Sunday; a closing time at or before opening = after midnight.
 // This file is the single source of truth: `npm run seed:sql` generates supabase/seed.sql from it.
 
-export const AREAS = ["Soho", "Covent Garden", "Holborn", "King's Cross", "West Dulwich", "Dulwich Village", "Dulwich Wood", "Westminster", "Bloomsbury", "Fitzrovia", "Fleet Street", "Blackfriars", "Clerkenwell", "City"];
+export const AREAS = ["Soho", "Covent Garden", "Holborn", "King's Cross", "West Dulwich", "Dulwich Village", "Dulwich Wood", "Westminster", "Bloomsbury", "Fitzrovia", "Fleet Street", "Blackfriars", "Clerkenwell", "City", "Mayfair", "Marylebone", "Belgravia", "Waterloo", "Borough", "Aldgate", "Farringdon", "Euston", "Islington", "Kentish Town"];
 
 export const CATEGORIES = ["Lager", "IPA", "Pale Ale", "Real Ale", "Stout", "Cider", "Wheat Beer", "Other"];
 
@@ -1177,5 +1177,472 @@ export const SEED_PUBS = [
       { name: "Erdinger Alkoholfrei", category: "Wheat Beer", price: 5.8, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.viaducttavern.co.uk/-/media/sites/pubs-and-hotels/v/the-viaduct-tavern-_-p121/files/global-menu-files/viaduct-tavern-drinks-menu.pdf", updated: "2023-09-15T12:00:00+01:00" },
       { name: "Peroni 0.0%", category: "Lager", price: 4.6, measure: "bottle", source: "website", source_url: "https://www.viaducttavern.co.uk/-/media/sites/pubs-and-hotels/v/the-viaduct-tavern-_-p121/files/global-menu-files/viaduct-tavern-drinks-menu.pdf", updated: "2023-09-15T12:00:00+01:00" }
     ]
+  },
+  {
+    id: "ye-grapes",
+    name: "Ye Grapes",
+    address: "16 Shepherd Market, Mayfair, London W1J 7QQ",
+    area: "Mayfair",
+    lat: 51.50663,
+    lng: -0.1463,
+    opened_year: 1882,
+    tags: ["historic", "food", "outdoor-drinking"],
+    description:
+      "A corner pub in the village-like enclave of Shepherd Market, first licensed in 1742 as a coffee house and rebuilt in 1882. Its high-ceilinged, bare-boarded bar has a hunting theme, taxidermy and a real fire, with five handpumped ales and a wide keg range, a Thai restaurant upstairs and drinkers spilling outside.",
+    opening_hours: {"0": [["12:00", "22:30"]], "1": [["11:00", "23:00"]], "2": [["11:00", "23:00"]], "3": [["11:00", "23:00"]], "4": [["11:00", "23:00"]], "5": [["11:00", "23:00"]], "6": [["11:00", "23:00"]]},
+    drinks: []
+  },
+  {
+    id: "the-golden-eagle",
+    name: "The Golden Eagle",
+    address: "59 Marylebone Lane, Marylebone, London W1U 2NY",
+    area: "Marylebone",
+    lat: 51.51767,
+    lng: -0.15082,
+    opened_year: 1890,
+    tags: ["historic", "victorian-interior", "real-ale-specialist", "live-music", "sing-along", "dog-friendly"],
+    description:
+      "A tiny single-room Victorian corner pub on Marylebone Lane, first licensed in 1842 and rebuilt in 1890, with a spectacular etched-mirror bar-back, stained glass and red banquettes. The same family has run it for more than 30 years; it serves cask ales and is famous for old-school piano sing-alongs three nights a week.",
+    opening_hours: {"1": [["12:00", "22:30"]], "2": [["12:00", "22:30"]], "3": [["12:00", "22:30"]], "4": [["12:00", "22:30"]], "5": [["12:00", "23:00"]], "6": [["12:00", "23:00"]]},
+    drinks: [
+      { name: "Guinness", category: "Stout", price: 6.8 }
+    ]
+  },
+  {
+    id: "the-barley-mow-marylebone",
+    name: "The Barley Mow",
+    address: "8 Dorset Street, London W1U 6QW",
+    area: "Marylebone",
+    lat: 51.5197,
+    lng: -0.15566,
+    opened_year: 1791,
+    tags: ["historic", "victorian-interior", "real-ale-specialist", "food", "quiz-night", "live-music", "sing-along", "sports-tv", "outdoor-drinking"],
+    description:
+      "Built in 1791 and said to be Marylebone's oldest pub, this is one of central London's last independent free houses. Its listed interior keeps two rare Victorian drinking booths at the bar, and it feels like a village local, with a famous Tuesday quiz, a darts league, pies and a wide range of cask ales.",
+    opening_hours: {"0": [["12:00", "22:00"]], "1": [["12:00", "23:00"]], "2": [["12:00", "23:00"]], "3": [["12:00", "23:00"]], "4": [["12:00", "23:00"]], "5": [["12:00", "23:00"]], "6": [["12:00", "23:00"]]},
+    drinks: [
+      { name: "London Pride (cask)", category: "Real Ale", price: 6.5, source: "website", source_url: "https://thebarleymowmarylebone.com/beer-%26-cider", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Kirkstall (Three Swords / Allsopp's Best)", category: "Real Ale", price: 6.5, source: "website", source_url: "https://thebarleymowmarylebone.com/beer-%26-cider", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Monkey Brewhouse: Tollhouse/Seawall/Lymington", category: "Real Ale", price: 6.5, source: "website", source_url: "https://thebarleymowmarylebone.com/beer-%26-cider", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Dark Star", category: "Real Ale", price: 6.5, source: "website", source_url: "https://thebarleymowmarylebone.com/beer-%26-cider", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "St Austell (Tribute / Proper Job)", category: "Real Ale", price: 6.5, source: "website", source_url: "https://thebarleymowmarylebone.com/beer-%26-cider", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Harvey's Best", category: "Real Ale", price: 6.5, source: "website", source_url: "https://thebarleymowmarylebone.com/beer-%26-cider", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Timothy Taylor Landlord", category: "Real Ale", price: 7.1, source: "website", source_url: "https://thebarleymowmarylebone.com/beer-%26-cider", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Cornish Orchards Cider", category: "Cider", price: 6.5, source: "website", source_url: "https://thebarleymowmarylebone.com/beer-%26-cider", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Fuller's London Pride Lager", category: "Lager", price: 6.8, source: "website", source_url: "https://thebarleymowmarylebone.com/beer-%26-cider", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Efes", category: "Lager", price: 7.0, source: "website", source_url: "https://thebarleymowmarylebone.com/beer-%26-cider", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Portobello Polari", category: "Pale Ale", price: 7.1, source: "website", source_url: "https://thebarleymowmarylebone.com/beer-%26-cider", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Murphy's", category: "Stout", price: 7.3, source: "website", source_url: "https://thebarleymowmarylebone.com/beer-%26-cider", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Beamish", category: "Stout", price: 7.3, source: "website", source_url: "https://thebarleymowmarylebone.com/beer-%26-cider", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Guinness", category: "Stout", price: 7.3, source: "website", source_url: "https://thebarleymowmarylebone.com/beer-%26-cider", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Peroni", category: "Lager", price: 7.3, source: "website", source_url: "https://thebarleymowmarylebone.com/beer-%26-cider", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Asahi", category: "Lager", price: 7.3, source: "website", source_url: "https://thebarleymowmarylebone.com/beer-%26-cider", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Mahou", category: "Lager", price: 7.3, source: "website", source_url: "https://thebarleymowmarylebone.com/beer-%26-cider", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Kirkstall Virtuous", category: "IPA", price: 7.5, source: "website", source_url: "https://thebarleymowmarylebone.com/beer-%26-cider", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Buckland Howler", category: "IPA", price: 7.5, source: "website", source_url: "https://thebarleymowmarylebone.com/beer-%26-cider", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Beck's", category: "Lager", price: 6.0, measure: "bottle", source: "website", source_url: "https://thebarleymowmarylebone.com/beer-%26-cider", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Mythos", category: "Lager", price: 6.5, measure: "bottle", source: "website", source_url: "https://thebarleymowmarylebone.com/beer-%26-cider", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Asahi", category: "Lager", price: 6.5, measure: "bottle", source: "website", source_url: "https://thebarleymowmarylebone.com/beer-%26-cider", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Modelo", category: "Lager", price: 6.5, measure: "bottle", source: "website", source_url: "https://thebarleymowmarylebone.com/beer-%26-cider", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Peroni Gluten Free", category: "Lager", price: 6.5, measure: "bottle", source: "website", source_url: "https://thebarleymowmarylebone.com/beer-%26-cider", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Cornish Orchards Raspberry & Elderflower", category: "Cider", price: 7.0, measure: "bottle", source: "website", source_url: "https://thebarleymowmarylebone.com/beer-%26-cider", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Cornish Orchards Dark Cherry & Blackberry", category: "Cider", price: 7.0, measure: "bottle", source: "website", source_url: "https://thebarleymowmarylebone.com/beer-%26-cider", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Kirkstall Tropicous (0.5%)", category: "IPA", price: 6.0, source: "website", source_url: "https://thebarleymowmarylebone.com/beer-%26-cider", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Peroni 0.0%", category: "Lager", price: 6.5, source: "website", source_url: "https://thebarleymowmarylebone.com/beer-%26-cider", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Guinness 0.0", category: "Stout", price: 7.0, measure: "can", source: "website", source_url: "https://thebarleymowmarylebone.com/beer-%26-cider", updated: "2026-09-30T12:00:00+01:00" }
+    ]
+  },
+  {
+    id: "the-nags-head-belgravia",
+    name: "The Nag's Head",
+    address: "53 Kinnerton Street, Belgravia, London SW1X 8ED",
+    area: "Belgravia",
+    lat: 51.501176,
+    lng: -0.156934,
+    opened_year: null,
+    tags: ["historic", "dog-friendly", "live-music"],
+    description:
+      "A tiny early-Victorian beer house on a Belgravia mews street, famous for its house rules: no mobile phones, coats on the hooks and a minimum spend for cards. It has a very low bar counter with antique Chelsea-pottery handpumps and three split-level rooms crammed with memorabilia and vintage slot machines, and has been run by the same eccentric landlord for decades.",
+    opening_hours: {"0": [["12:00", "22:30"]], "1": [["11:00", "23:00"]], "2": [["11:00", "23:00"]], "3": [["11:00", "23:00"]], "4": [["11:00", "23:00"]], "5": [["11:00", "23:00"]], "6": [["11:00", "23:00"]]},
+    drinks: [
+      { name: "Adnams Dry Hopped Lager", category: "Lager", price: 7.0 }
+    ]
+  },
+  {
+    id: "the-star-tavern",
+    name: "The Star Tavern",
+    address: "6 Belgrave Mews West, Belgravia, London SW1X 8HT",
+    area: "Belgravia",
+    lat: 51.49844,
+    lng: -0.15586,
+    opened_year: 1848,
+    tags: ["historic", "victorian-interior", "real-ale-specialist", "food", "dog-friendly"],
+    description:
+      "A Grade II-listed 19th-century mews pub hidden off Belgrave Square, one of only five pubs in every edition of CAMRA's Good Beer Guide and famous as the 1960s haunt where the Great Train Robbery was planned. Inside are snug wood-panelled rooms, a Victorian bar-back, real fires and an upstairs 'Library' bar, with mostly Fuller's cask ales.",
+    opening_hours: {"0": [["12:00", "21:00"]], "1": [["12:00", "22:00"]], "2": [["12:00", "23:00"]], "3": [["12:00", "23:00"]], "4": [["12:00", "23:00"]], "5": [["12:00", "23:00"]], "6": [["11:00", "23:00"]]},
+    drinks: []
+  },
+  {
+    id: "the-kings-arms-waterloo",
+    name: "The King's Arms",
+    address: "25 Roupell Street, London SE1 8TB",
+    area: "Waterloo",
+    lat: 51.504466,
+    lng: -0.109073,
+    opened_year: null,
+    tags: ["historic", "real-ale-specialist", "food", "quiz-night", "outdoor-drinking"],
+    description:
+      "A Grade II-listed early-19th-century corner pub on Roupell Street, a terrace of old cottages often used for filming. Two small bare-boarded front bars share a horseshoe counter with eight handpumps of changing cask ales, and a big skylit back room full of bric-a-brac hosts Thai food from Kanchana's Kitchen and the Sunday quiz.",
+    opening_hours: {"0": [["12:00", "22:30"]], "1": [["11:00", "23:00"]], "2": [["11:00", "23:00"]], "3": [["11:00", "23:00"]], "4": [["11:00", "23:00"]], "5": [["11:00", "23:00"]], "6": [["11:00", "23:00"]]},
+    drinks: []
+  },
+  {
+    id: "the-george-inn",
+    name: "The George Inn",
+    address: "75-77 Borough High Street, Southwark, London SE1 1NH",
+    area: "Borough",
+    lat: 51.504149,
+    lng: -0.089992,
+    opened_year: 1676,
+    tags: ["historic", "beer-garden", "outdoor-drinking", "food", "dog-friendly", "sports-tv", "live-music"],
+    description:
+      "London's last surviving galleried coaching inn, rebuilt in 1676 after a fire, Grade I listed and owned by the National Trust since 1937. Warped timber galleries overlook a large cobbled courtyard with outdoor seating, and inside is a warren of small rooms including the Parliament Bar with its old woodwork and one-handed clock. It's a Greene King pub serving cask ales and food.",
+    opening_hours: {"0": [["11:00", "23:00"]], "1": [["11:00", "23:00"]], "2": [["11:00", "23:00"]], "3": [["11:00", "23:00"]], "4": [["11:00", "00:00"]], "5": [["11:00", "00:00"]], "6": [["11:00", "00:00"]]},
+    drinks: [
+      { name: "Greene King Bonkers Conkers", category: "Real Ale", price: 6.45 },
+      { name: "Guinness", category: "Stout", price: 6.9 },
+      { name: "Aspall Cyder", category: "Cider", price: 6.9 },
+      { name: "Greene King Cold Harbour Lager", category: "Lager", price: 7.3 },
+      { name: "Estrella Damm", category: "Lager", price: 7.4 },
+      { name: "Greene King Flint Eye Lager", category: "Lager", price: 7.7 },
+      { name: "Beavertown Neck Oil", category: "Pale Ale", price: 7.8 }
+    ]
+  },
+  {
+    id: "the-market-porter",
+    name: "The Market Porter",
+    address: "9 Stoney Street, Borough Market, London SE1 9AA",
+    area: "Borough",
+    lat: 51.505363,
+    lng: -0.091301,
+    opened_year: null,
+    tags: ["historic", "real-ale-specialist", "food", "sports-tv", "outdoor-drinking", "dog-friendly"],
+    description:
+      "A Victorian market pub on Stoney Street beside Borough Market, famous for its big rotating range of cask ales and for opening at 6am on weekdays for market workers. The busy S-shaped ground-floor bar spills onto the street, and a quieter upstairs dining room with its own bar overlooks the market.",
+    opening_hours: {"0": [["12:00", "22:30"]], "1": [["06:00", "09:00"], ["10:00", "23:00"]], "2": [["06:00", "09:00"], ["10:00", "23:00"]], "3": [["06:00", "09:00"], ["10:00", "23:00"]], "4": [["06:00", "09:00"], ["10:00", "23:00"]], "5": [["06:00", "09:00"], ["10:00", "23:00"]], "6": [["12:00", "23:00"]]},
+    drinks: []
+  },
+  {
+    id: "the-rake",
+    name: "The Rake",
+    address: "14 Winchester Walk, Borough Market, London SE1 9AG",
+    area: "Borough",
+    lat: 51.5062294,
+    lng: -0.0906058,
+    opened_year: 2006,
+    tags: ["craft-beer", "outdoor-drinking", "dog-friendly"],
+    description:
+      "Opened by the Utobeer team in 2006 on the site of an old Victorian pub, The Rake is a tiny glass-roofed beer bar behind Borough Market that calls itself 'London's original beer bar'. Most drinkers spill onto the decked outdoor area, and the constantly rotating taps, handpumps and around 100 bottles and cans are served in thirds, halves, two-thirds or pints.",
+    opening_hours: {"0": [["12:00", "22:00"]], "1": [["12:00", "23:00"]], "2": [["12:00", "23:00"]], "3": [["12:00", "23:00"]], "4": [["12:00", "23:00"]], "5": [["12:00", "23:00"]], "6": [["11:00", "23:00"]]},
+    drinks: [
+      { name: "RedWillow Nonetheless", category: "Pale Ale", price: 5.0, source: "website", source_url: "https://untappd.com/v/the-rake/20074?menu_id=133100", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Buxton Gatekeeper", category: "Stout", price: 5.0, source: "website", source_url: "https://untappd.com/v/the-rake/20074?menu_id=133100", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "RedWillow Weightless", category: "IPA", price: 5.5, source: "website", source_url: "https://untappd.com/v/the-rake/20074?menu_id=133100", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Anspach & Hobday Rauchbier Smoked Lager", category: "Lager", price: 6.0, source: "website", source_url: "https://untappd.com/v/the-rake/20074?menu_id=133100", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Red Fin Fresh Apple", category: "Cider", price: 6.6, source: "website", source_url: "https://untappd.com/v/the-rake/20074?menu_id=133100", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "SeaCider Mango", category: "Cider", price: 7.0, source: "website", source_url: "https://untappd.com/v/the-rake/20074?menu_id=133100", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Budvar Nefiltr", category: "Lager", price: 7.0, source: "website", source_url: "https://untappd.com/v/the-rake/20074?menu_id=133100", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "RedWillow Witless", category: "Wheat Beer", price: 7.5, source: "website", source_url: "https://untappd.com/v/the-rake/20074?menu_id=133100", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Tegernseer Hell", category: "Lager", price: 7.5, source: "website", source_url: "https://untappd.com/v/the-rake/20074?menu_id=133100", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "RedWillow Heartless", category: "Stout", price: 7.5, source: "website", source_url: "https://untappd.com/v/the-rake/20074?menu_id=133100", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "RedWillow Dreamless", category: "IPA", price: 8.0, source: "website", source_url: "https://untappd.com/v/the-rake/20074?menu_id=133100", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Courier Debbie, Viv, Siouxsie, Chrissy, Polly & Pauline", category: "Pale Ale", price: 8.0, source: "website", source_url: "https://untappd.com/v/the-rake/20074?menu_id=133100", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Ideal Day Beaming", category: "Other", price: 10.0, source: "website", source_url: "https://untappd.com/v/the-rake/20074?menu_id=133100", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Löwenbräu Oktoberfestbier", category: "Lager", price: 10.0, source: "website", source_url: "https://untappd.com/v/the-rake/20074?menu_id=133100", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Verdant Big Stupid Westy V6", category: "IPA", price: 12.0, source: "website", source_url: "https://untappd.com/v/the-rake/20074?menu_id=133100", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "RedWillow Restless", category: "Stout", price: 12.0, source: "website", source_url: "https://untappd.com/v/the-rake/20074?menu_id=133100", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Sierra Nevada Bock, Stock and Barrel", category: "Lager", price: 12.0, source: "website", source_url: "https://untappd.com/v/the-rake/20074?menu_id=133100", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "WeldWerks Strawberry Cheesecake", category: "Other", price: 15.0, source: "website", source_url: "https://untappd.com/v/the-rake/20074?menu_id=133100", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "WeldWerks Juicy Bits", category: "IPA", price: 18.0, source: "website", source_url: "https://untappd.com/v/the-rake/20074?menu_id=133100", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Other Half Fresh Pickles", category: "IPA", price: 25.0, source: "website", source_url: "https://untappd.com/v/the-rake/20074?menu_id=133100", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Augustiner Oktoberfest Bier", category: "Lager", price: 7.5, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://untappd.com/v/the-rake/20074", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Augustiner Lagerbier Hell", category: "Lager", price: 7.0, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://untappd.com/v/the-rake/20074", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Schneider Weisse Tap 1 Hefeweissbier", category: "Wheat Beer", price: 7.5, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://untappd.com/v/the-rake/20074", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Blanche de Bruxelles", category: "Wheat Beer", price: 6.0, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://untappd.com/v/the-rake/20074", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Duchesse de Bourgogne", category: "Other", price: 6.5, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://untappd.com/v/the-rake/20074", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Pauwel Kwak", category: "Pale Ale", price: 8.5, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://untappd.com/v/the-rake/20074", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Chimay Grande Réserve (Blue)", category: "Other", price: 10.0, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://untappd.com/v/the-rake/20074", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Cantillon Rosé de Gambrinus", category: "Other", price: 20.0, measure: "bottle", volume_ml: 375, source: "website", source_url: "https://untappd.com/v/the-rake/20074", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Timmermans Oude Gueuze", category: "Other", price: 25.0, measure: "bottle", volume_ml: 750, source: "website", source_url: "https://untappd.com/v/the-rake/20074", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Farm Yard Pig Pale", category: "Pale Ale", price: 9.0, measure: "can", volume_ml: 440, source: "website", source_url: "https://untappd.com/v/the-rake/20074", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Pretty Decent x The Rake Raking Up the Past", category: "Other", price: 9.0, measure: "can", volume_ml: 440, source: "website", source_url: "https://untappd.com/v/the-rake/20074", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Rye River Crafty Brewing Irish Stout", category: "Stout", price: 8.0, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://untappd.com/v/the-rake/20074", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Kerisac Brut Traditionnel Cidre", category: "Cider", price: 6.0, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://untappd.com/v/the-rake/20074", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Schneider Weisse Tap 3 Alkoholfrei", category: "Wheat Beer", price: 7.5, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://untappd.com/v/the-rake/20074", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Buxton Axed", category: "IPA", price: 6.0, measure: "can", volume_ml: 440, source: "website", source_url: "https://untappd.com/v/the-rake/20074", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Heaps Normal Half Day Hazy", category: "IPA", price: 5.0, measure: "can", volume_ml: 375, source: "website", source_url: "https://untappd.com/v/the-rake/20074", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Budvar Bud Lime", category: "Other", price: 5.0, measure: "can", volume_ml: 500, source: "website", source_url: "https://untappd.com/v/the-rake/20074", updated: "2026-09-30T12:00:00+01:00" }
+    ]
+  },
+  {
+    id: "the-royal-oak-borough",
+    name: "The Royal Oak",
+    address: "44 Tabard Street, London SE1 4JU",
+    area: "Borough",
+    lat: 51.500122,
+    lng: -0.091444,
+    opened_year: null,
+    tags: ["historic", "real-ale-specialist", "food", "dog-friendly", "quiz-night", "live-music", "sports-tv"],
+    description:
+      "A Victorian brick corner pub on a quiet Borough backstreet near the site of Chaucer's Tabard Inn, bought by Sussex brewer Harvey's in 1997 as its first London pub and restored as a traditional city beer house. Two bare-boarded bars are split by a mahogany off-sales area, serving the full Harvey's cask range, with Dark Mild a favourite.",
+    opening_hours: {"0": [["12:00", "21:00"]], "1": [["11:00", "23:00"]], "2": [["11:00", "23:00"]], "3": [["11:00", "23:00"]], "4": [["11:00", "23:00"]], "5": [["11:00", "23:00"]], "6": [["11:00", "23:00"]]},
+    drinks: [
+      { name: "Harvey's Armada Ale", category: "Real Ale", price: 6.3 },
+      { name: "Harvey's Sussex Best Bitter", category: "Real Ale", price: 5.7 },
+      { name: "Harvey's Porter", category: "Stout", price: 6.0 },
+      { name: "Harvey's Old Ale", category: "Real Ale", price: 5.2 }
+    ]
+  },
+  {
+    id: "the-hoop-and-grapes",
+    name: "The Hoop and Grapes",
+    address: "47 Aldgate High Street, London EC3N 1AL",
+    area: "Aldgate",
+    lat: 51.514256,
+    lng: -0.074181,
+    opened_year: null,
+    tags: ["historic", "food", "sports-tv", "dog-friendly"],
+    description:
+      "A rare surviving late-17th-century timber-framed building on Aldgate High Street, with a leaning, jettied front and carved posts at the door; the Great Fire of 1666 stopped just short of the site. A wine merchant's until about 1920, it's now a cosy, low-ceilinged Nicholson's pub serving pies and cask ale to City and Aldgate office workers.",
+    opening_hours: {"0": [["11:00", "23:00"]], "1": [["11:00", "23:00"]], "2": [["11:00", "23:00"]], "3": [["11:00", "23:00"]], "4": [["11:00", "23:00"]], "5": [["11:00", "00:00"]], "6": [["11:00", "00:00"]]},
+    drinks: [
+      { name: "Nicholson's Pale Ale", category: "Real Ale", price: 6.5, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thehoopandgrapesaldgatelondon/drinks", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Timothy Taylor Landlord", category: "Real Ale", price: 7.2, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thehoopandgrapesaldgatelondon/drinks", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Asahi Super Dry", category: "Lager", price: 8.0, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thehoopandgrapesaldgatelondon/drinks", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Madri", category: "Lager", price: 7.7, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thehoopandgrapesaldgatelondon/drinks", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Peroni Nastro Azzurro", category: "Lager", price: 7.9, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thehoopandgrapesaldgatelondon/drinks", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Camden Hells", category: "Lager", price: 7.95, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thehoopandgrapesaldgatelondon/drinks", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Budvar", category: "Lager", price: 8.1, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thehoopandgrapesaldgatelondon/drinks", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Jubel Peach", category: "Other", price: 8.2, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thehoopandgrapesaldgatelondon/drinks", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Damm Lemon", category: "Other", price: 7.6, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thehoopandgrapesaldgatelondon/drinks", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Guinness", category: "Stout", price: 7.65, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thehoopandgrapesaldgatelondon/drinks", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Beavertown Neck Oil", category: "Pale Ale", price: 8.15, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thehoopandgrapesaldgatelondon/drinks", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Westons Vintage Cider", category: "Cider", price: 7.3, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thehoopandgrapesaldgatelondon/drinks", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Rosie's Pig Rhubarb", category: "Cider", price: 7.9, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thehoopandgrapesaldgatelondon/drinks", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Schöfferhofer Grapefruit Radler", category: "Wheat Beer", price: 6.65, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thehoopandgrapesaldgatelondon/drinks", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Budweiser", category: "Lager", price: 6.45, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thehoopandgrapesaldgatelondon/drinks", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Peroni Nastro Azzurro", category: "Lager", price: 6.45, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thehoopandgrapesaldgatelondon/drinks", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Corona Extra", category: "Lager", price: 6.5, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thehoopandgrapesaldgatelondon/drinks", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Daura Damm (gluten free)", category: "Lager", price: 6.4, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thehoopandgrapesaldgatelondon/drinks", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Paulaner Weiss", category: "Wheat Beer", price: 7.0, measure: "bottle", source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thehoopandgrapesaldgatelondon/drinks", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Sandford Orchards Devon Red", category: "Cider", price: 7.25, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thehoopandgrapesaldgatelondon/drinks", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Bulmers Original", category: "Cider", price: 6.45, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thehoopandgrapesaldgatelondon/drinks", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Rekorderlig Wild Berries", category: "Cider", price: 7.15, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thehoopandgrapesaldgatelondon/drinks", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Rekorderlig Strawberry-Lime", category: "Cider", price: 7.15, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thehoopandgrapesaldgatelondon/drinks", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Lucky Saint (0.5%)", category: "Lager", price: 6.7, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thehoopandgrapesaldgatelondon/drinks", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Peroni 0.0%", category: "Lager", price: 5.2, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thehoopandgrapesaldgatelondon/drinks", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Guinness 0.0", category: "Stout", price: 5.65, measure: "can", volume_ml: 583, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thehoopandgrapesaldgatelondon/drinks", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Lucky Saint (0.5%)", category: "Lager", price: 5.6, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thehoopandgrapesaldgatelondon/drinks", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Lucky Saint Hazy IPA (0.5%)", category: "IPA", price: 5.6, measure: "can", volume_ml: 330, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thehoopandgrapesaldgatelondon/drinks", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Rekorderlig Strawberry-Lime 0.0%", category: "Cider", price: 6.1, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thehoopandgrapesaldgatelondon/drinks", updated: "2026-09-30T12:00:00+01:00" },
+      { name: "Proper Job 0.5% IPA", category: "IPA", price: 5.6, measure: "bottle", source: "website", source_url: "https://www.nicholsonspubs.co.uk/restaurants/london/thehoopandgrapesaldgatelondon/drinks", updated: "2026-09-30T12:00:00+01:00" }
+    ]
+  },
+  {
+    id: "old-doctor-butlers-head",
+    name: "Old Doctor Butler's Head",
+    address: "2 Mason's Avenue, London EC2V 5BT",
+    area: "City",
+    lat: 51.5156882,
+    lng: -0.0902844,
+    opened_year: 1610,
+    tags: ["historic", "food", "sports-tv", "outdoor-drinking", "dog-friendly"],
+    description:
+      "Tucked down a narrow alley off Coleman Street near Guildhall, this Shepherd Neame pub claims roots in 1610 and is named after Dr William Butler, James I's physician, whose medicinal ale was sold only in taverns showing his head on the sign. It's a dark, traditional City pub with Kentish cask ales, pub classics and a small upstairs restaurant, busy on weekday evenings and closed at weekends.",
+    opening_hours: {"1": [["12:00", "22:00"]], "2": [["12:00", "22:00"]], "3": [["11:00", "23:00"]], "4": [["11:00", "23:00"]], "5": [["11:00", "23:00"]]},
+    drinks: []
+  },
+  {
+    id: "the-seven-stars",
+    name: "The Seven Stars",
+    address: "53-54 Carey Street, London WC2A 2JB",
+    area: "Holborn",
+    lat: 51.51497,
+    lng: -0.11349,
+    opened_year: null,
+    tags: ["historic", "victorian-interior", "food", "no-music-no-tv", "outdoor-drinking"],
+    description:
+      "A tiny, much-loved free house behind the Royal Courts of Justice, dated 1602 on its frontage though probably built in the late 17th century, with a Victorian bar-back, legal film posters, a resident cat and famously steep stairs to the loos. Landlady Roxy Beaujolais has run it since 2001, serving Adnams cask ales and a daily-changing blackboard menu, with no music.",
+    opening_hours: {"0": [["12:00", "22:00"]], "1": [["12:00", "23:00"]], "2": [["12:00", "23:00"]], "3": [["12:00", "23:00"]], "4": [["12:00", "23:00"]], "5": [["12:00", "23:00"]], "6": [["12:00", "23:00"]]},
+    drinks: [
+      { name: "Guinness", category: "Stout", price: 6.3 }
+    ]
+  },
+  {
+    id: "the-fox-and-anchor",
+    name: "The Fox & Anchor",
+    address: "115 Charterhouse Street, London EC1M 6AA",
+    area: "Farringdon",
+    lat: 51.52044,
+    lng: -0.10075,
+    opened_year: 1898,
+    tags: ["historic", "food", "sports-tv", "dog-friendly"],
+    description:
+      "A Grade II-listed 1898 Smithfield Market pub with a Doulton-tiled Art Nouveau front, long and narrow with snugs at the back and hotel rooms upstairs. Run by Young's, it opens at 7am on weekdays and is best known for its huge market-porter breakfast served with a pint of Guinness.",
+    opening_hours: {"0": [["08:30", "22:00"]], "1": [["07:00", "23:00"]], "2": [["07:00", "23:00"]], "3": [["07:00", "23:00"]], "4": [["07:00", "23:00"]], "5": [["07:00", "23:00"]], "6": [["08:30", "23:00"]]},
+    drinks: []
+  },
+  {
+    id: "the-three-kings",
+    name: "The Three Kings",
+    address: "7 Clerkenwell Close, London EC1R 0DY",
+    area: "Clerkenwell",
+    lat: 51.52331,
+    lng: -0.10581,
+    opened_year: 1871,
+    tags: ["historic", "food"],
+    description:
+      "A curved, three-storey brick corner pub rebuilt in 1871, looking over St James's Church and its churchyard in Clerkenwell. It has one bar with four handpumps for changing cask ales, some inter-war fittings and old brewery window panels, upstairs function rooms and a home-cooked pub menu.",
+    opening_hours: {"0": [["12:00", "21:00"]], "1": [["12:00", "23:00"]], "2": [["12:00", "23:00"]], "3": [["12:00", "23:00"]], "4": [["12:00", "23:00"]], "5": [["12:00", "23:00"]], "6": [["12:00", "23:00"]]},
+    drinks: [
+      { name: "Guinness", category: "Stout", price: 6.6 }
+    ]
+  },
+  {
+    id: "the-parcel-yard",
+    name: "The Parcel Yard",
+    address: "King's Cross Station, Euston Road, London N1C 4AH",
+    area: "King's Cross",
+    lat: 51.53248,
+    lng: -0.1238,
+    opened_year: 2012,
+    tags: ["historic", "food", "sports-tv", "real-ale-specialist"],
+    description:
+      "Fuller's flagship station pub, opened in 2012 in Lewis Cubitt's Grade I-listed 1852 parcels office at King's Cross, right next to Platform 9. It spreads over two floors of rooms around a glass-roofed atrium, with Fuller's cask ales from around a dozen handpumps and food from breakfast onwards.",
+    opening_hours: {"0": [["08:00", "21:00"]], "1": [["08:00", "22:30"]], "2": [["08:00", "22:30"]], "3": [["08:00", "22:30"]], "4": [["08:00", "22:30"]], "5": [["08:00", "22:30"]], "6": [["08:00", "22:30"]]},
+    drinks: []
+  },
+  {
+    id: "the-euston-tap",
+    name: "The Euston Tap",
+    address: "190 Euston Road, London NW1 2EF",
+    area: "Euston",
+    lat: 51.5269966,
+    lng: -0.1325638,
+    opened_year: 2010,
+    tags: ["historic", "craft-beer", "real-ale-specialist", "beer-garden", "dog-friendly"],
+    description:
+      "Since 2010 the Euston Tap has occupied one of the two Grade II-listed 1870s stone gatehouses that survived the demolition of the Victorian Euston station. The tiled ground-floor bar is tiny, with a spiral staircase up to more seating and a big heated beer garden, pouring five changing cask ales and around ten kegs, heavy on German and Czech lagers, at prices that are cheap for central London.",
+    opening_hours: {"0": [["12:00", "22:00"]], "1": [["11:00", "23:00"]], "2": [["11:00", "23:00"]], "3": [["11:00", "23:00"]], "4": [["11:00", "23:00"]], "5": [["11:00", "23:00"]], "6": [["11:00", "23:00"]]},
+    drinks: [
+      { name: "Kirkstall Nectar", category: "Pale Ale", price: 4.6 },
+      { name: "Adnams Wild Wave", category: "Cider", price: 5.5 },
+      { name: "Redemption Solar Pale Ale", category: "Pale Ale", price: 5.6 },
+      { name: "Bitburger German Pils", category: "Lager", price: 5.9 }
+    ]
+  },
+  {
+    id: "the-tamil-crown",
+    name: "The Tamil Crown",
+    address: "16 Elia Street, London N1 8DE",
+    area: "Islington",
+    lat: 51.532,
+    lng: -0.10185,
+    opened_year: null,
+    tags: ["food"],
+    description:
+      "A Victorian corner pub on a quiet backstreet near Angel, long known as The Charles Lamb and reopened in late 2023 as The Tamil Crown by the team behind The Tamil Prince. It's a low-lit neighbourhood pub serving South Indian sharing plates and spiced cocktails, with a walk-in bar downstairs and a dining room upstairs.",
+    opening_hours: {"0": [["11:00", "21:30"]], "1": [["17:00", "22:00"]], "2": [["12:00", "22:00"]], "3": [["12:00", "22:00"]], "4": [["12:00", "22:00"]], "5": [["12:00", "22:00"]], "6": [["11:00", "22:00"]]},
+    drinks: [
+      { name: "Crown Lager (GF)", category: "Lager", price: 7.5, source: "website", source_url: "https://www.thetamilcrown.com/s/The-Tamil-Crown-menus-september.pdf", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Harbour Pilsner (GF)", category: "Lager", price: 8.0, source: "website", source_url: "https://www.thetamilcrown.com/s/The-Tamil-Crown-menus-september.pdf", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Harbour Beach Party Pale Ale (GF)", category: "Pale Ale", price: 8.0, source: "website", source_url: "https://www.thetamilcrown.com/s/The-Tamil-Crown-menus-september.pdf", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Harbour Arctic Sky IPA (GF)", category: "IPA", price: 8.0, source: "website", source_url: "https://www.thetamilcrown.com/s/The-Tamil-Crown-menus-september.pdf", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Purity Session Pale (GF)", category: "Pale Ale", price: 8.0, source: "website", source_url: "https://www.thetamilcrown.com/s/The-Tamil-Crown-menus-september.pdf", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Guinness", category: "Stout", price: 8.0, source: "website", source_url: "https://www.thetamilcrown.com/s/The-Tamil-Crown-menus-september.pdf", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Peroni", category: "Lager", price: 6.5, measure: "bottle", source: "website", source_url: "https://www.thetamilcrown.com/s/The-Tamil-Crown-menus-september.pdf", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Cobra", category: "Lager", price: 6.5, measure: "bottle", source: "website", source_url: "https://www.thetamilcrown.com/s/The-Tamil-Crown-menus-september.pdf", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Kingfisher", category: "Lager", price: 6.5, measure: "bottle", source: "website", source_url: "https://www.thetamilcrown.com/s/The-Tamil-Crown-menus-september.pdf", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Breton Cider", category: "Cider", price: 6.5, measure: "bottle", source: "website", source_url: "https://www.thetamilcrown.com/s/The-Tamil-Crown-menus-september.pdf", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Lucky Saint (0.5%)", category: "Lager", price: 6.5, measure: "bottle", source: "website", source_url: "https://www.thetamilcrown.com/s/The-Tamil-Crown-menus-september.pdf", updated: "2026-10-01T12:00:00+01:00" }
+    ]
+  },
+  {
+    id: "the-island-queen",
+    name: "The Island Queen",
+    address: "87 Noel Road, London N1 8HD",
+    area: "Islington",
+    lat: 51.533195,
+    lng: -0.098456,
+    opened_year: 1851,
+    tags: ["historic", "victorian-interior", "craft-beer", "food", "quiz-night", "outdoor-drinking"],
+    description:
+      "A Victorian gin palace of 1851, refitted in the 1890s and Grade II listed, with one of London's finest interiors: a tall central island bar with cast-iron columns, etched glass, mirrors and a Lincrusta ceiling. On a quiet street near Angel and the Regent's Canal, it's now a Castle pub serving craft beer, pub food and cocktails, with a quiz every Tuesday.",
+    opening_hours: {"0": [["12:00", "22:00"]], "1": [["12:00", "23:00"]], "2": [["12:00", "23:00"]], "3": [["12:00", "23:00"]], "4": [["12:00", "23:00"]], "5": [["12:00", "00:00"]], "6": [["12:00", "00:00"]]},
+    drinks: [
+      { name: "Black Sheep Bitter", category: "Real Ale", price: 6.8, source: "website", source_url: "https://www.theislandqueenislington.co.uk/menus/drink", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Beavertown Neck Oil", category: "Pale Ale", price: 8.4, source: "website", source_url: "https://www.theislandqueenislington.co.uk/menus/drink", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Jubel Peach", category: "Other", price: 8.45, source: "website", source_url: "https://www.theislandqueenislington.co.uk/menus/drink", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Verdant Lightbulb", category: "Pale Ale", price: 8.8, source: "website", source_url: "https://www.theislandqueenislington.co.uk/menus/drink", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Camden Hells", category: "Lager", price: 8.35, source: "website", source_url: "https://www.theislandqueenislington.co.uk/menus/drink", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Peroni Nastro Azzurro", category: "Lager", price: 8.2, source: "website", source_url: "https://www.theislandqueenislington.co.uk/menus/drink", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Madri", category: "Lager", price: 8.0, source: "website", source_url: "https://www.theislandqueenislington.co.uk/menus/drink", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Asahi Super Dry", category: "Lager", price: 8.35, source: "website", source_url: "https://www.theislandqueenislington.co.uk/menus/drink", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Guinness", category: "Stout", price: 7.95, source: "website", source_url: "https://www.theislandqueenislington.co.uk/menus/drink", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Aspall Cyder", category: "Cider", price: 7.5, source: "website", source_url: "https://www.theislandqueenislington.co.uk/menus/drink", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Arbor Faked Alaska Pudding IPA", category: "IPA", price: 8.35, measure: "can", volume_ml: 568, source: "website", source_url: "https://www.theislandqueenislington.co.uk/menus/drink", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Arbor Pocket Rocket Session Pale Ale", category: "Pale Ale", price: 8.35, measure: "can", volume_ml: 568, source: "website", source_url: "https://www.theislandqueenislington.co.uk/menus/drink", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Verdant Even Sharks Need Water", category: "IPA", price: 7.75, measure: "can", volume_ml: 440, source: "website", source_url: "https://www.theislandqueenislington.co.uk/menus/drink", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Vault City Strawberry Sundae Sour", category: "Other", price: 7.75, measure: "can", volume_ml: 440, source: "website", source_url: "https://www.theislandqueenislington.co.uk/menus/drink", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Vault City Triple Fruited Mango Sour", category: "Other", price: 7.75, measure: "can", volume_ml: 440, source: "website", source_url: "https://www.theislandqueenislington.co.uk/menus/drink", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Leffe Blonde", category: "Other", price: 7.85, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.theislandqueenislington.co.uk/menus/drink", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Schöfferhofer Grapefruit Radler", category: "Wheat Beer", price: 6.75, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.theislandqueenislington.co.uk/menus/drink", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Paulaner Hefe-Weissbier", category: "Wheat Beer", price: 7.45, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.theislandqueenislington.co.uk/menus/drink", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Daura Damm (gluten free)", category: "Lager", price: 6.2, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.theislandqueenislington.co.uk/menus/drink", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Duvel", category: "Other", price: 7.5, measure: "bottle", source: "website", source_url: "https://www.theislandqueenislington.co.uk/menus/drink", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Peroni Nastro Azzurro", category: "Lager", price: 6.45, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.theislandqueenislington.co.uk/menus/drink", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Bacchus Raspberry", category: "Other", price: 7.85, measure: "bottle", volume_ml: 375, source: "website", source_url: "https://www.theislandqueenislington.co.uk/menus/drink", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Corona Extra", category: "Lager", price: 6.45, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.theislandqueenislington.co.uk/menus/drink", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Rekorderlig Strawberry-Lime", category: "Cider", price: 7.2, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.theislandqueenislington.co.uk/menus/drink", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Rekorderlig Peach-Raspberry", category: "Cider", price: 7.2, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.theislandqueenislington.co.uk/menus/drink", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Sandford Orchards Devon Red", category: "Cider", price: 7.6, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.theislandqueenislington.co.uk/menus/drink", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Sandford Orchards Berry Lane", category: "Cider", price: 7.8, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.theislandqueenislington.co.uk/menus/drink", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Lucky Saint (0.5%)", category: "Lager", price: 7.55, source: "website", source_url: "https://www.theislandqueenislington.co.uk/menus/drink", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Lucky Saint (0.5%)", category: "Lager", price: 5.8, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.theislandqueenislington.co.uk/menus/drink", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Lucky Saint Lemon Lager (0.5%)", category: "Other", price: 5.8, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.theislandqueenislington.co.uk/menus/drink", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Lucky Saint IPA (0.5%)", category: "IPA", price: 5.8, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.theislandqueenislington.co.uk/menus/drink", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Peroni 0.0%", category: "Lager", price: 5.15, measure: "bottle", volume_ml: 330, source: "website", source_url: "https://www.theislandqueenislington.co.uk/menus/drink", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Thatchers Zero", category: "Cider", price: 6.15, measure: "can", volume_ml: 500, source: "website", source_url: "https://www.theislandqueenislington.co.uk/menus/drink", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Guinness 0.0", category: "Stout", price: 6.05, measure: "can", volume_ml: 538, source: "website", source_url: "https://www.theislandqueenislington.co.uk/menus/drink", updated: "2026-10-01T12:00:00+01:00" },
+      { name: "Proper Job 0.5% IPA", category: "IPA", price: 6.2, measure: "bottle", volume_ml: 500, source: "website", source_url: "https://www.theislandqueenislington.co.uk/menus/drink", updated: "2026-10-01T12:00:00+01:00" }
+    ]
+  },
+  {
+    id: "the-southampton-arms",
+    name: "The Southampton Arms",
+    address: "139 Highgate Road, London NW5 1LE",
+    area: "Kentish Town",
+    lat: 51.556113,
+    lng: -0.146179,
+    opened_year: null,
+    tags: ["historic", "real-ale-specialist", "craft-beer", "beer-garden", "live-music", "food", "dog-friendly"],
+    description:
+      "A small 1830s London-brick alehouse with a CAMRA-listed historic interior, rescued in 2009 and run ever since as an independent 'ale, cider and meat' house. Its taps and pumps pour changing beers and ciders from small independent breweries, with pork baps, pies and scotch eggs, records on vinyl, live piano a few nights a week and a walled garden; there's no TV and no bookings.",
+    opening_hours: {"0": [["12:00", "22:30"]], "1": [["12:00", "23:00"]], "2": [["12:00", "23:00"]], "3": [["12:00", "23:00"]], "4": [["12:00", "23:00"]], "5": [["12:00", "00:00"]], "6": [["12:00", "00:00"]]},
+    drinks: []
+  },
+  {
+    id: "the-pineapple-kentish-town",
+    name: "The Pineapple",
+    address: "51 Leverton Street, London NW5 2NX",
+    area: "Kentish Town",
+    lat: 51.55297,
+    lng: -0.13964,
+    opened_year: 1868,
+    tags: ["historic", "victorian-interior", "real-ale-specialist", "beer-garden", "food", "quiz-night", "dog-friendly"],
+    description:
+      "A mid-Victorian back-street local of about 1868, saved from closure by a vigorous local and CAMRA campaign in 2001-02. It has one of London's finest mahogany bar-backs with etched and gilt mirrors, and today it's a friendly free house with changing cask ales, a Thai kitchen, a Monday quiz and a conservatory and garden at the back.",
+    opening_hours: {"0": [["12:00", "22:30"]], "1": [["12:00", "23:00"]], "2": [["12:00", "23:00"]], "3": [["12:00", "23:00"]], "4": [["12:00", "23:00"]], "5": [["12:00", "00:00"]], "6": [["12:00", "00:00"]]},
+    drinks: []
   }
 ];

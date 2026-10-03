@@ -1,6 +1,6 @@
 # Pub Bingo
 
-Find the cheapest pint in London: central London (Soho to the City, Westminster to Clerkenwell) and Dulwich so far. Prices come from the community and are shared live with everyone.
+Find the cheapest pint in London: central and inner London (Mayfair to Aldgate, Kentish Town to Borough) and Dulwich so far. Prices come from the community and are shared live with everyone.
 
 Built with the same stack and look as Guinness & Holley Budgeting: **React + Vite** on **Vercel**, with **Supabase** for the shared Postgres database, accounts, photo storage and live updates. Both are free tiers.
 
@@ -103,7 +103,7 @@ npm run test:db   # runs the real migration + seed on Postgres and checks securi
 
 ## Seed data
 
-`src/data/seedPubs.js` is the single source: 39 real pubs and 569 drinks, most with real prices from the pubs' own menus (from the Sep 2026 research spreadsheet). `src/data/pubResearch.js` holds websites, drinks and food menu links, operators and admin research notes; `src/data/seedEvents.js` holds researched events. Run `npm run seed:sql` after editing it to regenerate `supabase/seed.sql`.
+`src/data/seedPubs.js` is the single source: 60 real pubs and 730 drinks, most with real prices from the pubs' own menus (from the Sep 2026 research spreadsheet). `src/data/pubResearch.js` holds websites, drinks and food menu links, operators and admin research notes; `src/data/seedEvents.js` holds researched events. Run `npm run seed:sql` after editing it to regenerate `supabase/seed.sql`.
 - Names and addresses are real. **Coordinates are approximate, and opening years and histories are best-effort and should be checked.** Where the year wasn't known it's left blank.
 - Prices are plausible estimates marked **Seed estimate** until someone reports a real price.
 - The French House traditionally serves halves only, so its drinks are listed per half and ranked by their pint equivalent.
