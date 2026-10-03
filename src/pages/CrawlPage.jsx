@@ -9,6 +9,7 @@ import NotLaunched from "../components/ui/NotLaunched.jsx";
 import { ErrorState, Loading } from "../components/ui/States.jsx";
 import { useGeolocation } from "../lib/hooks/useGeolocation.js";
 import Segmented from "../components/ui/Segmented.jsx";
+import { usePageTitle } from "../lib/hooks/usePageTitle.js";
 
 function Crawl() {
   const { livePubs, pubsStatus, pubsError, reloadPubs, toast } = useApp();
@@ -153,5 +154,6 @@ function Crawl() {
 }
 
 export default function CrawlPage() {
+  usePageTitle("Pub crawl planner");
   return <FeaturePage feature="crawl_planner"><Crawl /></FeaturePage>;
 }

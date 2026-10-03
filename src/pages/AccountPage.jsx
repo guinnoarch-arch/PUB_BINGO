@@ -7,6 +7,7 @@ import { Loading } from "../components/ui/States.jsx";
 import { ErrorSummary, FormError, Required, RequiredHint, fieldErrorBinding } from "../components/ui/FormErrors.jsx";
 import AccountExtras from "../components/features/AccountExtras.jsx";
 import Segmented from "../components/ui/Segmented.jsx";
+import { usePageTitle } from "../lib/hooks/usePageTitle.js";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const USERNAME_RE = /^[A-Za-z0-9_]{3,24}$/;
@@ -44,6 +45,7 @@ export default function AccountPage() {
   const [params] = useSearchParams();
   const next = safeNext(params.get("next"));
   const [mode, setMode] = useState("signin");
+  usePageTitle(session ? "Your account" : mode === "signup" ? "Create an account" : mode === "reset" ? "Reset your password" : "Sign in");
   const [form, setForm] = useState({ identifier: "", email: "", username: "", password: "", confirm: "" });
   const { errors, reset: resetErrors, checkField, validateAll, attempt } = useValidation(values => validateAccount(values, mode), form);
   const [serverError, setServerError] = useState("");

@@ -8,6 +8,7 @@ import FeaturePage from "../components/features/FeaturePage.jsx";
 import NotLaunched from "../components/ui/NotLaunched.jsx";
 import { ErrorState, Loading } from "../components/ui/States.jsx";
 import { useGeolocation } from "../lib/hooks/useGeolocation.js";
+import { usePageTitle } from "../lib/hooks/usePageTitle.js";
 
 const PUBS_SHOWN = 20;
 
@@ -85,5 +86,6 @@ function Round() {
 }
 
 export default function RoundPage() {
+  usePageTitle("Round calculator");
   return <FeaturePage feature="round_calculator"><Round /></FeaturePage>;
 }

@@ -10,6 +10,7 @@ import { addDays, formatDate } from "../lib/core/events.js";
 import { useUrlParams } from "../lib/hooks/useUrlParam.js";
 import Segmented from "../components/ui/Segmented.jsx";
 import { Check } from "lucide-react";
+import { usePageTitle } from "../lib/hooks/usePageTitle.js";
 
 function heroText({ fullHouse, lineCount }) {
   if (fullHouse) return { heading: "Full house", body: "Every tile is done." };
@@ -46,6 +47,7 @@ export default function BingoPage() {
   const mode = params.get("card") === "classic" ? "classic" : "week";
   const setMode = next => setParam("card", next === "week" ? "" : next);
   const showWeek = weeklyOn && mode === "week";
+  usePageTitle(mode === "classic" || !weeklyOn ? "Bingo card" : "This week's bingo");
   const start = weekStart(clock);
   const [progress, setProgress] = useState(null);
   const [activity, setActivity] = useState({ reports: [], photoCount: 0 });

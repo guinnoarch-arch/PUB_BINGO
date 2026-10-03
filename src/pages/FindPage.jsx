@@ -14,6 +14,7 @@ import { useUrlParams } from "../lib/hooks/useUrlParam.js";
 import Segmented from "../components/ui/Segmented.jsx";
 import SearchCard from "../components/find/SearchCard.jsx";
 import ResultRow from "../components/find/ResultRow.jsx";
+import { usePageTitle } from "../lib/hooks/usePageTitle.js";
 
 // How many results to list: the cheapest overall, or more once you've searched.
 const RESULT_LIMIT = 30;
@@ -24,6 +25,7 @@ const LATEST_REPORTS_LIMIT = 5;
 const SUGGESTIONS = ["Guinness", "IPA", "Camden Hells", "London Pride", "Cider"];
 
 export default function FindPage() {
+  usePageTitle(null);
   const { livePubs, pubsStatus, pubsError, reloadPubs, feature, clock, api, extras } = useApp();
   const { locate, locating } = useGeolocation({ fallback: "Tap the map to pick a point instead." });
   const [filters, setFilters] = useState(() => new Set());

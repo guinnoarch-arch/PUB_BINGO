@@ -3,10 +3,12 @@ import { useApp } from "../lib/AppContext.jsx";
 import LiveFeed from "../components/LiveFeed.jsx";
 import { needsChecking } from "../lib/core/checking.js";
 import NotLaunched from "../components/ui/NotLaunched.jsx";
+import { usePageTitle } from "../lib/hooks/usePageTitle.js";
 
 const FEED_SIZE = 50;
 
 export default function FeedPage() {
+  usePageTitle("Latest price reports");
   const { liveStatus, feature, pubs } = useApp();
   const toCheck = feature("needs_checking") ? needsChecking(pubs).filter(r => !r.estimate) : [];
   return (

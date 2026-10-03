@@ -11,6 +11,7 @@ import TopReporters from "../components/features/TopReporters.jsx";
 import AreaAverages from "../components/features/AreaAverages.jsx";
 import NotLaunched from "../components/ui/NotLaunched.jsx";
 import Segmented from "../components/ui/Segmented.jsx";
+import { usePageTitle } from "../lib/hooks/usePageTitle.js";
 
 const LEADERBOARD_SIZE = 20;
 
@@ -22,6 +23,7 @@ export default function LeaderboardPage() {
   const category = CATEGORIES.includes(params.get("cat")) ? params.get("cat") : null;
   const setTab = value => updateParam("view", value === "people" ? "people" : "");
   const setCategory = value => updateParam("cat", value || "");
+  usePageTitle(tab === "people" ? "Top reporters" : "Cheapest pints");
   const [onePerPub, setOnePerPub] = useState(true);
   // Confirmed prices only: starting estimates never appear on the leaderboard.
   const rows = useMemo(() => cheapestPints(pubs, { limit: LEADERBOARD_SIZE, category, onePerPub, realOnly: true }), [pubs, category, onePerPub]);

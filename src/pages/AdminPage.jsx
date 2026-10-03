@@ -14,6 +14,7 @@ import { EmptyState, ErrorState, Loading } from "../components/ui/States.jsx";
 import Segmented from "../components/ui/Segmented.jsx";
 import ExternalLink from "../components/ui/ExternalLink.jsx";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { usePageTitle } from "../lib/hooks/usePageTitle.js";
 
 const FEED_SIZE = 50;
 
@@ -170,6 +171,7 @@ export default function AdminPage() {
   const { api, authReady, isAdmin } = useApp();
   const [params, setParam] = useUrlParams();
   const tab = TABS.some(([key]) => key === params.get("tab")) ? params.get("tab") : "pubs";
+  usePageTitle(`Admin: ${TABS.find(([key]) => key === tab)[1]}`);
   const setTab = next => setParam("tab", next === "pubs" ? "" : next);
   const [menus, setMenus] = useState(null);
   const [menusError, setMenusError] = useState("");

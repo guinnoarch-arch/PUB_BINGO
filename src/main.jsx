@@ -58,7 +58,12 @@ function App() {
   const { pathname } = useLocation();
   useServiceWorker();
 
-  useEffect(() => { document.documentElement.setAttribute("data-theme", theme); }, [theme]);
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    // The phone's browser bar follows the app's theme, even when it differs from the device setting.
+    const background = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim();
+    document.querySelectorAll('meta[name="theme-color"]').forEach(meta => meta.setAttribute("content", background));
+  }, [theme]);
   useEffect(() => {
     const on = () => setIsOnline(true);
     const off = () => setIsOnline(false);

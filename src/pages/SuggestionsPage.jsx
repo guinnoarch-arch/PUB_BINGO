@@ -10,6 +10,7 @@ import SuggestionForm from "../components/suggestions/SuggestionForm.jsx";
 import SuggestionAdminControls from "../components/suggestions/SuggestionAdminControls.jsx";
 import { SUGGESTION_STATUS, SUGGESTION_TYPES } from "../data/suggestions.js";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { usePageTitle } from "../lib/hooks/usePageTitle.js";
 
 const FILTERS = [
   ["all", "All", () => true],
@@ -20,6 +21,7 @@ const FILTERS = [
 ];
 
 export default function SuggestionsPage() {
+  usePageTitle("Suggestions");
   const { api, userId, isAdmin, authReady, toast } = useApp();
   const [params] = useSearchParams();
   const menuPubId = params.get("menu");

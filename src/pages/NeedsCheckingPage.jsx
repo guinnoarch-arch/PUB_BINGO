@@ -9,6 +9,7 @@ import FeaturePage from "../components/features/FeaturePage.jsx";
 import StillRightButton from "../components/features/StillRightButton.jsx";
 import NotLaunched from "../components/ui/NotLaunched.jsx";
 import { EmptyState, ErrorState, Loading } from "../components/ui/States.jsx";
+import { usePageTitle } from "../lib/hooks/usePageTitle.js";
 
 function NeedsChecking() {
   const { pubs, pubsStatus, pubsError, reloadPubs } = useApp();
@@ -64,5 +65,6 @@ function NeedsChecking() {
 }
 
 export default function NeedsCheckingPage() {
+  usePageTitle("Needs checking");
   return <FeaturePage feature="needs_checking"><NeedsChecking /></FeaturePage>;
 }

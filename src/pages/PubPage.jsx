@@ -22,12 +22,14 @@ import { ChevronLeft } from "lucide-react";
 import { FileText } from "lucide-react";
 import { tagLabel } from "../data/features.js";
 import { scrollBehavior } from "../lib/motion.js";
+import { usePageTitle } from "../lib/hooks/usePageTitle.js";
 
 export default function PubPage() {
   const { pubId } = useParams();
   const { api, changeVersion, isAdmin, feature, deals, clock } = useApp();
   const [pub, setPub] = useState(null);
   const [status, setStatus] = useState("loading");
+  usePageTitle(pub?.name || (status === "missing" ? "Pub not found" : "Pub"));
   const [error, setError] = useState("");
   const [reportDrinkId, setReportDrinkId] = useState(null);
   const [openHistory, setOpenHistory] = useState(null);
@@ -43,7 +45,6 @@ export default function PubPage() {
         if (!active) return;
         setPub(data);
         setStatus(data ? "ready" : "missing");
-        if (data) document.title = `${data.name} · Pub Bingo`;
       })
       .catch(err => {
         if (!active) return;
@@ -53,7 +54,6 @@ export default function PubPage() {
     return () => { active = false; };
   }, [api, pubId, changeVersion, reloadKey]);
 
-  useEffect(() => () => { document.title = "Pub Bingo"; }, []);
 
   // Links like /pubs/the-harp#report jump straight to the report form.
   const { hash } = useLocation();

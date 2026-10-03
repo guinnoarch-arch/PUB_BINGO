@@ -7,8 +7,10 @@ import { EmptyState, ErrorState, Loading } from "../components/ui/States.jsx";
 import PubImage from "../components/pub/PubImage.jsx";
 import SignInPrompt from "../components/SignInPrompt.jsx";
 import PriceWatches from "../components/features/PriceWatches.jsx";
+import { usePageTitle } from "../lib/hooks/usePageTitle.js";
 
 export default function FavouritesPage() {
+  usePageTitle("Favourites");
   const { userId, authReady, pubs, pubsStatus, pubsError, reloadPubs, favourites } = useApp();
 
   if (!authReady) return <Loading />;

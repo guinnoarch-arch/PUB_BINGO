@@ -9,8 +9,10 @@ import EventItem from "../components/events/EventItem.jsx";
 import FavouriteButton from "../components/ui/FavouriteButton.jsx";
 import { EmptyState, ErrorState, Loading } from "../components/ui/States.jsx";
 import Segmented from "../components/ui/Segmented.jsx";
+import { usePageTitle } from "../lib/hooks/usePageTitle.js";
 
 export default function WhatsOnPage() {
+  usePageTitle("What's on");
   const { api, pubs, pubsById, pubsStatus, changeVersion, clock } = useApp();
   const [params, update] = useUrlParams();
   const when = WHEN_OPTIONS.some(o => o.key === params.get("when")) ? params.get("when") : "week";

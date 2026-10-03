@@ -15,6 +15,7 @@ import ResearchNotes from "../components/admin/pub/ResearchNotes.jsx";
 import DrinksTable from "../components/admin/pub/DrinksTable.jsx";
 import { SubmissionDetails, SubmissionFile, SubmissionReview } from "../components/suggestions/AdminMenus.jsx";
 import { ChevronLeft } from "lucide-react";
+import { usePageTitle } from "../lib/hooks/usePageTitle.js";
 
 export default function AdminPubPage() {
   const { pubId } = useParams();
@@ -23,6 +24,7 @@ export default function AdminPubPage() {
   const { api, authReady, isAdmin, changeVersion } = useApp();
   const [pub, setPub] = useState(null);
   const [status, setStatus] = useState(isNew ? "ready" : "loading");
+  usePageTitle(isNew ? "Add a pub" : pub?.name ? `Edit ${pub.name}` : "Admin");
   const [error, setError] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
   const reload = useCallback(() => setReloadKey(k => k + 1), []);
