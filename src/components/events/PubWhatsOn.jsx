@@ -27,7 +27,7 @@ export default function PubWhatsOn({ pub }) {
       {features.length > 0 && (
         <ul className="tag-list" aria-label="Features">
           {features.map(f => (
-            <li key={f.tag}><Link className="chip" to={`/whats-on?has=${f.tag}`}><span aria-hidden="true">{f.icon}</span> {f.label}</Link></li>
+            <li key={f.tag}><Link className="chip" to={`/whats-on?has=${f.tag}`}>{f.label}</Link></li>
           ))}
         </ul>
       )}

@@ -23,7 +23,7 @@ const CATEGORY_ALIASES = {
   "wheat beer": "Wheat Beer", wheat: "Wheat Beer", weisse: "Wheat Beer", weissbier: "Wheat Beer"
 };
 
-export function categoryForQuery(query) {
+function categoryForQuery(query) {
   return CATEGORY_ALIASES[normaliseText(query)] || null;
 }
 
@@ -38,7 +38,7 @@ export function drinkMatches(drink, query) {
 }
 
 // Adds pint-equivalent price and distance from the origin (if any) to every drink.
-export function enrichDrink(pub, drink, origin) {
+function enrichDrink(pub, drink, origin) {
   const price = Number(drink.current_price);
   const measure = drink.measure || "pint";
   return {
@@ -141,4 +141,16 @@ export function priceHistoryStats(reports) {
     average: Math.round((prices.reduce((sum, p) => sum + p, 0) / prices.length) * 100) / 100,
     change: Math.round((last - first) * 100) / 100
   };
+}
+
+// A pub's drinks in menu order: by category, then (by: "price") draught before bottles and cheapest
+// first, or (by: "name") alphabetically, for the admin table.
+export function sortDrinksForMenu(drinks, { by = "price", categories = [] } = {}) {
+  const rank = category => {
+    const index = categories.indexOf(category);
+    return index === -1 ? categories.length : index;
+  };
+  return [...(drinks || [])].sort((a, b) => rank(a.category) - rank(b.category) || (by === "name"
+    ? a.name.localeCompare(b.name)
+    : Number(isDraught(b.measure)) - Number(isDraught(a.measure)) || Number(a.current_price) - Number(b.current_price)));
 }

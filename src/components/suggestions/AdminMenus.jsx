@@ -2,14 +2,11 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useApp } from "../../lib/AppContext.jsx";
 import { friendlyError } from "../../lib/api/errors.js";
-import { timeAgo } from "../../lib/core/time.js";
+import { formatDay, timeAgo } from "../../lib/core/time.js";
 import { EmptyState } from "../ui/States.jsx";
 import { MENU_STATUS } from "./MenuSubmit.jsx";
-
-export function formatSeenOn(dateKey) {
-  const d = new Date(`${dateKey}T12:00:00Z`);
-  return d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
-}
+import { FormError } from "../ui/FormErrors.jsx";
+import ExternalLink from "../ui/ExternalLink.jsx";
 
 // Private files: admins get a short-lived link. Photos show as a thumbnail.
 export function SubmissionFile({ item, large = false }) {
@@ -34,14 +31,14 @@ export function SubmissionFile({ item, large = false }) {
       </a>
     );
   }
-  return <a className="secondary-button small" href={url} target="_blank" rel="noreferrer">📄 Open PDF ↗</a>;
+  return <ExternalLink className="secondary-button small" href={url}>Open PDF</ExternalLink>;
 }
 
 export function SubmissionDetails({ item }) {
   return (
     <div className="submission-details">
       <p>
-        <strong>Seen on {formatSeenOn(item.seen_on)}</strong>
+        <strong>Seen on {formatDay(item.seen_on, { weekday: true })}</strong>
         <span className="muted small-text"> · sent by {item.sender?.username ? `@${item.sender.username}` : "someone"} {timeAgo(item.created_at)}</span>
       </p>
       {item.note && <p className="submission-note">“{item.note}”</p>}
@@ -54,27 +51,32 @@ export function SubmissionReview({ item, onChanged, compact = false }) {
   const [status, setStatus] = useState(item.status);
   const [note, setNote] = useState(item.admin_note || "");
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState("");
 
   async function save(nextStatus = status) {
     setSaving(true);
+    setError("");
     try {
       await api.admin.reviewMenuSubmission(item.id, { status: nextStatus, note });
-      toast("Menu updated.", "success");
+      toast(`Menu marked “${MENU_STATUS[nextStatus]?.label || nextStatus}”.`, "success");
       onChanged();
     } catch (err) {
-      toast(friendlyError(err), "error");
+      setError(friendlyError(err, "Couldn't save the review. Your reply is still here, so try again."));
     } finally {
       setSaving(false);
     }
   }
   async function remove() {
     if (!window.confirm("Delete this menu and its file?")) return;
+    setDeleting(true);
     try {
       await api.admin.deleteMenuSubmission(item.id);
       toast("Menu deleted.", "success");
       onChanged();
     } catch (err) {
-      toast(friendlyError(err), "error");
+      toast(friendlyError(err, "Couldn't delete the menu. Try again."), "error");
+      setDeleting(false);
     }
   }
 
@@ -87,7 +89,8 @@ export function SubmissionReview({ item, onChanged, compact = false }) {
       <label className="sr-only" htmlFor={`menu-reply-${item.id}`}>Reply to sender</label>
       <input id={`menu-reply-${item.id}`} value={note} maxLength={500} onChange={e => setNote(e.target.value)} placeholder="Reply (only the sender sees it)" />
       <button type="button" className="secondary-button small" onClick={() => save()} disabled={saving}>{saving ? "Saving…" : "Save"}</button>
-      {!compact && <button type="button" className="text-button danger" onClick={remove}>Delete</button>}
+      {!compact && <button type="button" className="text-button danger" onClick={remove} disabled={deleting}>{deleting ? "Deleting…" : "Delete"}</button>}
+      <FormError>{error}</FormError>
     </div>
   );
 }
@@ -131,7 +134,7 @@ export default function AdminMenus({ items, onChanged }) {
                   <SubmissionDetails item={item} />
                   <div className="row-actions wrap">
                     {item.pub_id
-                      ? <Link className="primary-button small" to={`/admin/pubs/${item.pub_id}?submission=${item.id}`}>Update prices →</Link>
+                      ? <Link className="secondary-button small" to={`/admin/pubs/${item.pub_id}?submission=${item.id}`}>Update prices →</Link>
                       : <Link className="secondary-button small" to="/admin/pubs/new">+ Add this pub</Link>}
                   </div>
                   <SubmissionReview key={`${item.id}-${item.status}-${item.admin_note}`} item={item} onChanged={onChanged} />

@@ -1,136 +1,113 @@
 # Pub Bingo
 
-Find the cheapest pint in London: central and inner London (Mayfair to Aldgate, Kentish Town to Borough) and Dulwich so far. Prices come from the community and are shared live with everyone.
+Find the cheapest pint in London. Prices are reported by drinkers and checked against pubs' own menus, then shared live with everyone. It covers central and inner London (Mayfair to Aldgate, Kentish Town to Borough) and Dulwich so far.
 
-Built with the same stack and look as Guinness & Holley Budgeting: **React + Vite** on **Vercel**, with **Supabase** for the shared Postgres database, accounts, photo storage and live updates. Both are free tiers.
+It also has a pub bingo card: a 3×3 challenge card you complete by trying pubs and reporting prices.
 
-## Features
+## What it does
 
-| | |
+| Area | What you can do |
 |---|---|
-| **Search** | Type a pint ("Guinness", "IPA", "Camden Hells") to see every pub that stocks it, cheapest first. Category chips filter by Lager, IPA, Stout and so on. |
-| **Map** | Leaflet + OpenStreetMap. Pins show the cheapest matching price. Tap the map (or use your location) to search from that point and sort by real walking distance. |
-| **Pub pages** | Address, history, tags, opening year, photos and the full drinks list. Each drink shows its price, category, a **Seed estimate** / **Community** badge and how long ago it was updated. |
-| **Crowdsourced prices** | Signed-in users report a price for a listed drink or add a new one. Every report is kept (with time and reporter) so trends can be shown; the History button on each drink shows them. |
-| **Leaderboard** | Cheapest pint right now across all pubs, with category filter. Halves are ranked by their price per pint. |
-| **Bottles & cans** | Drinks can be pints, halves, two-thirds, schooners, bottles or cans (with size). Bottles show their size and price per pint of beer, and never count towards the cheapest-pint leaderboard. |
-| **Live feed** | The latest community reports, updated live via Supabase Realtime. |
-| **Favourites** | Saved to your account and synced across devices. |
-| **Bingo card** | A 3×3 challenge card. 5 tiles complete automatically (first report, 5 reports, a cheap report, favourites in two areas, a photo); 4 are ticked by you. Progress is saved to your account. |
-| **Photos** | Every pub has a generated illustration. Signed-in users can upload photos (resized, with location data stripped). **Admins can pause uploads per pub** and hide photos. |
-| **Admin** | A spreadsheet of every pub (drinks, % real prices, last update, website, whether prices are online, operator, missing info), sortable and filterable, with **Download CSV**. Click a pub to edit its details, set prices from its website or an in-person check (with the source saved), keep private research notes, and pause photo uploads. Hide bad price reports (the price rolls back) and photos. |
-| **What's on** | Search pubs by feature (beer garden, sport on TV, live music, quiz, comedy, dog friendly…) and see events for tonight, tomorrow, the weekend or the next 7 days, filtered by type. Weekly events (e.g. quiz every Wednesday) and one-off events (e.g. a match screening) are supported, always in London time. Each pub page shows "What's on here". Admins add, edit and publish events; events found by web research start as "Needs checking". |
-| **PDF menu import** | Admin → pub → "Import prices from a PDF menu": upload the pub's menu, the app reads the prices, matches them to the pub's drinks (or suggests new ones), and you tick which to save. Saved prices get a "Pub website" badge linking to the stored PDF. Scanned or photo menus have no text to read, so enter those by hand (or send them to Claude). |
-| **Suggestions** | 💡 button in the header (next to dark mode and your profile). Signed-in users send ideas, pubs to add or problems, and vote them up or down; everyone can read them. Admins set a status (New, Seen, Planned, In progress, Done, Not doing), reply publicly, or delete. |
-| **Send a menu** | Suggestions → 📄 **Menu or price** (or “Send us the menu” on a pub page): signed-in users send a PDF menu or a photo of a menu, price board or single drink, and say which pub and the date they saw it. **Only admins see it** (private storage). Admin → **Menus** lists them with a “new” count; **Update prices** opens the pub with the menu beside its drinks. PDFs can be read automatically; prices are saved as **Verified** with the menu's date, and an older price goes into the history without replacing a newer one. Senders see whether their menu was used, and any reply. Up to 10 a day per person. |
-| **Feature switches** | Admin → **Features**: every feature below starts **off**. While off, only admins see it (marked “Not launched”) so it can be tried first; switch it on to launch it for everyone, and off again at any time. Enforced in the database as well as the app. |
-| **Still right?** *(switch)* | One tap on a pub page confirms a price is still correct and refreshes its date. |
-| **Needs checking** *(switch)* | Feed → Needs checking: estimates and prices not confirmed for 60+ days, stalest first, by area. |
-| **Price trends** *(switch)* | A chart of each drink's price history, and the average confirmed pint by area on the Leaderboard. |
-| **Happy hours** *(switch)* | Admins add deals per pub (days, times, fixed price or % off, one drink or all draught). While a deal is on, search, the map, the leaderboard and pub pages show the deal price and when it ends. |
-| **Open now & filters** *(switch)* | Opening hours per pub (admin), “Open now”, “Sport on tonight” and “Outside seating” filters on Find. |
-| **Crawl planner** *(switch)* | Cheapest crawl from where you are, or pick your own pubs; shortest walking order, times, total cost, share link. |
-| **Round calculator** *(switch)* | What a group's round costs at every pub, cheapest first. |
-| **Trusted reporters** *(switch)* | ✓ for people whose reports keep matching others'. A price 40%+ away from the current one, from someone not yet trusted, waits in Admin → Reports for approval. |
-| **Receipts** *(switch)* | Optional receipt photo on a report (private to admins), shown as a 🧾 badge. |
-| **Weekly bingo, badges, top reporters** *(switches)* | A new card every Monday with a streak; 16 badges on your account; this month's top reporters on the Leaderboard. |
-| **Check-ins & Guinness score** *(switches)* | Check in when you're within 200 m of a pub (pub passport, “busy now”); rate the Guinness pour 1–5. |
-| **Price watches** *(switch)* | “Guinness under £6 in Soho”: matches on the Saved page, with a count on the menu. |
-| **Needs setup** | Phone notifications, a weekly admin email and automatic chain-menu reading are listed in Features but need an outside service first (Admin → Week shows the digest in the app meanwhile). |
-| **Hidden pubs** | Admins can add a pub with only a name and area. It stays hidden from the public (enforced in the database) until it has an address and map position and is set Live. |
+| **Find** | Search for a drink ("Guinness", "IPA") or pick a category, and see every pub that sells it, cheapest first. The map shows prices; tap it, or use your location, to sort by walking distance. |
+| **Pub pages** | Address, opening hours, history, photos, what's on, and the full drinks list. Each price says where it came from (estimate, a drinker, the pub's website, or checked by an admin) and how old it is, with its history. |
+| **Report a price** | Signed-in users report what they paid, or add a drink that isn't listed. Every report is kept. A big jump asks "Is that what you paid?" first. |
+| **Leaderboard** | The cheapest confirmed pints right now, by category. Halves are compared per pint. Bottles and cans never count as a pint. |
+| **What's on** | Pubs with a beer garden, sport, live music, quiz and so on, plus events for tonight, tomorrow, the weekend or the next 7 days (London time). |
+| **Feed** | The latest price reports, updating live. |
+| **Favourites** | Pubs you've saved, synced to your account. Price watches ("Guinness under £6 in Soho") show matches here. |
+| **Bingo** | A 3×3 challenge card. Some tiles tick themselves from what you do in the app; you tick the others. Unticking offers Undo. A weekly card with a streak can be switched on. |
+| **Suggestions** | Send ideas, pubs to add or problems, and vote on them. Send a menu or price photo privately to the admins. |
+| **Admin** | A spreadsheet of every pub (with CSV download), editing pub details and prices, PDF menu import, events, happy hours, opening hours, held reports, menus sent in, a weekly digest, and feature switches. |
 
-## Where data lives
+Newer features (happy hours, crawl planner, round calculator, badges, check-ins, price watches and more) each have a switch in **Admin → Features**. They start off; admins can try them first (marked "Not launched") and switch them on for everyone when ready.
 
-- **All real data (prices, reports, favourites, bingo progress, photos) is in Supabase**, shared by every visitor.
-- The browser only stores your sign-in session and display preferences (dark mode, phone view).
+## Run it on your computer
 
-## Setup (one-off, about 10 minutes)
+You need Node.js 22.
 
-1. **Create a Supabase project** (free) at supabase.com.
-2. In **SQL Editor**, run the migrations in order (`supabase/migrations/0001_init.sql`, `0002_pub_admin.sql`, `0003_events.sql`, `0004_menu_uploads.sql`, `0005_bottles.sql`, `0006_suggestions.sql`, `0007_menu_submissions.sql`, `0008_features.sql`, `0009_food_menus.sql`, `0010_sheet_update.sql`), then `supabase/seed.sql`.
-   - **Or let GitHub do it:** see [Automatic database updates](#automatic-database-updates) below. Once set up, you never need to run these by hand.
-   - **Already set up?** Run any migrations you haven't run yet, in order, then run `seed.sql` again. If you ever re-run an older migration, run `0008_features.sql` onwards again afterwards (the automatic update runs them all in order anyway). It only adds missing things (websites, notes, researched events) and never overwrites your prices or edits.
-3. In **Authentication → Providers**, make sure Email is enabled. Leave "Confirm email" on (recommended).
-4. In **Authentication → URL Configuration**, set the Site URL to your Vercel URL.
-5. In **Vercel**, import this repo and add environment variables from **Project Settings → API** in Supabase:
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_ANON_KEY` (the **anon / publishable** key, **never** the service-role key)
-   - optional `VITE_PUBLIC_APP_URL` (your live link, for the "Open on phone" QR code)
-6. Deploy. Sign up in the app, then make yourself admin in the Supabase SQL editor:
+```bash
+npm install
+cp .env.example .env.local      # add your Supabase URL and anon key
+npm run dev                     # http://localhost:5173
+```
+
+**No database?** Run `VITE_DEMO_MODE=true npm run dev`. Demo mode uses the seed pubs in memory and resets on reload. The demo admin is `admin` / `password123`. Never turn demo mode on in production.
+
+## Checks
+
+```bash
+npm run lint      # ESLint, then knip (unused files, exports and dependencies)
+npm test          # unit tests: search, prices, bingo wins, validation, dates, errors…
+npm run test:db   # runs every migration and the seed on a real Postgres and checks the security rules
+npm run build     # production build into dist/
+```
+
+`test:db` needs Postgres (`DATABASE_URL`, default `postgres://postgres:postgres@localhost:5432/postgres`). GitHub Actions runs lint, both test suites and the build on every push, and checks that `supabase/seed.sql` matches the seed data.
+
+## Deploy
+
+The app is a static site (Vercel or Netlify) backed by Supabase (database, sign-in, photo storage and live updates). Both free tiers are enough.
+
+1. **Create a Supabase project** at supabase.com.
+2. **Create the database.** Either:
+   - let GitHub do it (recommended, see [Automatic database updates](#automatic-database-updates)), or
+   - paste each file in `supabase/migrations/` into the Supabase SQL editor in order (`0001` to `0010`), then `supabase/seed.sql`. Every file is safe to run again, and the seed never overwrites your prices or edits.
+3. In Supabase **Authentication → Providers**, turn on Email (leave "Confirm email" on).
+4. In **Authentication → URL Configuration**, set the Site URL to your live address.
+5. **Import the repo into Vercel** (or Netlify; `netlify.toml` is included) and add these environment variables from Supabase **Project Settings → API**:
+   - `VITE_SUPABASE_URL`: just `https://xxxx.supabase.co`
+   - `VITE_SUPABASE_ANON_KEY`: the **anon / publishable** key, **never** the service-role key
+   - `VITE_PUBLIC_APP_URL` (optional): your live address, for the "Open on phone" QR code
+6. Deploy, sign up in the app, then make yourself an admin in the Supabase SQL editor:
    ```sql
    update public.profiles set is_admin = true where username_normalized = 'your_username';
    ```
 
-Without the Supabase variables, the app shows a "not connected yet" screen instead of silently using local storage.
-
+Without the Supabase variables the app shows a "not connected yet" page rather than quietly using local storage.
 
 ### Automatic database updates
 
-GitHub updates the live Supabase database for you: after the tests pass on a push to the default branch, the `database` job in `.github/workflows/ci.yml` runs every file in `supabase/migrations/` in order, then `supabase/seed.sql`. They're all safe to re-run, and the seed never overwrites your prices or edits. One-off setup:
+After the checks pass on a push to the default branch, the `database` job in `.github/workflows/ci.yml` runs every migration in order and then the seed. One-off setup:
 
-1. In Supabase, click **Connect** (top of the project dashboard) and copy the **Session pooler** connection string (the direct connection doesn't work from GitHub, which has no IPv6). Put your database password in place of `[YOUR-PASSWORD]`.
-2. In GitHub, go to the repo's **Settings → Secrets and variables → Actions → New repository secret**. Name it `SUPABASE_DB_URL` and paste the connection string.
+1. In Supabase, click **Connect** and copy the **Session pooler** connection string (the direct one doesn't work from GitHub). Put your database password in place of `[YOUR-PASSWORD]`.
+2. In GitHub, add it as a repository secret named `SUPABASE_DB_URL` (**Settings → Secrets and variables → Actions**).
 3. To run it straight away: **Actions → CI → Run workflow**.
 
-Without the secret the job just prints a notice and does nothing. The connection string can change anything in the database, so keep it only in that secret.
+Without the secret the job just says so and passes. The connection string can change anything in the database, so keep it only in that secret.
 
-## Running locally
+## How it's built
 
-```bash
-npm install
-cp .env.example .env.local      # fill in your Supabase URL + anon key
-npm run dev
-```
+- **React 19 + Vite**, React Router, Leaflet with OpenStreetMap, Lucide icons, Supabase.
+- **Design system:** every colour, size, space, radius and timing is a token at the top of `src/styles/global.css`, with light and dark themes. Cream and near-black neutrals, one green accent, separate success/warning/error colours, and muted gold only for the bingo win. Text contrast is at least 4.5:1, tap targets are at least 44px, and motion respects "reduce motion".
+- **Money** is shown with `Intl.NumberFormat("en-GB", GBP)`, rounded to pence. **Dates** are UK style in London time ("3 Oct 2026").
+- **Errors** are written in one place (`src/lib/api/errors.js`): each says what went wrong and what to do, and raw database errors never reach the screen. Requests time out after 20 seconds with a retry.
 
-To try the UI **without** a database: `VITE_DEMO_MODE=true npm run dev`. Demo mode uses in-memory seed data that resets on reload, and shows a banner saying so. The demo admin login is `admin` / `password123`. Never enable demo mode in production.
-
-## Tests
-
-```bash
-npm test          # search, sorting, price parsing/validation, leaderboard, distance, bingo, time
-npm run test:db   # runs the real migration + seed on Postgres and checks security rules and the price-report function
-```
-
-`test:db` needs a Postgres server (`DATABASE_URL`, default `postgres://postgres:postgres@localhost:5432/postgres`). GitHub Actions (`.github/workflows/ci.yml`) runs both on every push, and checks that `supabase/seed.sql` matches the seed data.
-
-## How robustness is handled
-
-- **Prices can only be written through `submit_price_report()`** in the database. It checks you're signed in, keeps the price between £1 and £25 (rounded to pence), validates names, categories and measures, blocks re-reporting the same drink within 10 minutes, and limits each user to 20 reports an hour. Browsers have no direct write access to drinks or reports.
-- **Row Level Security** on every table: favourites and bingo progress are private to each user, and only admins can pause uploads or hide content (checked in the database, not just the UI).
-- **Photo uploads** are checked in the database too: only into your own folder, only for pubs that aren't paused, a maximum of 10 a day, 5 MB, JPEG/PNG/WebP only.
-- The form validates everything before sending, and asks for confirmation when a price is more than 50% away from the current one (probably a typo).
-- Loading, empty, error and offline states are shown on every page, and an error boundary stops one broken page taking down the app.
-
-## Seed data
-
-`src/data/seedPubs.js` is the single source: 60 real pubs and 730 drinks, most with real prices from the pubs' own menus (from the Sep 2026 research spreadsheet). `src/data/pubResearch.js` holds websites, drinks and food menu links, operators and admin research notes; `src/data/seedEvents.js` holds researched events. Run `npm run seed:sql` after editing it to regenerate `supabase/seed.sql`.
-- Names and addresses are real. **Coordinates are approximate, and opening years and histories are best-effort and should be checked.** Where the year wasn't known it's left blank.
-- Prices are plausible estimates marked **Seed estimate** until someone reports a real price.
-- The French House traditionally serves halves only, so its drinks are listed per half and ranked by their pint equivalent.
-
-## Getting real prices
-
-See **[docs/price-accuracy.md](docs/price-accuracy.md)** for the research on each pub (websites, operators, whether menus are online, price leads) and the plan for replacing estimates with real, sourced prices.
-
-## Known trade-offs / next steps
-
-- **Username sign-in** looks up the email for a username (same approach as the budgeting app), so anyone who knows a username can find its email. Switch to email-only sign-in or an Edge Function if that matters.
-- Search happens in the browser over all pubs, which is fine for dozens of pubs. Move it into Postgres if this grows to hundreds.
-- Price trends: the full history is stored and summarised (low/high/average/change). A chart is an easy next step.
-- More pubs and areas, pub-owner accounts, and report up/down-voting.
-
-## Project layout
+### Project layout
 
 ```
 src/
-  data/seedPubs.js            seed data (single source)
-  lib/core/                   pure logic: search, prices, geo, bingo, time (unit tested)
-  lib/api/                    supabaseApi (real), demoApi (in-memory), error mapping, photo prep
-  lib/AppContext.jsx          session, pubs, favourites, live updates
-  components/                 shell, map, pub illustration, forms, feed
-  pages/                      Find, Pub, Leaderboard, Feed, Favourites, Bingo, Account, Admin
-supabase/migrations/          0001 schema, RLS, functions, storage; 0002 hidden pubs, websites, admin tools; 0003 events; 0004 PDF menu uploads; 0005 bottles/cans; 0006 suggestions; 0007 menus sent in, dated admin prices; 0008 feature switches and the features behind them; 0009 food menu links and the 25 Sep 2026 menus/events research; 0010 the 28-29 Sep research spreadsheet (existing rows) and longer admin notes
-docs/price-accuracy.md        price research and plan
-supabase/seed.sql             generated seed
-tests/unit, tests/db          Vitest suites
+  pages/              one file per screen
+  components/         ui/ (shared pieces), find/, pub/, admin/, events/, features/, suggestions/, map/
+  lib/core/           pure logic with unit tests: search, prices, bingo, crawl, dates, validation…
+  lib/api/            Supabase and in-memory demo APIs, error messages, photo and menu file handling
+  lib/hooks/          shared React hooks (page title, URL state, location, busy state, validation)
+  data/               seed pubs (single source), research, events, feature and suggestion lists
+  styles/global.css   design tokens and all styles
+supabase/migrations/  schema, security rules and database functions, run in order
+supabase/seed.sql     generated from src/data (npm run seed:sql)
+tests/unit, tests/db  Vitest suites
+docs/                 price research, and the manual test checklist (docs/TESTING.md)
 ```
+
+## Data and safety
+
+- All real data (prices, reports, favourites, bingo progress, photos) lives in Supabase and is shared by everyone. The browser keeps only your sign-in and your dark mode choice.
+- Prices can only be written through database functions, which check you're signed in, keep prices between £1 and £25, and rate-limit reports. Row Level Security is on every table, and admin-only actions are checked in the database, not just the app.
+- Photo uploads are checked in the database too (your own folder only, not on paused pubs, 10 a day, 5 MB, JPEG/PNG/WebP), and photos are resized with location data removed before upload.
+- `src/data/seedPubs.js` holds 60 real pubs and 730 drinks, most with real menu prices (Sep 2026). Coordinates, opening years and histories are best-effort. Estimates are labelled "Estimate" until someone confirms a price. See [docs/price-accuracy.md](docs/price-accuracy.md) for the research.
+
+## Known trade-offs
+
+- Signing in with a username looks up that user's email, so anyone who knows a username can find its email. Switch to email-only sign-in, or an Edge Function, if that matters.
+- Search runs in the browser over all pubs. That's fine for dozens of pubs; move it into Postgres for hundreds.
+- Phone notifications, the weekly admin email and automatic chain-menu reading are listed in Admin → Features but need an outside service before they can launch.

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useUrlParams } from "../lib/hooks/useUrlParam.js";
 import { useApp } from "../lib/AppContext.jsx";
 import { friendlyError } from "../lib/api/errors.js";
 import { PRICES_ONLINE_LABELS, adminTotals, filterRows, sortRows, summarisePub, toCsv } from "../lib/core/adminPubs.js";
@@ -10,6 +11,12 @@ import AdminFeatures from "../components/admin/AdminFeatures.jsx";
 import AdminDigest from "../components/admin/AdminDigest.jsx";
 import HeldReports from "../components/admin/HeldReports.jsx";
 import { EmptyState, ErrorState, Loading } from "../components/ui/States.jsx";
+import Segmented from "../components/ui/Segmented.jsx";
+import ExternalLink from "../components/ui/ExternalLink.jsx";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import { usePageTitle } from "../lib/hooks/usePageTitle.js";
+
+const FEED_SIZE = 50;
 
 const COLUMNS = [
   ["name", "Pub"],
@@ -67,7 +74,7 @@ function PubsTable() {
 
   const toggleSort = key => setSort(prev => ({ key, direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc" }));
 
-  if (error) return <ErrorState message={error} onRetry={() => setRetry(r => r + 1)} />;
+  if (error) return <ErrorState title="Couldn't load the pubs table" message={error} onRetry={() => setRetry(r => r + 1)} />;
   if (!pubs) return <Loading label="Loading pubs…" />;
 
   return (
@@ -102,7 +109,7 @@ function PubsTable() {
                 {COLUMNS.map(([key, label]) => (
                   <th key={key} scope="col" aria-sort={sort.key === key ? (sort.direction === "asc" ? "ascending" : "descending") : "none"}>
                     <button type="button" onClick={() => toggleSort(key)}>
-                      {label}{sort.key === key ? (sort.direction === "asc" ? " ▲" : " ▼") : ""}
+                      {label}{sort.key === key && (sort.direction === "asc" ? <ChevronUp aria-hidden="true" /> : <ChevronDown aria-hidden="true" />)}
                     </button>
                   </th>
                 ))}
@@ -126,12 +133,12 @@ function PubsTable() {
                   <td>{row.lastPriceUpdate ? timeAgo(row.lastPriceUpdate) : "–"}</td>
                   <td>
                     {row.website
-                      ? <a href={row.website} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()}>Yes ↗</a>
+                      ? <ExternalLink href={row.website} onClick={e => e.stopPropagation()}>Yes</ExternalLink>
                       : <span className="muted">None</span>}
                   </td>
                   <td>
                     <span className={`prices-online ${row.pricesOnline}`}>{PRICES_ONLINE_LABELS[row.pricesOnline]}</span>
-                    {row.menuUrl && <a className="small-text" href={row.menuUrl} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()}> menu ↗</a>}
+                    {row.menuUrl && <> <ExternalLink className="small-text" href={row.menuUrl} onClick={e => e.stopPropagation()}>menu</ExternalLink></>}
                   </td>
                   <td className="num">
                     {row.eventCount}
@@ -162,9 +169,10 @@ const TABS = [
 
 export default function AdminPage() {
   const { api, authReady, isAdmin } = useApp();
-  const [params, setParams] = useSearchParams();
+  const [params, setParam] = useUrlParams();
   const tab = TABS.some(([key]) => key === params.get("tab")) ? params.get("tab") : "pubs";
-  const setTab = useCallback(next => setParams(next === "pubs" ? {} : { tab: next }, { replace: true }), [setParams]);
+  usePageTitle(`Admin: ${TABS.find(([key]) => key === tab)[1]}`);
+  const setTab = next => setParam("tab", next === "pubs" ? "" : next);
   const [menus, setMenus] = useState(null);
   const [menusError, setMenusError] = useState("");
   const [menusKey, setMenusKey] = useState(0);
@@ -182,7 +190,7 @@ export default function AdminPage() {
 
   if (!authReady) return <Loading />;
   if (!isAdmin) {
-    return <section className="card"><EmptyState title="Admins only">This page is for Pub Bingo admins. <Link to="/">Back to search</Link></EmptyState></section>;
+    return <section className="card"><EmptyState asHeading title="Admins only"><p>This page is for Pub Bingo admins. Sign in with an admin account to use it.</p><Link className="secondary-button" to="/">Back to search</Link></EmptyState></section>;
   }
 
   return (
@@ -190,21 +198,23 @@ export default function AdminPage() {
       <div className="page-title-row">
         <div>
           <p className="eyebrow">Admin</p>
-          <h2>{TABS.find(([key]) => key === tab)[1]}</h2>
+          <h1>{TABS.find(([key]) => key === tab)[1]}</h1>
         </div>
-        <div className="segmented" role="tablist" aria-label="Admin sections">
-          {TABS.map(([key, , short]) => (
-            <button key={key} type="button" role="tab" aria-selected={tab === key} className={tab === key ? "active" : ""} onClick={() => setTab(key)}>
-              {short}{key === "menus" && newMenus > 0 && <span className="tab-count" aria-label={`${newMenus} new`}>{newMenus}</span>}
-            </button>
-          ))}
-        </div>
+        <Segmented
+          label="Admin sections"
+          value={tab}
+          onChange={setTab}
+          options={TABS.map(([key, , short]) => ({
+            value: key,
+            label: <>{short}{key === "menus" && newMenus > 0 && <span className="tab-count" aria-label={`${newMenus} new`}>{newMenus}</span>}</>
+          }))}
+        />
       </div>
 
       {tab === "pubs" && <section className="card"><PubsTable /></section>}
       {tab === "menus" && (
         <section className="card" aria-label="Menus sent in">
-          {menusError ? <ErrorState message={menusError} onRetry={reloadMenus} />
+          {menusError ? <ErrorState title="Couldn't load menus sent in" message={menusError} onRetry={reloadMenus} />
             : menus === null ? <Loading label="Loading menus…" />
               : <AdminMenus items={menus} onChanged={reloadMenus} />}
         </section>
@@ -216,7 +226,7 @@ export default function AdminPage() {
         <section className="card" aria-labelledby="reports-heading">
           <h2 id="reports-heading" className="section-title">Recent price reports</h2>
           <p className="muted small-text">Hiding a report removes it from public view and puts the drink back to its previous price.</p>
-          <LiveFeed limit={50} />
+          <LiveFeed limit={FEED_SIZE} />
         </section>
       )}
     </>

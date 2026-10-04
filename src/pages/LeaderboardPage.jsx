@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { useUrlParams } from "../lib/hooks/useUrlParam.js";
 import { useApp } from "../lib/AppContext.jsx";
 import { CATEGORIES } from "../data/seedPubs.js";
 import { cheapestPints } from "../lib/core/search.js";
@@ -9,28 +10,36 @@ import DealNote from "../components/features/DealNote.jsx";
 import TopReporters from "../components/features/TopReporters.jsx";
 import AreaAverages from "../components/features/AreaAverages.jsx";
 import NotLaunched from "../components/ui/NotLaunched.jsx";
+import Segmented from "../components/ui/Segmented.jsx";
+import { usePageTitle } from "../lib/hooks/usePageTitle.js";
+
+const LEADERBOARD_SIZE = 20;
 
 export default function LeaderboardPage() {
   const { livePubs: pubs, pubsStatus, pubsError, reloadPubs, liveStatus, feature } = useApp();
-  const [tab, setTab] = useState("pints");
-  const [category, setCategory] = useState(null);
+  // The tab and category live in the URL, so refresh and back keep them.
+  const [params, updateParam] = useUrlParams();
+  const tab = params.get("view") === "people" ? "people" : "pints";
+  const category = CATEGORIES.includes(params.get("cat")) ? params.get("cat") : null;
+  const setTab = value => updateParam("view", value === "people" ? "people" : "");
+  const setCategory = value => updateParam("cat", value || "");
+  usePageTitle(tab === "people" ? "Top reporters" : "Cheapest pints");
   const [onePerPub, setOnePerPub] = useState(true);
   // Confirmed prices only: starting estimates never appear on the leaderboard.
-  const rows = useMemo(() => cheapestPints(pubs, { limit: 20, category, onePerPub, realOnly: true }), [pubs, category, onePerPub]);
+  const rows = useMemo(() => cheapestPints(pubs, { limit: LEADERBOARD_SIZE, category, onePerPub, realOnly: true }), [pubs, category, onePerPub]);
 
   return (
     <>
       <div className="page-title-row">
         <div>
-          <p className="eyebrow">Across all {pubs.length || ""} pubs</p>
-          <h2>{tab === "people" ? "Top reporters" : "Cheapest pint right now"}</h2>
+          <p className="eyebrow">{pubs.length ? `Across all ${pubs.length} pubs` : "Across all pubs"}</p>
+          <h1>{tab === "people" ? "Top reporters" : "Cheapest pint right now"}</h1>
         </div>
         <span className={`live-pill ${liveStatus}`}>{liveStatus === "live" ? "● Live" : liveStatus === "offline" ? "Offline" : "Connecting…"}</span>
       </div>
       {feature("top_reporters") && (
-        <div className="segmented" role="tablist" aria-label="Leaderboards">
-          <button type="button" role="tab" aria-selected={tab === "pints"} className={tab === "pints" ? "active" : ""} onClick={() => setTab("pints")}>Cheapest pints</button>
-          <button type="button" role="tab" aria-selected={tab === "people"} className={tab === "people" ? "active" : ""} onClick={() => setTab("people")}>Top reporters</button>
+        <div className="tab-row">
+          <Segmented label="Leaderboards" value={tab} onChange={setTab} options={[{ value: "pints", label: "Cheapest pints" }, { value: "people", label: "Top reporters" }]} />
           <NotLaunched feature="top_reporters" />
         </div>
       )}
@@ -52,7 +61,7 @@ export default function LeaderboardPage() {
 
       <section className="card">
         {pubsStatus === "loading" && <Loading />}
-        {pubsStatus === "error" && <ErrorState message={pubsError} onRetry={() => reloadPubs()} />}
+        {pubsStatus === "error" && <ErrorState title="Couldn't load pubs and prices" message={pubsError} onRetry={() => reloadPubs()} />}
         {pubsStatus === "ready" && rows.length === 0 && (
           <EmptyState title="No confirmed prices yet">
             {category ? `Nobody has confirmed a ${category} price yet. ` : ""}Open a pub and report what you paid to get on the board.
@@ -62,7 +71,7 @@ export default function LeaderboardPage() {
           <ol className="leaderboard">
             {rows.map((row, index) => (
               <li key={row.drink.id}>
-                <span className={`rank ${index < 3 ? `top top-${index + 1}` : ""}`}>{index + 1}</span>
+                <span className={`rank ${index < 3 ? "top" : ""}`}>{index + 1}</span>
                 <div className="result-main">
                   <Link to={`/pubs/${row.pub.id}`} className="result-link"><strong>{row.drink.name}</strong> <span className="muted">at {row.pub.name}</span></Link>
                   <span className="result-meta">

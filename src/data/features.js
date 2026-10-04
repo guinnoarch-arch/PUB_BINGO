@@ -1,30 +1,38 @@
 // Pub features people can search for on the What's on page. Keys are pub tags.
 export const FEATURES = [
-  { tag: "beer-garden", label: "Beer garden", icon: "🌳" },
-  { tag: "outdoor-drinking", label: "Outdoor drinking", icon: "☀️" },
-  { tag: "sports-tv", label: "Sport on TV", icon: "📺" },
-  { tag: "live-music", label: "Live music", icon: "🎸" },
-  { tag: "quiz-night", label: "Quiz night", icon: "❓" },
-  { tag: "comedy", label: "Comedy", icon: "🎤" },
-  { tag: "sing-along", label: "Sing-along", icon: "🎹" },
-  { tag: "food", label: "Food", icon: "🍽️" },
-  { tag: "dog-friendly", label: "Dog friendly", icon: "🐕" },
-  { tag: "real-ale-specialist", label: "Real ale", icon: "🍺" },
-  { tag: "craft-beer", label: "Craft beer", icon: "🍻" },
-  { tag: "historic", label: "Historic", icon: "🏛️" },
-  { tag: "no-music-no-tv", label: "Quiet (no music or TV)", icon: "🤫" }
+  { tag: "beer-garden", label: "Beer garden" },
+  { tag: "outdoor-drinking", label: "Outdoor drinking" },
+  { tag: "sports-tv", label: "Sport on TV" },
+  { tag: "live-music", label: "Live music" },
+  { tag: "quiz-night", label: "Quiz night" },
+  { tag: "comedy", label: "Comedy" },
+  { tag: "sing-along", label: "Sing-along" },
+  { tag: "food", label: "Food" },
+  { tag: "dog-friendly", label: "Dog friendly" },
+  { tag: "real-ale-specialist", label: "Real ale" },
+  { tag: "craft-beer", label: "Craft beer" },
+  { tag: "historic", label: "Historic" },
+  { tag: "no-music-no-tv", label: "Quiet (no music or TV)" }
 ];
 
 export const EVENT_CATEGORIES = [
-  { key: "live-music", label: "Live music", icon: "🎸" },
-  { key: "sports", label: "Sport", icon: "⚽" },
-  { key: "quiz", label: "Quiz", icon: "❓" },
-  { key: "comedy", label: "Comedy", icon: "🎤" },
-  { key: "sing-along", label: "Sing-along", icon: "🎹" },
-  { key: "open-mic", label: "Open mic", icon: "🎙️" },
-  { key: "tap-takeover", label: "Tap takeover", icon: "🍻" },
-  { key: "food", label: "Food", icon: "🍽️" },
-  { key: "other", label: "Other", icon: "✨" }
+  { key: "live-music", label: "Live music" },
+  { key: "sports", label: "Sport" },
+  { key: "quiz", label: "Quiz" },
+  { key: "comedy", label: "Comedy" },
+  { key: "sing-along", label: "Sing-along" },
+  { key: "open-mic", label: "Open mic" },
+  { key: "tap-takeover", label: "Tap takeover" },
+  { key: "food", label: "Food" },
+  { key: "other", label: "Other" }
 ];
 
 export const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+// "real-ale-specialist" → "Real ale specialist"; uses the feature's own label when there is one.
+export function tagLabel(tag) {
+  const feature = FEATURES.find(f => f.tag === tag);
+  if (feature) return feature.label;
+  const text = String(tag || "").replace(/-/g, " ");
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}

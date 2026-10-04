@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { BINGO_TILES, buildCardState, completedLines, evaluateAutoTiles } from "../../src/lib/core/bingo.js";
-import { isStale, timeAgo } from "../../src/lib/core/time.js";
+import { formatDateTime, formatDay, isStale, timeAgo } from "../../src/lib/core/time.js";
 import { SEED_PUBS } from "../../src/data/seedPubs.js";
 
 const pubsById = Object.fromEntries(SEED_PUBS.map(p => [p.id, p]));
@@ -62,5 +62,17 @@ describe("time", () => {
   it("flags prices older than 90 days as stale", () => {
     expect(isStale("2026-09-01T00:00:00Z", now)).toBe(false);
     expect(isStale("2026-05-01T00:00:00Z", now)).toBe(true);
+  });
+});
+
+describe("UK date formatting", () => {
+  it("formats days in London time", () => {
+    expect(formatDay("2026-10-03")).toBe("3 Oct 2026");
+    expect(formatDay("2026-10-03", { weekday: true })).toBe("Sat 3 Oct 2026");
+    expect(formatDay("2026-10-03", { year: false })).toBe("3 Oct");
+    // 23:30 UTC on 3 Oct is already 4 Oct in London (BST).
+    expect(formatDay("2026-10-03T23:30:00Z")).toBe("4 Oct 2026");
+    expect(formatDateTime("2026-10-03T18:40:00Z")).toBe("3 Oct 2026, 19:40");
+    expect(formatDay("nonsense")).toBe("unknown date");
   });
 });

@@ -30,11 +30,35 @@ describe("normaliseSupabaseUrl", () => {
 });
 
 describe("friendlyError", () => {
-  it("maps common failures to plain English", () => {
-    expect(friendlyError(new TypeError("Failed to fetch"))).toMatch(/Can't reach the server/);
-    expect(friendlyError({ message: "Invalid login credentials" })).toMatch(/Wrong email/);
-    expect(friendlyError({ message: "new row violates row-level security policy" })).toMatch(/permission/);
-    expect(friendlyError({ message: "You reported this drink a few minutes ago" })).toBe("You reported this drink a few minutes ago");
-    expect(friendlyError(null, "fallback")).toBe("fallback");
+  it("maps common failures to plain English with a next step", () => {
+    expect(friendlyError(new TypeError("Failed to fetch"))).toBe("Can't reach Pub Bingo. Check your connection and try again.");
+    expect(friendlyError({ message: "Invalid login credentials" })).toMatch(/don't match.*reset your password/);
+    expect(friendlyError({ message: "new row violates row-level security policy" })).toMatch(/isn't allowed/);
+    expect(friendlyError({ name: "TimeoutError", message: "signal timed out" })).toMatch(/taking too long/);
+  });
+
+  it("keeps the database's own messages, rewording the terse ones", () => {
+    expect(friendlyError({ message: "Price must be between £1.00 and £25.00" })).toBe("Price must be between £1.00 and £25.00.");
+    expect(friendlyError({ message: "You reported this drink a few minutes ago" })).toMatch(/again after 10 minutes/);
+    expect(friendlyError({ message: "Admins only" })).toMatch(/Only admins/);
+    expect(friendlyError({ message: "Drink not found" })).toMatch(/already been removed/);
+  });
+
+  it("never shows raw database or code errors", () => {
+    expect(friendlyError({ message: "duplicate key value violates unique constraint \"drinks_pkey\"" }, "Couldn't save the drink.")).toBe("Couldn't save the drink. Try again in a moment.");
+    expect(friendlyError({ message: "PGRST116: JSON object requested" })).toMatch(/^That didn't work/);
+    expect(friendlyError(new TypeError("Cannot read properties of undefined (reading 'id')"))).toMatch(/^That didn't work/);
+  });
+
+  it("adds a next step to fallbacks that don't have one", () => {
+    expect(friendlyError(null, "Couldn't load pubs.")).toBe("Couldn't load pubs. Try again in a moment.");
+    expect(friendlyError(null, "Couldn't save. Check your connection.")).toBe("Couldn't save. Check your connection.");
+  });
+});
+
+describe("friendlyError rewording of database limits", () => {
+  it("drops the exclamation and says when you can try again", () => {
+    expect(friendlyError({ message: "You've sent 10 menus today. Thanks! Try again tomorrow" })).toMatch(/daily limit.*tomorrow\.$/);
+    expect(friendlyError({ message: "You've already checked this price today. Thanks!" })).not.toMatch(/!/);
   });
 });

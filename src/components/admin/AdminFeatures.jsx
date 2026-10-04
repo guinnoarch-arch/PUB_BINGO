@@ -42,7 +42,7 @@ export default function AdminFeatures() {
                 </div>
                 <span className="small-text">{f.description}</span>
                 <span className="muted small-text">Where: {f.where}</span>
-                {needsSetup && <span className="muted small-text">⚙️ {f.setup}</span>}
+                {needsSetup && <span className="muted small-text">Needs setting up: {f.setup}</span>}
               </div>
               <label className="switch">
                 <input

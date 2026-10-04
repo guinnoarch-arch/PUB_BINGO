@@ -5,6 +5,14 @@ import { londonNow } from "./core/events.js";
 
 const AppContext = createContext(null);
 
+const TOAST_MS = 4500;
+const TOAST_WITH_ACTION_MS = 8000;
+const MAX_TOASTS = 3;
+// London time is re-read this often, so happy hours start and stop on time.
+const CLOCK_TICK_MS = 60000;
+// Several live changes in a burst cause one reload of the pubs, not one each.
+const LIVE_RELOAD_DELAY_MS = 400;
+
 export function useApp() {
   const value = useContext(AppContext);
   if (!value) throw new Error("useApp must be used inside <AppProvider>");
@@ -30,16 +38,22 @@ export function AppProvider({ api, children }) {
   const reloadTimer = useRef(null);
   const userId = session?.user?.id || null;
 
-  const toast = useCallback((message, tone = "info") => {
+  const dismissToast = useCallback(id => setToasts(list => list.filter(t => t.id !== id)), []);
+
+  // toast("Saved.", "success") or toast("Unticked.", "info", { action: { label: "Undo", onClick } }).
+  // Toasts with an action stay up longer so there's time to tap it.
+  const toast = useCallback((message, tone = "info", { action = null } = {}) => {
     const id = Math.random().toString(36).slice(2);
-    setToasts(list => [...list.slice(-2), { id, message, tone }]);
-    window.setTimeout(() => setToasts(list => list.filter(t => t.id !== id)), 4500);
-  }, []);
+    setToasts(list => [...list.slice(-(MAX_TOASTS - 1)), { id, message, tone, action }]);
+    window.setTimeout(() => dismissToast(id), action ? TOAST_WITH_ACTION_MS : TOAST_MS);
+  }, [dismissToast]);
 
   const reloadPubs = useCallback(async ({ quiet = false } = {}) => {
     if (!quiet) setPubsStatus(status => (status === "ready" ? "ready" : "loading"));
     try {
-      setPubs(await api.listPubs());
+      const rows = await api.listPubs();
+      // A broken or empty response shouldn't crash every page.
+      setPubs(Array.isArray(rows) ? rows.filter(pub => pub && pub.id) : []);
       setPubsStatus("ready");
       setPubsError("");
     } catch (error) {
@@ -85,7 +99,7 @@ export function AppProvider({ api, children }) {
 
   // London time, ticking each minute, so happy-hour prices start and stop on time.
   useEffect(() => {
-    const timer = window.setInterval(() => setClock(londonNow()), 60000);
+    const timer = window.setInterval(() => setClock(londonNow()), CLOCK_TICK_MS);
     return () => window.clearInterval(timer);
   }, []);
 
@@ -104,7 +118,7 @@ export function AppProvider({ api, children }) {
       }
       setChangeVersion(v => v + 1);
       window.clearTimeout(reloadTimer.current);
-      reloadTimer.current = window.setTimeout(() => reloadPubs({ quiet: true }), 400);
+      reloadTimer.current = window.setTimeout(() => reloadPubs({ quiet: true }), LIVE_RELOAD_DELAY_MS);
     });
     return () => {
       window.clearTimeout(reloadTimer.current);
@@ -198,8 +212,9 @@ export function AppProvider({ api, children }) {
     changeVersion,
     notifyChange: () => { setChangeVersion(v => v + 1); reloadPubs({ quiet: true }); },
     toast,
+    dismissToast,
     toasts
-  }), [api, session, userId, profile, isAdmin, feature, featureLive, reloadFeatures, deals, livePubs, clock, extras, priceWatches, reloadWatches, authReady, pubs, pubsStatus, pubsError, reloadPubs, favourites, toggleFavourite, liveStatus, changeVersion, toast, toasts]);
+  }), [api, session, userId, profile, isAdmin, feature, featureLive, reloadFeatures, deals, livePubs, clock, extras, priceWatches, reloadWatches, authReady, pubs, pubsStatus, pubsError, reloadPubs, favourites, toggleFavourite, liveStatus, changeVersion, toast, dismissToast, toasts]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }

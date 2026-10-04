@@ -1,18 +1,19 @@
 import { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useApp } from "../lib/AppContext.jsx";
-import { cheapestByPub, cheapestCrawl, orderRoute, walkMinutes, WALK_FACTOR } from "../lib/core/crawl.js";
-import { distanceMetres } from "../lib/core/geo.js";
+import { cheapestByPub, cheapestCrawl, crawlSummary, orderRoute, walkMinutes, WALK_FACTOR } from "../lib/core/crawl.js";
 import { formatPrice } from "../lib/core/prices.js";
 import FeaturePage from "../components/features/FeaturePage.jsx";
 import RouteMap from "../components/map/RouteMap.jsx";
 import NotLaunched from "../components/ui/NotLaunched.jsx";
-import { Loading } from "../components/ui/States.jsx";
-
-const d = (a, b) => distanceMetres({ lat: Number(a.lat), lng: Number(a.lng) }, { lat: Number(b.lat), lng: Number(b.lng) }) ?? 0;
+import { ErrorState, Loading } from "../components/ui/States.jsx";
+import { useGeolocation } from "../lib/hooks/useGeolocation.js";
+import Segmented from "../components/ui/Segmented.jsx";
+import { usePageTitle } from "../lib/hooks/usePageTitle.js";
 
 function Crawl() {
-  const { livePubs, pubsStatus, toast } = useApp();
+  const { livePubs, pubsStatus, pubsError, reloadPubs, toast } = useApp();
+  const { locate, locating } = useGeolocation({ fallback: "Tap the map to set a start instead." });
   const [params, setParams] = useSearchParams();
   const shared = (params.get("stops") || "").split(",").filter(Boolean);
   const [mode, setMode] = useState(shared.length ? "pick" : "cheapest");
@@ -28,19 +29,8 @@ function Crawl() {
     return orderRoute(pubs.filter(p => picked.has(p.id)), start);
   }, [mode, pubs, start, count, query, picked]);
 
-  const legs = route.map((pub, i) => (i === 0 ? (start ? d(start, pub) : 0) : d(route[i - 1], pub)));
-  const walk = legs.reduce((a, b) => a + b, 0);
-  const total = route.reduce((sum, pub) => sum + (best.get(pub.id)?.pintPrice || 0), 0);
-  const unpriced = route.filter(pub => !best.get(pub.id)).length;
+  const { legs, walk, total, unpriced } = crawlSummary(route, start, best);
 
-  function locate() {
-    if (!navigator.geolocation) { toast("Your browser can't share its location. Tap the map instead."); return; }
-    navigator.geolocation.getCurrentPosition(
-      pos => setStart({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      () => toast("Couldn't get your location. Tap the map to set a start.", "error"),
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
-  }
 
   async function share() {
     const next = new URLSearchParams();
@@ -50,28 +40,29 @@ function Crawl() {
     setParams(next, { replace: true });
     try {
       if (navigator.share) await navigator.share({ title: "Pub crawl", text: route.map((p, i) => `${i + 1}. ${p.name}`).join("\n"), url });
-      else { await navigator.clipboard.writeText(url); toast("Link copied. Send it to your mates!", "success"); }
-    } catch { /* share cancelled */ }
+      else { await navigator.clipboard.writeText(url); toast("Crawl link copied.", "success"); }
+    } catch (error) {
+      // Closing the share sheet isn't an error.
+      if (error?.name !== "AbortError") toast("Couldn't share or copy the link. Copy it from the address bar instead.", "error");
+    }
   }
 
   const toggle = id => setPicked(prev => { const next = new Set(prev); if (next.has(id)) next.delete(id); else next.add(id); return next; });
 
   if (pubsStatus === "loading") return <Loading />;
+  if (pubsStatus === "error") return <ErrorState title="Couldn't load pubs and prices" message={pubsError} onRetry={() => reloadPubs()} />;
   return (
     <>
       <div className="page-title-row">
         <div>
           <p className="eyebrow">Plan a night out</p>
-          <h2>Pub crawl planner</h2>
+          <h1>Pub crawl planner</h1>
         </div>
         <NotLaunched feature="crawl_planner" />
       </div>
 
       <section className="card">
-        <div className="segmented" role="group" aria-label="How to plan">
-          <button type="button" className={mode === "cheapest" ? "active" : ""} aria-pressed={mode === "cheapest"} onClick={() => setMode("cheapest")}>Cheapest crawl</button>
-          <button type="button" className={mode === "pick" ? "active" : ""} aria-pressed={mode === "pick"} onClick={() => setMode("pick")}>Pick my pubs</button>
-        </div>
+        <Segmented label="How to plan" value={mode} onChange={setMode} options={[{ value: "cheapest", label: "Cheapest crawl" }, { value: "pick", label: "Pick my pubs" }]} />
         <div className="form-grid crawl-options">
           <div className="field">
             <label htmlFor="crawl-drink">Drink (optional)</label>
@@ -88,7 +79,7 @@ function Crawl() {
           <div className="field">
             <span className="field-label">Start</span>
             <div className="row-actions wrap">
-              <button type="button" className="secondary-button small" onClick={locate}>Use my location</button>
+              <button type="button" className="secondary-button small" onClick={() => locate(setStart)} disabled={locating}>{locating ? "Finding you…" : "Use my location"}</button>
               {start && <button type="button" className="text-button" onClick={() => setStart(null)}>Clear start</button>}
             </div>
           </div>
@@ -163,5 +154,6 @@ function Crawl() {
 }
 
 export default function CrawlPage() {
+  usePageTitle("Pub crawl planner");
   return <FeaturePage feature="crawl_planner"><Crawl /></FeaturePage>;
 }

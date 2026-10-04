@@ -1,5 +1,6 @@
-import { isStale, timeAgo } from "../../lib/core/time.js";
+import { formatDateTime, isStale, timeAgo } from "../../lib/core/time.js";
 import { formatPrice, isDraught, measureLabel } from "../../lib/core/prices.js";
+import { ExternalLink } from "lucide-react";
 
 const SOURCES = {
   seed: { label: "Estimate", className: "badge-seed", title: "Starting estimate, not yet confirmed. Report the real price if you know it." },
@@ -13,7 +14,7 @@ export function SourceBadge({ source, url }) {
   if (url && source === "website") {
     return (
       <a className={`badge ${info.className}`} href={url} target="_blank" rel="noreferrer" title={`${info.title} (opens the page)`}>
-        {info.label} ↗
+        {info.label}<ExternalLink aria-hidden="true" /><span className="sr-only"> (opens in a new tab)</span>
       </a>
     );
   }
@@ -21,10 +22,11 @@ export function SourceBadge({ source, url }) {
 }
 
 export function UpdatedAgo({ value }) {
+  if (!Number.isFinite(new Date(value).getTime())) return <span className="updated">Update date unknown</span>;
   const stale = isStale(value);
   return (
     <span className={`updated ${stale ? "stale" : ""}`}>
-      <time dateTime={value} title={new Date(value).toLocaleString("en-GB")}>Updated {timeAgo(value)}</time>
+      <time dateTime={value} title={formatDateTime(value)}>Updated {timeAgo(value)}</time>
       {stale && <span className="sr-only"> (may be out of date)</span>}
     </span>
   );

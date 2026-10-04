@@ -8,10 +8,11 @@ import { AREAS } from "../data/seedPubs.js";
 import FeaturePage from "../components/features/FeaturePage.jsx";
 import StillRightButton from "../components/features/StillRightButton.jsx";
 import NotLaunched from "../components/ui/NotLaunched.jsx";
-import { EmptyState, Loading } from "../components/ui/States.jsx";
+import { EmptyState, ErrorState, Loading } from "../components/ui/States.jsx";
+import { usePageTitle } from "../lib/hooks/usePageTitle.js";
 
 function NeedsChecking() {
-  const { pubs, pubsStatus } = useApp();
+  const { pubs, pubsStatus, pubsError, reloadPubs } = useApp();
   const [area, setArea] = useState("");
   const [showEstimates, setShowEstimates] = useState(true);
   const rows = useMemo(() => needsChecking(pubs).filter(r => (!area || r.pub.area === area) && (showEstimates || !r.estimate)), [pubs, area, showEstimates]);
@@ -22,7 +23,7 @@ function NeedsChecking() {
       <div className="page-title-row">
         <div>
           <p className="eyebrow">Help keep prices real</p>
-          <h2>Needs checking</h2>
+          <h1>Needs checking</h1>
         </div>
         <NotLaunched feature="needs_checking" />
       </div>
@@ -34,12 +35,12 @@ function NeedsChecking() {
         </div>
         <label className="checkbox-label"><input type="checkbox" checked={showEstimates} onChange={e => setShowEstimates(e.target.checked)} /> Include estimates</label>
       </section>
-      {pubsStatus === "loading" ? <Loading /> : groups.length === 0 ? (
-        <section className="card"><EmptyState title="All checked!">Every price here has been confirmed recently. 🍻</EmptyState></section>
+      {pubsStatus === "loading" ? <Loading /> : pubsStatus === "error" ? <ErrorState title="Couldn't load pubs and prices" message={pubsError} onRetry={() => reloadPubs()} /> : groups.length === 0 ? (
+        <section className="card"><EmptyState title="Nothing to check">Every price here has been confirmed in the last 60 days. Try another area, or include estimates.</EmptyState></section>
       ) : groups.map(({ pub, rows: items }) => (
         <section key={pub.id} className="card check-group">
           <div className="section-header">
-            <h3 className="section-title"><Link to={`/pubs/${pub.id}`}>{pub.name}</Link> <span className="muted small-text">{pub.area}</span></h3>
+            <h2 className="section-title"><Link to={`/pubs/${pub.id}`}>{pub.name}</Link> <span className="muted small-text">{pub.area}</span></h2>
             <span className="muted small-text">{items.length} to check</span>
           </div>
           <ul className="check-list">
@@ -64,5 +65,6 @@ function NeedsChecking() {
 }
 
 export default function NeedsCheckingPage() {
+  usePageTitle("Needs checking");
   return <FeaturePage feature="needs_checking"><NeedsChecking /></FeaturePage>;
 }

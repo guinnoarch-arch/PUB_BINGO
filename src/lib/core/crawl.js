@@ -71,3 +71,15 @@ export function cheapestCrawl(pubs, { origin = null, count = 4, query = "", maxM
     .map(row => row.pub);
   return orderRoute(candidates, origin);
 }
+
+// Walking legs (metres) between stops, the total walk, the cost of a pint at each stop and how many
+// stops have no confirmed price. best: the Map from cheapestByPub().
+export function crawlSummary(route, start, best) {
+  const legs = route.map((pub, i) => (i === 0 ? (start ? d(start, pub) : 0) : d(route[i - 1], pub)));
+  return {
+    legs,
+    walk: legs.reduce((sum, leg) => sum + leg, 0),
+    total: route.reduce((sum, pub) => sum + (best.get(pub.id)?.pintPrice || 0), 0),
+    unpriced: route.filter(pub => !best.get(pub.id)).length
+  };
+}

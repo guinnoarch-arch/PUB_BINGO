@@ -1,6 +1,7 @@
 import { useApp } from "../../lib/AppContext.jsx";
+import { BadgeCheck } from "lucide-react";
 
-// "@sam ✓": the tick shows for trusted reporters (when that feature is on).
+// "@sam" plus a tick for trusted reporters (when that feature is on).
 export default function ReporterName({ username, fallback = "Someone" }) {
   const { feature, extras } = useApp();
   if (!username) return <>{fallback}</>;
@@ -8,7 +9,7 @@ export default function ReporterName({ username, fallback = "Someone" }) {
   return (
     <>
       @{username}
-      {trusted && <span className="trusted-tick" title="Trusted reporter: their prices keep matching other people's" aria-label="trusted reporter"> ✓</span>}
+      {trusted && <span className="trusted-tick" title="Trusted reporter: their prices keep matching other people's" > <BadgeCheck aria-hidden="true" /><span className="sr-only">(trusted reporter)</span></span>}
     </>
   );
 }

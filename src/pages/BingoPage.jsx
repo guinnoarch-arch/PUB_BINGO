@@ -1,18 +1,53 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useApp } from "../lib/AppContext.jsx";
 import { friendlyError } from "../lib/api/errors.js";
-import { buildCardState, completedLines, evaluateAutoTiles } from "../lib/core/bingo.js";
+import { buildCardState, completedLines, evaluateAutoTiles, isFullHouse } from "../lib/core/bingo.js";
 import { ErrorState, Loading } from "../components/ui/States.jsx";
 import SignInPrompt from "../components/SignInPrompt.jsx";
 import NotLaunched from "../components/ui/NotLaunched.jsx";
 import { weekStart, weeklyCardState, weeklyStreak } from "../lib/core/weeklyBingo.js";
 import { addDays, formatDate } from "../lib/core/events.js";
+import { useUrlParams } from "../lib/hooks/useUrlParam.js";
+import Segmented from "../components/ui/Segmented.jsx";
+import { Check } from "lucide-react";
+import { usePageTitle } from "../lib/hooks/usePageTitle.js";
+
+function heroText({ fullHouse, lineCount }) {
+  if (fullHouse) return { heading: "Full house", body: "Every tile is done." };
+  if (lineCount) return { heading: "Bingo", body: `${lineCount} line${lineCount === 1 ? "" : "s"} complete. Keep going for a full house.` };
+  return null;
+}
+
+function BingoTile({ tile, inLine, saving, onToggle }) {
+  const status = tile.done ? (inLine ? "In a line" : "Done") : tile.mode === "auto" ? "Ticks itself" : "Tap when done";
+  const className = `bingo-cell ${tile.done ? "marked" : ""} ${inLine ? "in-line" : ""} ${tile.mode}`;
+  const content = (
+    <>
+      {tile.done && <span className="bingo-tick" aria-hidden="true"><Check /></span>}
+      <span className="bingo-title">{tile.title}</span>
+      <span className="bingo-detail">{status}</span>
+    </>
+  );
+
+  // Auto tiles complete from what you do in the app, so there's nothing to tap.
+  if (tile.mode === "auto") {
+    return <div className={className} title={tile.detail}>{content}<span className="sr-only">. {tile.detail}</span></div>;
+  }
+  return (
+    <button type="button" className={className} aria-pressed={tile.done} disabled={saving} onClick={() => onToggle(tile)} title={tile.detail}>
+      {content}
+    </button>
+  );
+}
 
 export default function BingoPage() {
   const { api, userId, authReady, pubsById, favourites, changeVersion, toast, feature, clock } = useApp();
   const weeklyOn = feature("weekly_bingo");
-  const [mode, setMode] = useState("week");
+  const [params, setParam] = useUrlParams();
+  const mode = params.get("card") === "classic" ? "classic" : "week";
+  const setMode = next => setParam("card", next === "week" ? "" : next);
   const showWeek = weeklyOn && mode === "week";
+  usePageTitle(mode === "classic" || !weeklyOn ? "Bingo card" : "This week's bingo");
   const start = weekStart(clock);
   const [progress, setProgress] = useState(null);
   const [activity, setActivity] = useState({ reports: [], photoCount: 0 });
@@ -39,11 +74,12 @@ export default function BingoPage() {
   const card = useMemo(() => (showWeek
     ? weeklyCardState(start, progress || [], activity, pubsById)
     : buildCardState(progress || [], auto)), [showWeek, start, progress, activity, pubsById, auto]);
-  const streak = useMemo(() => (weeklyOn ? weeklyStreak(progress || [], clock) : 0), [weeklyOn, progress, clock]);
+  const streak = useMemo(() => (weeklyOn ? weeklyStreak(progress || [], clock, activity, pubsById) : 0), [weeklyOn, progress, clock, activity, pubsById]);
   const lines = completedLines(card);
   const doneCount = card.filter(t => t.done).length;
 
-  // Save newly earned auto tiles so they stay complete.
+  // Save newly earned auto tiles so they stay complete. If saving fails they're still shown as
+  // done (they're worked out from activity) and saving is tried again on the next change.
   useEffect(() => {
     if (!userId || !progress) return;
     const toSave = card.filter(t => t.needsSaving && !savingAuto.current.has(t.id));
@@ -52,25 +88,34 @@ export default function BingoPage() {
     Promise.all(toSave.map(t => api.setBingoTile(userId, t.id, true)))
       .then(() => {
         setProgress(prev => [...prev, ...toSave.map(t => ({ tile_id: t.id, completed_at: new Date().toISOString() }))]);
-        toast(toSave.length === 1 ? `Bingo tile complete: ${toSave[0].title}` : `${toSave.length} bingo tiles complete!`, "success");
+        toast(toSave.length === 1 ? `Bingo tile complete: ${toSave[0].title}` : `${toSave.length} bingo tiles complete.`, "success");
       })
       .catch(() => {})
       .finally(() => toSave.forEach(t => savingAuto.current.delete(t.id)));
   }, [api, userId, card, progress, toast]);
 
-  async function toggle(tile) {
-    if (tile.mode === "auto") return;
+  async function setTile(tile, next) {
     setSaving(tile.id);
-    const next = !tile.done;
     try {
       await api.setBingoTile(userId, tile.id, next);
       setProgress(prev => (next
-        ? [...prev, { tile_id: tile.id, completed_at: new Date().toISOString() }]
+        ? [...prev.filter(row => row.tile_id !== tile.id), { tile_id: tile.id, completed_at: new Date().toISOString() }]
         : prev.filter(row => row.tile_id !== tile.id)));
+      return true;
     } catch (err) {
-      toast(friendlyError(err, "Couldn't save your bingo card."), "error");
+      toast(friendlyError(err, "Couldn't save your bingo card. Check your connection and tap the tile again."), "error");
+      return false;
     } finally {
       setSaving(null);
+    }
+  }
+
+  // Unticking is easy to do by accident one-handed, so it offers Undo rather than asking first.
+  async function toggle(tile) {
+    const next = !tile.done;
+    const saved = await setTile(tile, next);
+    if (saved && !next) {
+      toast(`Unticked “${tile.title}”.`, "info", { action: { label: "Undo", onClick: () => setTile(tile, true) } });
     }
   }
 
@@ -78,54 +123,38 @@ export default function BingoPage() {
   if (!userId) {
     return <SignInPrompt title="Pub Bingo challenge card">Sign in to play. Your card is saved to your account, and some tiles complete automatically as you report prices, favourite pubs and share photos.</SignInPrompt>;
   }
-  if (error) return <ErrorState message={error} onRetry={() => setRetry(r => r + 1)} />;
+  if (error) return <ErrorState title="Couldn't load your bingo card" message={error} onRetry={() => setRetry(r => r + 1)} />;
   if (!progress) return <Loading label="Loading your card…" />;
 
   const inLine = new Set(lines.flat());
-  const fullHouse = doneCount === card.length;
+  const win = heroText({ fullHouse: isFullHouse(card), lineCount: lines.length });
 
   return (
     <>
       {weeklyOn && (
-        <div className="segmented" role="tablist" aria-label="Bingo cards">
-          <button type="button" role="tab" aria-selected={mode === "week"} className={mode === "week" ? "active" : ""} onClick={() => setMode("week")}>This week</button>
-          <button type="button" role="tab" aria-selected={mode === "classic"} className={mode === "classic" ? "active" : ""} onClick={() => setMode("classic")}>Classic card</button>
+        <div className="tab-row">
+          <Segmented label="Bingo cards" value={mode} onChange={setMode} options={[{ value: "week", label: "This week" }, { value: "classic", label: "Classic card" }]} />
           <NotLaunched feature="weekly_bingo" />
         </div>
       )}
-      <section className={`hero-card ${lines.length ? "bingo" : ""}`}>
-        <div>
-          <p className="eyebrow">{showWeek ? `Week of ${formatDate(start)} – ${formatDate(addDays(start, 6))}` : "Your challenge card"}</p>
-          <h2>{fullHouse ? "Full house!" : lines.length ? "BINGO!" : `${doneCount} / 9`}</h2>
-          <p>
-            {fullHouse ? "Every tile done. Legend."
-              : lines.length ? `${lines.length} line${lines.length === 1 ? "" : "s"} complete. Go for the full house.`
-              : "Complete a row, column or diagonal to get Bingo."}
-          </p>
-          {showWeek && <p className="streak">🔥 Streak: <strong>{streak} week{streak === 1 ? "" : "s"}</strong> with a line{showWeek ? " · a new card every Monday" : ""}</p>}
+      <section className={`hero-card ${win ? "bingo" : ""}`} aria-labelledby="bingo-heading">
+        <p className="eyebrow">{showWeek ? `Week of ${formatDate(start)} – ${formatDate(addDays(start, 6))}` : "Your challenge card"}</p>
+        <div role="status" aria-live="polite">
+          <h1 id="bingo-heading">{win ? win.heading : `${doneCount} of ${card.length} done`}</h1>
+          <p>{win ? win.body : "Complete a row, column or diagonal to get Bingo."}</p>
         </div>
+        {showWeek && <p className="streak">Streak: <strong>{streak} week{streak === 1 ? "" : "s"}</strong> with a line. A new card starts every Monday.</p>}
       </section>
 
       <section className="card">
-        <div className="bingo-grid" role="list">
+        <ul className="bingo-grid">
           {card.map((tile, index) => (
-            <div key={tile.id} role="listitem">
-              <button
-                type="button"
-                className={`bingo-cell ${tile.done ? "marked" : ""} ${inLine.has(index) ? "in-line" : ""} ${tile.mode}`}
-                aria-pressed={tile.done}
-                aria-disabled={tile.mode === "auto"}
-                disabled={saving === tile.id}
-                onClick={() => toggle(tile)}
-                title={tile.detail}
-              >
-                <span className="bingo-title">{tile.title}</span>
-                <span className="bingo-detail">{tile.mode === "auto" ? (tile.done ? "✓ Done" : "Auto") : tile.done ? "✓ Ticked" : "Tap when done"}</span>
-              </button>
-            </div>
+            <li key={tile.id}>
+              <BingoTile tile={tile} inLine={inLine.has(index)} saving={saving === tile.id} onToggle={toggle} />
+            </li>
           ))}
-        </div>
-        <p className="muted small-text">Tiles marked “Auto” complete themselves from what you do in the app. Tap the others once you've done them.</p>
+        </ul>
+        <p className="muted small-text">Dashed tiles tick themselves from what you do in the app. Tap the others once you've done them.</p>
       </section>
     </>
   );

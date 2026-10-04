@@ -5,18 +5,22 @@ import { friendlyError } from "../../lib/api/errors.js";
 import { formatPrice } from "../../lib/core/prices.js";
 import { timeAgo } from "../../lib/core/time.js";
 import NotLaunched from "../ui/NotLaunched.jsx";
+import { usePending } from "../../lib/hooks/usePending.js";
+import { Receipt } from "lucide-react";
 
-export function ReceiptLink({ path }) {
-  const { api } = useApp();
+function ReceiptLink({ path }) {
+  const { api, toast } = useApp();
   const [url, setUrl] = useState("");
   async function open() {
     try {
       const link = url || await api.admin.receiptUrl(path);
       setUrl(link);
       window.open(link, "_blank", "noopener");
-    } catch { /* shown as unavailable */ }
+    } catch (err) {
+      toast(friendlyError(err, "Couldn't open the receipt. Try again in a moment."), "error");
+    }
   }
-  return <button type="button" className="text-button" onClick={open}>🧾 View receipt</button>;
+  return <button type="button" className="text-button" onClick={open}><Receipt aria-hidden="true" />View receipt</button>;
 }
 
 // Prices that were far from the current one, from reporters who aren't trusted yet.
@@ -24,6 +28,7 @@ export default function HeldReports() {
   const { api, changeVersion, toast, notifyChange } = useApp();
   const [rows, setRows] = useState(null);
   const [key, setKey] = useState(0);
+  const { run, isPending } = usePending();
 
   useEffect(() => {
     let active = true;
@@ -31,16 +36,16 @@ export default function HeldReports() {
     return () => { active = false; };
   }, [api, changeVersion, key]);
 
-  async function review(row, approve) {
+  const review = (row, approve) => run(row.id, async () => {
     try {
       await api.admin.reviewHeldReport(row.id, approve);
       toast(approve ? "Approved: the price is live." : "Rejected: it stays hidden.", "success");
       notifyChange();
       setKey(k => k + 1);
     } catch (err) {
-      toast(friendlyError(err), "error");
+      toast(friendlyError(err, "Couldn't save the review. Try again."), "error");
     }
-  }
+  });
 
   return (
     <section className="card" aria-labelledby="held-heading">
@@ -62,8 +67,8 @@ export default function HeldReports() {
               </span>
               <span className="row-actions">
                 {row.receipt_path && <ReceiptLink path={row.receipt_path} />}
-                <button type="button" className="secondary-button small" onClick={() => review(row, true)}>Approve</button>
-                <button type="button" className="text-button danger" onClick={() => review(row, false)}>Reject</button>
+                <button type="button" className="secondary-button small" disabled={isPending(row.id)} onClick={() => review(row, true)}>Approve</button>
+                <button type="button" className="text-button danger" disabled={isPending(row.id)} onClick={() => review(row, false)}>Reject</button>
               </span>
             </li>
           ))}

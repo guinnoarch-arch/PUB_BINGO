@@ -24,6 +24,12 @@ describe("formatPrice", () => {
   it("formats pounds and pence", () => {
     expect(formatPrice(5.8)).toBe("£5.80");
     expect(formatPrice(null)).toBe("–");
+    expect(formatPrice("")).toBe("–");
+    expect(formatPrice(10.000000002)).toBe("£10.00");
+    expect(formatPrice(0.1 + 0.2)).toBe("£0.30");
+    expect(formatPrice(5.795)).toBe("£5.80");
+    expect(formatPrice(-0.2)).toBe("−£0.20");
+    expect(formatPrice(1234.5)).toBe("£1,234.50");
   });
 });
 

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useApp } from "../../lib/AppContext.jsx";
 import { friendlyError } from "../../lib/api/errors.js";
 import { WEEKDAYS } from "../../data/features.js";
+import { FormError } from "../ui/FormErrors.jsx";
 
 const ORDER = [1, 2, 3, 4, 5, 6, 0];
 
@@ -40,6 +41,7 @@ export default function AdminHours({ pub, onSaved }) {
   return (
     <div className="hours-editor">
       <p className="muted small-text">{pub.opening_hours ? "Saved hours are shown on the pub page and used by the “Open now” filter." : "No hours saved yet: the pub won't show in “Open now” until they are."} Closing after midnight? Just enter e.g. 01:00.</p>
+      <div className="sheet-wrap hours-wrap">
       <table className="sheet hours-sheet">
         <tbody>
           {ORDER.map(d => (
@@ -52,9 +54,10 @@ export default function AdminHours({ pub, onSaved }) {
           ))}
         </tbody>
       </table>
-      {error && <p className="form-error" role="alert">{error}</p>}
+      </div>
+      <FormError>{error}</FormError>
       <div className="row-actions">
-        <button type="button" className="primary-button" onClick={() => save(false)} disabled={saving}>{saving ? "Saving…" : "Save hours"}</button>
+        <button type="button" className="secondary-button" onClick={() => save(false)} disabled={saving}>{saving ? "Saving…" : "Save hours"}</button>
         {pub.opening_hours && <button type="button" className="text-button danger" onClick={() => save(true)} disabled={saving}>Clear hours</button>}
       </div>
     </div>

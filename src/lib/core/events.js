@@ -148,3 +148,16 @@ export function pubsWithFeatures(pubs, tags = []) {
   return (pubs || []).filter(pub => tags.every(tag => (pub.tags || []).includes(tag)))
     .sort((a, b) => a.name.localeCompare(b.name));
 }
+
+// Checks the admin event form (mirrors the events table's rules). Returns { field: "message" }.
+export function validateEvent(form) {
+  const errors = {};
+  const title = String(form.title || "").trim();
+  if (title.length < 2 || title.length > 100) errors.title = "Enter a title of 2 to 100 characters, like “Quiz night”.";
+  if (form.schedule === "weekly" && !(form.weekdays || []).length) errors.weekdays = "Choose at least one day.";
+  if (form.schedule === "one-off" && !/^\d{4}-\d{2}-\d{2}$/.test(form.event_date || "")) errors.event_date = "Enter the date of the event.";
+  if (form.start_time && form.end_time && form.start_time === form.end_time) errors.end_time = "The end time must be different from the start time.";
+  if (String(form.description || "").length > 500) errors.description = "Shorten the description to 500 characters or fewer.";
+  if (String(form.source_url || "").trim() && !/^https?:\/\/\S+$/i.test(String(form.source_url).trim())) errors.source_url = "Enter a full link starting with https://, or leave it empty.";
+  return errors;
+}

@@ -1,4 +1,6 @@
 // "Needs checking": prices that are only estimates, or haven't been confirmed for a while.
+import { DAY_MS } from "./time.js";
+
 export const CHECK_AFTER_DAYS = 60;
 
 export function needsChecking(pubs, { days = CHECK_AFTER_DAYS, now = Date.now() } = {}) {
@@ -6,7 +8,7 @@ export function needsChecking(pubs, { days = CHECK_AFTER_DAYS, now = Date.now() 
   for (const pub of pubs || []) {
     for (const drink of pub.drinks || []) {
       const updated = new Date(drink.last_updated_at).getTime();
-      const age = Number.isFinite(updated) ? Math.floor((now - updated) / 86400000) : Infinity;
+      const age = Number.isFinite(updated) ? Math.floor((now - updated) / DAY_MS) : Infinity;
       const estimate = drink.source === "seed";
       if (!estimate && age < days) continue;
       rows.push({ pub, drink, estimate, age });

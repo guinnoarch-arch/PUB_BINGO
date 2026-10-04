@@ -2,8 +2,11 @@ import { useEffect, useState } from "react";
 import { useApp } from "../../lib/AppContext.jsx";
 import { friendlyError } from "../../lib/api/errors.js";
 import { EVENT_CATEGORIES, WEEKDAYS } from "../../data/features.js";
-import { formatSchedule } from "../../lib/core/events.js";
-import { categoryInfo } from "./EventItem.jsx";
+import { formatSchedule, validateEvent } from "../../lib/core/events.js";
+import { ErrorSummary, FormError, Required, fieldErrorBinding } from "../ui/FormErrors.jsx";
+import { usePending } from "../../lib/hooks/usePending.js";
+import { ErrorState, Loading } from "../ui/States.jsx";
+import ExternalLink from "../ui/ExternalLink.jsx";
 
 const MONDAY_FIRST = [1, 2, 3, 4, 5, 6, 0];
 const SOURCE_LABELS = { research: "Web research", website: "Pub website", admin: "Added by admin" };
@@ -24,14 +27,22 @@ function EventForm({ pub, event, onDone, onCancel }) {
     is_published: event ? event.is_published : true
   }));
   const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
+  const [attempt, setAttempt] = useState(0);
   const [saving, setSaving] = useState(false);
   const set = key => e => setForm(prev => ({ ...prev, [key]: e.target.type === "checkbox" ? e.target.checked : e.target.value }));
   const toggleDay = day => setForm(prev => ({ ...prev, weekdays: prev.weekdays.includes(day) ? prev.weekdays.filter(d => d !== day) : [...prev.weekdays, day] }));
   const idPrefix = `ev-${event?.id || "new"}`;
+  const fieldIds = { title: `${idPrefix}-title`, weekdays: `${idPrefix}-day-1`, event_date: `${idPrefix}-date`, end_time: `${idPrefix}-end`, description: `${idPrefix}-desc`, source_url: `${idPrefix}-url` };
+  const { props: invalid, message: fieldError } = fieldErrorBinding(errors, fieldIds);
 
   async function save(e) {
     e.preventDefault();
     setError("");
+    const found = validateEvent(form);
+    setErrors(found);
+    setAttempt(a => a + 1);
+    if (Object.keys(found).length) return;
     setSaving(true);
     try {
       await api.admin.saveEvent({ ...form, id: event?.id || null, pub_id: pub.id, source: event ? undefined : "admin" });
@@ -47,15 +58,17 @@ function EventForm({ pub, event, onDone, onCancel }) {
 
   return (
     <form className="set-price-form" onSubmit={save} noValidate>
+      <ErrorSummary errors={errors} fieldIds={fieldIds} attempt={attempt} />
       <div className="form-grid">
         <div className="field grow">
-          <label htmlFor={`${idPrefix}-title`}>Title</label>
-          <input id={`${idPrefix}-title`} value={form.title} onChange={set("title")} maxLength={100} placeholder="e.g. Quiz night, England v France" />
+          <label htmlFor={`${idPrefix}-title`}>Title<Required /></label>
+          <input id={`${idPrefix}-title`} value={form.title} onChange={set("title")} maxLength={100} placeholder="e.g. Quiz night, England v France" aria-required="true" {...invalid("title")} />
+          {fieldError("title")}
         </div>
         <div className="field">
           <label htmlFor={`${idPrefix}-cat`}>Type</label>
           <select id={`${idPrefix}-cat`} value={form.category} onChange={set("category")}>
-            {EVENT_CATEGORIES.map(c => <option key={c.key} value={c.key}>{c.icon} {c.label}</option>)}
+            {EVENT_CATEGORIES.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
           </select>
         </div>
         <div className="field">
@@ -69,18 +82,20 @@ function EventForm({ pub, event, onDone, onCancel }) {
 
       {form.schedule === "weekly" ? (
         <fieldset className="tag-picker">
-          <legend>Days</legend>
+          <legend>Days<Required /></legend>
           {MONDAY_FIRST.map(day => (
             <label key={day} className={`chip ${form.weekdays.includes(day) ? "active" : ""}`}>
-              <input type="checkbox" className="sr-only" checked={form.weekdays.includes(day)} onChange={() => toggleDay(day)} />
+              <input id={`${idPrefix}-day-${day}`} type="checkbox" className="sr-only" checked={form.weekdays.includes(day)} onChange={() => toggleDay(day)} />
               {WEEKDAYS[day]}
             </label>
           ))}
+          {fieldError("weekdays")}
         </fieldset>
       ) : (
         <div className="field">
-          <label htmlFor={`${idPrefix}-date`}>Date</label>
-          <input id={`${idPrefix}-date`} type="date" value={form.event_date} onChange={set("event_date")} />
+          <label htmlFor={`${idPrefix}-date`}>Date<Required /></label>
+          <input id={`${idPrefix}-date`} type="date" value={form.event_date} onChange={set("event_date")} aria-required="true" {...invalid("event_date")} />
+          {fieldError("event_date")}
         </div>
       )}
 
@@ -91,24 +106,27 @@ function EventForm({ pub, event, onDone, onCancel }) {
         </div>
         <div className="field">
           <label htmlFor={`${idPrefix}-end`}>Ends (optional)</label>
-          <input id={`${idPrefix}-end`} type="time" value={form.end_time} onChange={set("end_time")} />
+          <input id={`${idPrefix}-end`} type="time" value={form.end_time} onChange={set("end_time")} {...invalid("end_time")} />
+          {fieldError("end_time")}
         </div>
         <div className="field grow">
           <label htmlFor={`${idPrefix}-url`}>Source link</label>
-          <input id={`${idPrefix}-url`} type="url" value={form.source_url} onChange={set("source_url")} placeholder="https://" />
+          <input id={`${idPrefix}-url`} type="url" value={form.source_url} onChange={set("source_url")} placeholder="https://" {...invalid("source_url")} />
+          {fieldError("source_url")}
         </div>
       </div>
       <div className="field">
         <label htmlFor={`${idPrefix}-desc`}>Description (optional)</label>
-        <input id={`${idPrefix}-desc`} value={form.description} onChange={set("description")} maxLength={500} />
+        <input id={`${idPrefix}-desc`} value={form.description} onChange={set("description")} maxLength={500} {...invalid("description")} />
+        {fieldError("description")}
       </div>
       <label className="checkbox-label">
         <input type="checkbox" checked={form.is_published} onChange={set("is_published")} />
         Published: show on What's on (I've checked it)
       </label>
-      {error && <p className="form-error" role="alert">{error}</p>}
+      <FormError>{error}</FormError>
       <div className="row-actions">
-        <button type="submit" className="primary-button" disabled={saving}>{saving ? "Saving…" : event ? "Save event" : "Add event"}</button>
+        <button type="submit" className="secondary-button" disabled={saving}>{saving ? "Saving…" : event ? "Save event" : "Add event"}</button>
         <button type="button" className="secondary-button" onClick={onCancel}>Cancel</button>
       </div>
     </form>
@@ -120,41 +138,46 @@ export default function AdminEvents({ pub }) {
   const [events, setEvents] = useState(null);
   const [open, setOpen] = useState(null); // event id, "new" or null
   const [reloadKey, setReloadKey] = useState(0);
-  const reload = () => setReloadKey(k => k + 1);
+  const [loadError, setLoadError] = useState("");
+  const reload = () => { setLoadError(""); setReloadKey(k => k + 1); };
+  const { run, isPending } = usePending();
 
   useEffect(() => {
     let active = true;
     api.admin.listEvents({ pubId: pub.id })
       .then(rows => active && setEvents(rows))
-      .catch(err => active && toast(friendlyError(err, "Couldn't load events."), "error"));
+      .catch(err => active && setLoadError(friendlyError(err, "Couldn't load this pub's events.")));
     return () => { active = false; };
   }, [api, pub.id, changeVersion, reloadKey, toast]);
 
-  async function quick(event, changes, message) {
+  const quick = (event, changes, message) => run(event.id, async () => {
     try {
       await api.admin.saveEvent({ ...event, ...changes });
       toast(message, "success");
       notifyChange();
       reload();
     } catch (err) {
-      toast(friendlyError(err), "error");
+      toast(friendlyError(err, "Couldn't save the event. Try again."), "error");
     }
-  }
+  });
 
-  async function remove(event) {
+  function remove(event) {
     if (!window.confirm(`Delete “${event.title}”?`)) return;
-    try {
-      await api.admin.deleteEvent(event.id);
-      toast("Event deleted.", "success");
-      notifyChange();
-      reload();
-    } catch (err) {
-      toast(friendlyError(err), "error");
-    }
+    run(event.id, async () => {
+      try {
+        await api.admin.deleteEvent(event.id);
+        toast("Event deleted.", "success");
+        notifyChange();
+        reload();
+      } catch (err) {
+        toast(friendlyError(err, "Couldn't delete the event. Try again."), "error");
+      }
+    });
   }
 
   const done = () => { setOpen(null); reload(); };
-  if (!events) return <p className="muted">Loading events…</p>;
+  if (loadError) return <ErrorState title="Couldn't load events" message={loadError} onRetry={reload} />;
+  if (!events) return <Loading label="Loading events…" />;
 
   return (
     <>
@@ -163,22 +186,21 @@ export default function AdminEvents({ pub }) {
         {events.map(event => (
           <li key={event.id} className={event.is_published ? "" : "unpublished"}>
             <div className="admin-event-row">
-              <span className="event-icon" aria-hidden="true">{categoryInfo(event.category).icon}</span>
               <div className="event-main">
                 <strong>{event.title}</strong>
                 <span className="small-text">{formatSchedule(event)}</span>
                 <span className="event-meta">
                   <span className={`status-pill ${event.is_published ? "live" : "hidden"}`}>{event.is_published ? "Live" : "Needs checking"}</span>
                   <span className="muted small-text">{SOURCE_LABELS[event.source] || event.source}</span>
-                  {event.source_url && <a className="small-text" href={event.source_url} target="_blank" rel="noreferrer">Check source ↗</a>}
+                  {event.source_url && <ExternalLink className="small-text" href={event.source_url}>Check source</ExternalLink>}
                 </span>
               </div>
               <div className="row-actions">
                 {event.is_published
-                  ? <button type="button" className="secondary-button small" onClick={() => quick(event, { is_published: false }, "Event unpublished.")}>Unpublish</button>
-                  : <button type="button" className="primary-button small" onClick={() => quick(event, { is_published: true }, "Event checked and published.")}>Checked: publish</button>}
+                  ? <button type="button" className="secondary-button small" disabled={isPending(event.id)} onClick={() => quick(event, { is_published: false }, "Event unpublished.")}>Unpublish</button>
+                  : <button type="button" className="secondary-button small" disabled={isPending(event.id)} onClick={() => quick(event, { is_published: true }, "Event checked and published.")}>Checked: publish</button>}
                 <button type="button" className="text-button" aria-expanded={open === event.id} onClick={() => setOpen(open === event.id ? null : event.id)}>Edit</button>
-                <button type="button" className="text-button danger" onClick={() => remove(event)}>Delete</button>
+                <button type="button" className="text-button danger" disabled={isPending(event.id)} onClick={() => remove(event)}>Delete</button>
               </div>
             </div>
             {open === event.id && <EventForm pub={pub} event={event} onDone={done} onCancel={() => setOpen(null)} />}

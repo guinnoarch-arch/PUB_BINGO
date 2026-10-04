@@ -115,7 +115,7 @@ export function createDemoApi() {
         await wait();
         const id = identifier.trim().toLowerCase();
         const user = users.find(u => u.email.toLowerCase() === id || u.username.toLowerCase() === id);
-        if (!user || user.password !== password) throw new Error("Wrong email/username or password.");
+        if (!user || user.password !== password) throw new Error("Invalid login credentials"); // same as Supabase, so the same message shows
         setSession(user);
       },
       async signOut() { setSession(null); },

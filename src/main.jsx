@@ -26,7 +26,6 @@ import { Loading } from "./components/ui/States.jsx";
 import "./styles/global.css";
 
 const THEME_KEY = "pub-bingo-theme";
-const PHONE_KEY = "pub-bingo-phone-mode";
 
 // Display preferences only; all real data lives in the database.
 function readPref(key, fallback) {
@@ -55,15 +54,16 @@ function App() {
     if (saved === "dark" || saved === "light") return saved;
     return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
   });
-  const [phoneMode, setPhoneMode] = useState(() => {
-    const saved = readPref(PHONE_KEY, "");
-    return saved ? saved === "true" : Boolean(window.matchMedia?.("(max-width: 640px)").matches);
-  });
   const [isOnline, setIsOnline] = useState(() => navigator.onLine);
   const { pathname } = useLocation();
   useServiceWorker();
 
-  useEffect(() => { document.documentElement.setAttribute("data-theme", theme); }, [theme]);
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    // The phone's browser bar follows the app's theme, even when it differs from the device setting.
+    const background = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim();
+    document.querySelectorAll('meta[name="theme-color"]').forEach(meta => meta.setAttribute("content", background));
+  }, [theme]);
   useEffect(() => {
     const on = () => setIsOnline(true);
     const off = () => setIsOnline(false);
@@ -76,8 +76,6 @@ function App() {
     <AppShell
       theme={theme}
       onToggleTheme={() => setTheme(t => { const next = t === "dark" ? "light" : "dark"; writePref(THEME_KEY, next); return next; })}
-      phoneMode={phoneMode}
-      onTogglePhoneMode={() => setPhoneMode(p => { writePref(PHONE_KEY, String(!p)); return !p; })}
       isOnline={isOnline}
     >
       <ScrollToTop />
@@ -118,12 +116,14 @@ function ConfigErrorScreen() {
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    {configError ? <ConfigErrorScreen /> : (
-      <BrowserRouter>
-        <AppProvider api={api}>
-          <App />
-        </AppProvider>
-      </BrowserRouter>
-    )}
+    <ErrorBoundary fullPage>
+      {configError ? <ConfigErrorScreen /> : (
+        <BrowserRouter>
+          <AppProvider api={api}>
+            <App />
+          </AppProvider>
+        </BrowserRouter>
+      )}
+    </ErrorBoundary>
   </StrictMode>
 );

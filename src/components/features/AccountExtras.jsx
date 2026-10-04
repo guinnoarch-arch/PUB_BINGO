@@ -3,6 +3,14 @@ import { Link } from "react-router-dom";
 import { useApp } from "../../lib/AppContext.jsx";
 import { computeBadges } from "../../lib/core/badges.js";
 import NotLaunched from "../ui/NotLaunched.jsx";
+import { Armchair, Award, BadgeCheck, Beer, BookOpen, Circle, CircleCheck, Clover, Compass, Drama, FileText, ListChecks, Medal, Receipt, Scale, Tent, TrainFront } from "lucide-react";
+
+// One icon per badge (Lucide), so the tiles can be told apart at a glance.
+const BADGE_ICONS = {
+  "first-round": Beer, regular: Armchair, centurion: Medal, checker: ListChecks, "menu-hunter": FileText, "menu-master": BookOpen,
+  receipts: Receipt, stout: Beer, cask: Beer, soho: Drama, "covent-garden": Tent, holborn: Scale, "kings-cross": TrainFront,
+  explorer: Compass, "pour-judge": Clover, trusted: BadgeCheck
+};
 
 // Badges and the pub passport, on your account page.
 export default function AccountExtras() {
@@ -34,7 +42,7 @@ export default function AccountExtras() {
           <ul className="badge-grid">
             {badges.map(b => (
               <li key={b.id} className={`badge-tile ${b.earned ? "earned" : ""}`} title={b.detail}>
-                <span className="badge-icon" aria-hidden="true">{b.icon}</span>
+                {(() => { const Icon = BADGE_ICONS[b.id] || Award; return <Icon aria-hidden="true" />; })()}
                 <strong>{b.title}</strong>
                 <span className="small-text muted">{b.detail}</span>
                 {!b.earned && b.goal > 1 && <span className="badge-progress" role="progressbar" aria-label={`${b.title} progress`} aria-valuemin={0} aria-valuemax={b.goal} aria-valuenow={b.value}><span style={{ width: `${(b.value / b.goal) * 100}%` }} /></span>}
@@ -47,14 +55,14 @@ export default function AccountExtras() {
       {showPassport && (
         <section className="card" aria-labelledby="passport-heading">
           <div className="section-header">
-            <h2 id="passport-heading" className="section-title">📍 Pub passport ({visited.size}/{pubs.length})</h2>
+            <h2 id="passport-heading" className="section-title">Pub passport ({visited.size}/{pubs.length})</h2>
             <NotLaunched feature="check_ins" />
           </div>
           <p className="muted small-text">Check in on a pub's page when you're there to stamp your passport.</p>
           <ul className="passport-grid">
             {[...pubs].sort((a, b) => Number(visited.has(b.id)) - Number(visited.has(a.id)) || a.name.localeCompare(b.name)).map(pub => (
               <li key={pub.id} className={visited.has(pub.id) ? "stamped" : ""}>
-                <Link to={`/pubs/${pub.id}`}>{visited.has(pub.id) ? "✅" : "⬜"} {pub.name}</Link>
+                <Link to={`/pubs/${pub.id}`}>{visited.has(pub.id) ? <CircleCheck aria-hidden="true" /> : <Circle aria-hidden="true" />}{pub.name}{visited.has(pub.id) && <span className="sr-only"> (visited)</span>}</Link>
               </li>
             ))}
           </ul>

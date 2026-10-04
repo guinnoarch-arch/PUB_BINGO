@@ -5,7 +5,7 @@ export const MIN_PRICE = 1;
 export const MAX_PRICE = 25;
 export const MEASURES = ["pint", "half", "two-thirds", "schooner", "bottle", "can"];
 // Draught measures (poured at the bar). Bottles and cans are packaged and never count as "a pint".
-export const DRAUGHT_MEASURES = ["pint", "half", "two-thirds", "schooner"];
+const DRAUGHT_MEASURES = ["pint", "half", "two-thirds", "schooner"];
 const MEASURE_TO_PINT = { pint: 1, half: 2, "two-thirds": 1.5, schooner: 1.5 };
 const PINT_ML = 568;
 
@@ -45,12 +45,20 @@ export function measureLabel(measure = "pint", volumeMl = null) {
   return measure || "pint";
 }
 
+const GBP = new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP" });
+
+// "£5.80". Rounds to pence first, so floating-point leftovers (5.799999…) never show. Negative
+// amounts read "−£0.20" with a true minus sign; a missing price shows an en dash.
 export function formatPrice(value) {
-  if (value == null || !Number.isFinite(Number(value))) return "–";
-  return `£${Number(value).toFixed(2)}`;
+  if (value == null || value === "" || !Number.isFinite(Number(value))) return "–";
+  const pence = Math.round(Number(value) * 100);
+  const text = GBP.format(Math.abs(pence) / 100);
+  return pence < 0 ? `−${text}` : text;
 }
 
 export function cleanText(value) {
+  // Control characters are what this removes, so the regex has to name them.
+  // eslint-disable-next-line no-control-regex
   return String(value ?? "").replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim();
 }
 
@@ -59,27 +67,27 @@ export function cleanText(value) {
 export function validatePriceReport(input = {}) {
   const errors = {};
   const price = parsePrice(input.price);
-  if (price == null) errors.price = "Enter a price like 5.80";
-  else if (price < MIN_PRICE || price > MAX_PRICE) errors.price = `Price must be between ${formatPrice(MIN_PRICE)} and ${formatPrice(MAX_PRICE)}`;
+  if (price == null) errors.price = String(input.price ?? "").trim() ? "Enter the price as a number, like 5.80." : "Enter the price you paid, like 5.80.";
+  else if (price < MIN_PRICE || price > MAX_PRICE) errors.price = `Enter a price between ${formatPrice(MIN_PRICE)} and ${formatPrice(MAX_PRICE)}. Check the decimal point.`;
 
   const drinkId = input.drinkId || null;
   const drinkName = cleanText(input.drinkName);
   if (!drinkId) {
-    if (drinkName.length < LIMITS.drinkName.min) errors.drinkName = "Enter the drink's name";
-    else if (drinkName.length > LIMITS.drinkName.max) errors.drinkName = `Keep the name under ${LIMITS.drinkName.max} characters`;
+    if (drinkName.length < LIMITS.drinkName.min) errors.drinkName = "Enter the drink's name, like Camden Hells.";
+    else if (drinkName.length > LIMITS.drinkName.max) errors.drinkName = `Shorten the name to ${LIMITS.drinkName.max} characters or fewer.`;
   }
 
   const category = input.category || (drinkId ? null : "");
-  if (!drinkId && !CATEGORIES.includes(category)) errors.category = "Pick a category";
-  if (drinkId && category && !CATEGORIES.includes(category)) errors.category = "Pick a category";
+  if (!drinkId && !CATEGORIES.includes(category)) errors.category = "Choose a category, like Lager or Stout.";
+  if (drinkId && category && !CATEGORIES.includes(category)) errors.category = "Choose a category from the list.";
 
   const measure = input.measure || "pint";
-  if (!MEASURES.includes(measure)) errors.measure = "Pick a measure";
+  if (!MEASURES.includes(measure)) errors.measure = "Choose a measure from the list.";
 
   const note = cleanText(input.note);
-  if (note.length > LIMITS.note.max) errors.note = `Keep notes under ${LIMITS.note.max} characters`;
+  if (note.length > LIMITS.note.max) errors.note = `Shorten the note to ${LIMITS.note.max} characters or fewer.`;
 
-  if (!input.pubId) errors.pubId = "Pick a pub";
+  if (!input.pubId) errors.pubId = "Choose a pub.";
 
   const ok = Object.keys(errors).length === 0;
   return {

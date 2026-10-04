@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { adminTotals, canPublish, filterRows, missingInfo, one, slugify, sortRows, summarisePub } from "../../src/lib/core/adminPubs.js";
+import { adminTotals, canPublish, filterRows, missingInfo, one, slugify, sortRows, summarisePub, validatePubDetails } from "../../src/lib/core/adminPubs.js";
 
 const pub = (over = {}) => ({
   id: "p", name: "Pub", area: "Soho", address: "1 Street", lat: 51.5, lng: -0.1, description: "Nice", website: "https://x.com",
@@ -101,5 +101,23 @@ describe("events in the admin table", () => {
     expect(without).toMatchObject({ eventCount: 0, eventsToCheck: 0 });
     expect(filterRows([withEvents, without], { status: "events-to-check" })).toHaveLength(1);
     expect(sortRows([withEvents, without], "eventCount", "desc")[0].eventCount).toBe(1);
+  });
+});
+
+describe("validatePubDetails", () => {
+  const ok = { name: "The Lamb", id: "the-lamb", area: "Holborn", lat: "51.52", lng: "-0.12", opened_year: "1729", website: "https://thelamb.example" };
+  it("accepts a complete pub", () => {
+    expect(validatePubDetails(ok, { isNew: true, year: 2026 })).toEqual({});
+  });
+  it("flags each problem against its own field", () => {
+    const errors = validatePubDetails({ ...ok, name: " ", id: "The Lamb", lat: "51.5, -0.1", lng: "", opened_year: "2090", website: "thelamb.co.uk" }, { isNew: true, year: 2026 });
+    expect(Object.keys(errors).sort()).toEqual(["id", "lat", "lng", "name", "opened_year", "website"]);
+  });
+  it("asks for both coordinates or neither", () => {
+    expect(validatePubDetails({ ...ok, lat: "", lng: "-0.12" }).lat).toMatch(/both/);
+    expect(validatePubDetails({ ...ok, lat: "", lng: "" })).toEqual({});
+  });
+  it("only checks the id for new pubs", () => {
+    expect(validatePubDetails({ ...ok, id: "Old Id" }, { isNew: false })).toEqual({});
   });
 });
